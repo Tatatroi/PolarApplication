@@ -1,4 +1,4 @@
-package com.example.polarapplication
+package com.application.polarapplication
 
 import org.junit.Test
 

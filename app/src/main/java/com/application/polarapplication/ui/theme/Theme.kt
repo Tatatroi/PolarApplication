@@ -1,6 +1,5 @@
-package com.example.polarapplication.ui.theme
+package com.application.polarapplication.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.polarapplication"
+    namespace = "com.application.polarapplication"
     compileSdk = 36
 
     defaultConfig {

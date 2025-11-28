@@ -1,4 +1,4 @@
-package com.example.polarapplication.ui.theme
+package com.application.polarapplication.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

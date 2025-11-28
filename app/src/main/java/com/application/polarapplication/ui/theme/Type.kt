@@ -1,4 +1,4 @@
-package com.example.polarapplication.ui.theme
+package com.application.polarapplication.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
