@@ -82,53 +82,53 @@ fun PhaseCard(title: String, value: String, icon: ImageVector, color: Color, mod
  * 🔹 WorkoutDetailsCard(workout)
  * Cardul mare care afișează detaliile antrenamentului planificat.
  */
-@Composable
-fun WorkoutDetailsCard(workout: Workout) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = "Antrenamentul de Azi:",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            Text(
-                text = workout.title,
-                color = Indigo,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 20.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // Detalii Durată & Focus
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Filled.List, contentDescription = "Durată", tint = Color.Gray)
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(text = "Durată Estimată:", fontWeight = FontWeight.Medium)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = workout.duration)
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
-            ) {
-                Icon(Icons.Filled.Favorite, contentDescription = "Focus", tint = Color.Gray)
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(text = "Focus Monitorizat (Senzor):", fontWeight = FontWeight.Medium)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = workout.focus, modifier = Modifier.weight(1f))
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-            Divider(color = Color.LightGray)
-        }
-    }
-}
+//@Composable
+//fun WorkoutDetailsCard(workout: Workout) {
+//    Card(
+//        modifier = Modifier.fillMaxWidth(),
+//        shape = RoundedCornerShape(16.dp),
+//        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+//    ) {
+//        Column(modifier = Modifier.padding(20.dp)) {
+//            Text(
+//                text = "Antrenamentul de Azi:",
+//                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+//                modifier = Modifier.padding(bottom = 12.dp)
+//            )
+//            Text(
+//                text = workout.title,
+//                color = Indigo,
+//                fontWeight = FontWeight.SemiBold,
+//                fontSize = 20.sp,
+//                modifier = Modifier.padding(bottom = 16.dp)
+//            )
+//
+//            // Detalii Durată & Focus
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Icon(Icons.Filled.List, contentDescription = "Durată", tint = Color.Gray)
+//                Spacer(modifier = Modifier.width(12.dp))
+//                Text(text = "Durată Estimată:", fontWeight = FontWeight.Medium)
+//                Spacer(modifier = Modifier.width(8.dp))
+//                Text(text = workout.duration)
+//            }
+//            Spacer(modifier = Modifier.height(12.dp))
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                verticalAlignment = Alignment.Top
+//            ) {
+//                Icon(Icons.Filled.Favorite, contentDescription = "Focus", tint = Color.Gray)
+//                Spacer(modifier = Modifier.width(12.dp))
+//                Text(text = "Focus Monitorizat (Senzor):", fontWeight = FontWeight.Medium)
+//                Spacer(modifier = Modifier.width(8.dp))
+//                Text(text = workout.focus, modifier = Modifier.weight(1f))
+//            }
+//
+//            Spacer(modifier = Modifier.height(24.dp))
+//            Divider(color = Color.LightGray)
+//        }
+//    }
+//}
 
