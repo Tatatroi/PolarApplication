@@ -1,6 +1,5 @@
 package com.application.polarapplication.polar
 
-import android.R.attr.identifier
 import com.polar.sdk.api.PolarBleApi
 import android.content.Context
 import com.polar.sdk.api.PolarBleApiDefaultImpl
