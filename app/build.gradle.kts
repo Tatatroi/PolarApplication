@@ -52,6 +52,7 @@ dependencies {
     implementation("com.github.polarofficial:polar-ble-sdk:5.5.0")
     implementation("io.reactivex.rxjava3:rxjava:3.1.5")
     implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation(libs.androidx.ui)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -8,19 +8,27 @@ import com.polar.sdk.api.PolarBleApiDefaultImpl
 import com.polar.sdk.api.model.PolarDeviceInfo
 import com.polar.sdk.api.model.PolarHrData
 import io.reactivex.rxjava3.disposables.Disposable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class PolarManager(context: Context) {
 
+    private val _isConnected = MutableStateFlow(false)
+    val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
+
+    private val _heartRate = MutableStateFlow(0)
+    val heartRate: StateFlow<Int> = _heartRate.asStateFlow()
+
     private var hrDisposable: Disposable? = null
     private val rrBuffer = mutableListOf<Int>()
-    private val maxBufferSize = 100   // last 100 heart beats (~90–100 sec)
+    private val maxBufferSize = 100
 
     private val api: PolarBleApi by lazy {
         PolarBleApiDefaultImpl.defaultImplementation(
             context,
             setOf(
                 PolarBleApi.PolarBleSdkFeature.FEATURE_HR,
-                PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_SDK_MODE,
                 PolarBleApi.PolarBleSdkFeature.FEATURE_BATTERY_INFO,
                 PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_ONLINE_STREAMING
             )
@@ -29,96 +37,58 @@ class PolarManager(context: Context) {
 
     init {
         api.setApiCallback(object : PolarBleApiCallback() {
-
             override fun deviceConnected(polarDeviceInfo: PolarDeviceInfo) {
                 Log.d("POLAR", "Connected: ${polarDeviceInfo.deviceId}")
+                _isConnected.value = true // CRITICAL: Updates the UI state
             }
 
             override fun deviceDisconnected(polarDeviceInfo: PolarDeviceInfo) {
                 Log.d("POLAR", "Disconnected: ${polarDeviceInfo.deviceId}")
+                _isConnected.value = false // CRITICAL: Updates the UI state
+                _heartRate.value = 0
                 hrDisposable?.dispose()
             }
 
-            // implementation without RMSSD
-//            override fun hrFeatureReady(identifier: String) {
-//                Log.d("POLAR", "HR feature ready for $identifier")
-//
-//                hrDisposable = api.startHrStreaming(identifier)
-//                    .subscribe(
-//                        { hrData: PolarHrData ->
-//                            val hr = hrData.samples.last().hr
-//                            Log.d("POLAR_HR", "Heart Rate: $hr bpm")
-//                        },
-//                        { error ->
-//                            Log.e("POLAR_HR", "HR stream error: $error")
-//                        }
-//                    )
-//            }
-
             override fun hrFeatureReady(identifier: String) {
                 Log.d("POLAR", "HR feature ready for $identifier")
-
                 hrDisposable = api.startHrStreaming(identifier)
                     .subscribe(
                         { hrData: PolarHrData ->
-
-                            // HR (BPM)
                             val hr = hrData.samples.last().hr
-                            Log.d("POLAR_HR", "HR: $hr bpm")
+                            _heartRate.value = hr // CRITICAL: Streams HR to Dashboard
 
-                            // RR-intervalele primite în acest pachet
                             val rrList = hrData.samples.flatMap { it.rrsMs }
-                            Log.d("POLAR_RR", "RR incoming: $rrList")
-
-                            // Adaugăm noile RR-uri în buffer
                             rrBuffer.addAll(rrList)
 
-                            // Păstrăm doar ultimele 100 RR (sau cât vrei)
                             if (rrBuffer.size > maxBufferSize) {
                                 rrBuffer.subList(0, rrBuffer.size - maxBufferSize).clear()
                             }
 
-                            Log.d("POLAR_RR_BUFFER", "RR Buffer: $rrBuffer")
-
-                            //  Calculăm RMSSD pe întreg bufferul, nu pe pachetul instant
                             if (rrBuffer.size >= 2) {
                                 val rmssd = calculateRmssd(rrBuffer)
-                                Log.d("POLAR_RMSSD", "RMSSD (buffer): $rmssd")
+                                Log.d("POLAR_RMSSD", "RMSSD: $rmssd")
                             }
-
                         },
-                        { error ->
-                            Log.e("POLAR_HR", "HR stream error: $error")
-                        }
+                        { error -> Log.e("POLAR_HR", "HR stream error: $error") }
                     )
             }
-
-
-
-
         })
     }
 
     fun connectToDevice(deviceId: String) {
-        api.connectToDevice(deviceId)
-    }
-
-    fun disconnectFromDevice(deviceId: String) {
-        api.disconnectFromDevice(deviceId)
+        try {
+            api.connectToDevice(deviceId)
+        } catch (e: Exception) {
+            Log.e("POLAR", "Connection error: ${e.message}")
+        }
     }
 
     private fun calculateRmssd(rrList: List<Int>): Double {
         if (rrList.size < 2) return 0.0
-
         val diffs = rrList.zipWithNext { a, b ->
             val diff = (b - a).toDouble()
             diff * diff
         }
-
-        val mean = diffs.sum() / diffs.size
-        return kotlin.math.sqrt(mean)
+        return kotlin.math.sqrt(diffs.average())
     }
-
-
-
 }
