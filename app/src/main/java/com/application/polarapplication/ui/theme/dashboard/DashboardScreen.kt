@@ -35,6 +35,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
 
     val isConnected by viewModel.isConnected.collectAsState()
     val heartRate by viewModel.heartRate.collectAsState()
+    val rmssd by viewModel.rmssd.collectAsState()
 
 
     Column(
@@ -58,6 +59,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
         PolarStatusCard(
             isConnected = isConnected, // now uses the variable from viewModel
             heartRate = heartRate,     // now uses the variable from viewModel
+            rmssd = rmssd,
             onConnectClick = {
                 viewModel.toggleConnection("A6FC0B2E")
             }
@@ -92,7 +94,11 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
 
 
 @Composable
-fun PolarStatusCard(isConnected: Boolean, heartRate: Int, onConnectClick: () -> Unit) {
+fun PolarStatusCard(
+    isConnected: Boolean,
+    heartRate: Int,
+    rmssd: Double,
+    onConnectClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable{ onConnectClick() },
         colors = CardDefaults.cardColors(
@@ -122,6 +128,16 @@ fun PolarStatusCard(isConnected: Boolean, heartRate: Int, onConnectClick: () -> 
                         text = "$heartRate BPM",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = "HRV (RMSSD): ${"%.1f".format(rmssd)} ms",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.DarkGray
+                    )
+                    Text(
+                        text = "Apasă pentru deconectare",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF2E7D32).copy(alpha = 0.7f)
                     )
                 } else {
                     Text(text = "Apasă pentru a scana...", style = MaterialTheme.typography.bodySmall)

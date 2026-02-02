@@ -14,8 +14,13 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     val isConnected: StateFlow<Boolean> = polarManager.isConnected
     val heartRate: StateFlow<Int> = polarManager.heartRate
 
+    val rmssd: StateFlow<Double> = polarManager.rmssd
+
     fun toggleConnection(deviceId: String) {
-        // If already connected, you could implement disconnect logic here
-        polarManager.connectToDevice(deviceId)
+        if (isConnected.value) {
+            polarManager.disconnectFromDevice(deviceId)
+        } else {
+            polarManager.connectToDevice(deviceId)
+        }
     }
 }

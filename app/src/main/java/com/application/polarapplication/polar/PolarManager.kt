@@ -18,6 +18,9 @@ class PolarManager(context: Context) {
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
     private val _heartRate = MutableStateFlow(0)
+
+    private val _rmssd = MutableStateFlow(0.0)
+    val rmssd: StateFlow<Double> = _rmssd.asStateFlow()
     val heartRate: StateFlow<Int> = _heartRate.asStateFlow()
 
     private var hrDisposable: Disposable? = null
@@ -65,8 +68,8 @@ class PolarManager(context: Context) {
                             }
 
                             if (rrBuffer.size >= 2) {
-                                val rmssd = calculateRmssd(rrBuffer)
-                                Log.d("POLAR_RMSSD", "RMSSD: $rmssd")
+                                val calculatedRmssd = calculateRmssd(rrBuffer)
+                                _rmssd.value = calculatedRmssd
                             }
                         },
                         { error -> Log.e("POLAR_HR", "HR stream error: $error") }
@@ -80,6 +83,18 @@ class PolarManager(context: Context) {
             api.connectToDevice(deviceId)
         } catch (e: Exception) {
             Log.e("POLAR", "Connection error: ${e.message}")
+        }
+    }
+
+    fun disconnectFromDevice(deviceId: String) {
+        try {
+            api.disconnectFromDevice(deviceId)
+            // Manually update states in case the callback takes a moment
+            _isConnected.value = false
+            _heartRate.value = 0
+            hrDisposable?.dispose()
+        } catch (e: Exception) {
+            Log.e("POLAR", "Disconnect error: ${e.message}")
         }
     }
 
