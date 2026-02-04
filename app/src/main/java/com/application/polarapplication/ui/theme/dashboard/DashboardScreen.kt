@@ -2,41 +2,35 @@ package com.application.polarapplication.ui.theme.dashboard
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.application.polarapplication.ui.theme.Indigo
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material3.HorizontalDivider// Note: Divider is now HorizontalDivider in M3
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.application.polarapplication.ai.model.AthleteVitals
+import com.application.polarapplication.ai.model.DeviceState
 import com.application.polarapplication.model.Workout
+import com.application.polarapplication.ui.theme.Indigo
 
 @Composable
 fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
 
-    val isConnected by viewModel.isConnected.collectAsState()
-    val heartRate by viewModel.heartRate.collectAsState()
-    val rmssd by viewModel.rmssd.collectAsState()
-
+    val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -44,7 +38,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // 1. Header with Name and Email
+        // 1. Header
         Column(modifier = Modifier.padding(bottom = 24.dp)) {
             GreetingHeader(userName = "Mitroi Stefan")
             Text(
@@ -54,19 +48,18 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
             )
         }
 
-        // 2. Polar Sensor Status Card
-        // Use the variables observed from your ViewModel
+        // 2. Polar Status Card (Acum folosim obiectele curate)
         PolarStatusCard(
-            isConnected = isConnected, // now uses the variable from viewModel
-            heartRate = heartRate,     // now uses the variable from viewModel
-            rmssd = rmssd,
+            device = uiState.device,
+            vitals = uiState.vitals,
             onConnectClick = {
                 viewModel.toggleConnection("A6FC0B2E")
             }
         )
+
         Spacer(modifier = Modifier.height(20.dp))
 
-        // 3. Phase Cards (Bompa Theory: Macro/Meso cycles)
+        // 3. Phase Cards
         Row(modifier = Modifier.fillMaxWidth()) {
             PhaseCard(
                 title = "Faza Curentă",
@@ -87,23 +80,26 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 4. Workout Details (Uncommented and improved)
+        // 4. Workout Details
         WorkoutDetailsSection()
     }
 }
 
-
 @Composable
 fun PolarStatusCard(
-    isConnected: Boolean,
-    heartRate: Int,
-    rmssd: Double,
-    onConnectClick: () -> Unit) {
+    device: DeviceState,
+    vitals: AthleteVitals,
+    onConnectClick: () -> Unit
+) {
+    // Culorile se schimbă în funcție de starea tehnică a senzorului
+    val containerColor = if (device.isConnected) Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
+    val statusTextColor = if (device.isConnected) Color(0xFF2E7D32) else Color(0xFFC62828)
+
     Card(
-        modifier = Modifier.fillMaxWidth().clickable{ onConnectClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = if (isConnected) Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
-        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onConnectClick() },
+        colors = CardDefaults.cardColors(containerColor = containerColor),
         shape = RoundedCornerShape(16.dp)
     ) {
         Row(
@@ -113,43 +109,59 @@ fun PolarStatusCard(
             Icon(
                 imageVector = Icons.Default.Favorite,
                 contentDescription = null,
-                tint = if (isConnected) Color.Red else Color.Gray,
+                tint = if (device.isConnected) Color.Red else Color.Gray,
                 modifier = Modifier.size(40.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
+
             Column {
+                // Starea Conexiunii
                 Text(
-                    text = if (isConnected) "Senzor Conectat" else "Senzor Deconectat",
+                    text = if (device.isConnected) "Senzor Conectat" else "Senzor Deconectat",
                     fontWeight = FontWeight.Bold,
-                    color = if (isConnected) Color(0xFF2E7D32) else Color(0xFFC62828)
+                    color = statusTextColor
                 )
-                if (isConnected) {
+
+                if (device.isConnected) {
+                    // Datele Biologice (Vitals)
                     Text(
-                        text = "$heartRate BPM",
+                        text = "${vitals.heartRate} BPM (Zona ${vitals.trainingZone})",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.ExtraBold
                     )
                     Text(
-                        text = "HRV (RMSSD): ${"%.1f".format(rmssd)} ms",
+                        text = "HRV (RMSSD): ${"%.1f".format(vitals.rmssd)} ms",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.DarkGray
                     )
+
+                    Text(
+                        text = "Status: ${vitals.getBompaReadiness()}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Indigo,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+
                     Text(
                         text = "Apasă pentru deconectare",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF2E7D32).copy(alpha = 0.7f)
+                        color = statusTextColor.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                 } else {
-                    Text(text = "Apasă pentru a scana...", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        text = "Apasă pentru a scana...",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         }
     }
 }
-/**
- * GreetingHeader(name)
- * Antetul principal de întâmpinare.
- */
+
+// ... Restul funcțiilor (GreetingHeader, PhaseCard, WorkoutDetailsSection) rămân neschimbate ...
+// Asigură-te că le copiezi dacă nu sunt deja în fișier.
 @Composable
 fun GreetingHeader(userName: String) {
     val firstName = userName.split(" ")[0]
@@ -160,15 +172,9 @@ fun GreetingHeader(userName: String) {
     )
 }
 
-
-/**
- * 🔹 PhaseCard(title, value, icon, color)
- * Cardurile mici pentru faza curentă și obiectivul zilnic.
- */
 @Composable
 fun PhaseCard(title: String, value: String, icon: ImageVector, color: Color, modifier: Modifier = Modifier) {
     val isDark = color == Indigo
-
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
@@ -176,41 +182,33 @@ fun PhaseCard(title: String, value: String, icon: ImageVector, color: Color, mod
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = icon,
-                contentDescription = title,
+                imageVector = icon, contentDescription = title,
                 tint = if (isDark) Color.White.copy(alpha = 0.8f) else Indigo,
                 modifier = Modifier.size(32.dp)
             )
-
             Spacer(modifier = Modifier.width(12.dp))
-
             Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isDark) Color.White.copy(alpha = 0.8f) else Color.Gray
-                )
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = if (isDark) Color.White else Color.DarkGray
-                )
+                Text(title, style = MaterialTheme.typography.bodySmall, color = if (isDark) Color.White.copy(alpha = 0.8f) else Color.Gray)
+                Text(value, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = if (isDark) Color.White else Color.DarkGray)
             }
         }
     }
 }
 
+@Composable
+fun WorkoutDetailsSection() {
+    val todayWorkout = Workout(
+        title = "Antrenament Explozivitate",
+        duration = "45 min",
+        focus = "Viteză și Forță"
+    )
+    WorkoutDetailsCard(workout = todayWorkout)
+}
 
-/**
- * 🔹 WorkoutDetailsCard(workout)
- * Cardul mare care afișează detaliile antrenamentului planificat.
- */
 @Composable
 fun WorkoutDetailsCard(workout: Workout) {
     Card(
@@ -219,56 +217,23 @@ fun WorkoutDetailsCard(workout: Workout) {
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = "Antrenamentul de Azi:",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            Text(
-                text = workout.title,
-                color = Indigo,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 20.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // Detalii Durată & Focus
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.List,contentDescription = "Durată",tint = Color.Gray)
+            Text("Antrenamentul de Azi:", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+            Text(workout.title, color = Indigo, fontWeight = FontWeight.SemiBold, fontSize = 20.sp, modifier = Modifier.padding(vertical = 12.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.AutoMirrored.Filled.List, contentDescription = null, tint = Color.Gray)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = "Durată Estimată:", fontWeight = FontWeight.Medium)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = workout.duration)
+                Text("Durată: ", fontWeight = FontWeight.Medium)
+                Text(workout.duration)
             }
             Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
-            ) {
-                Icon(Icons.Filled.Favorite, contentDescription = "Focus", tint = Color.Gray)
+            Row(verticalAlignment = Alignment.Top) {
+                Icon(Icons.Filled.Favorite, contentDescription = null, tint = Color.Gray)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = "Focus Monitorizat (Senzor):", fontWeight = FontWeight.Medium)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = workout.focus, modifier = Modifier.weight(1f))
+                Text("Focus: ", fontWeight = FontWeight.Medium)
+                Text(workout.focus, modifier = Modifier.weight(1f))
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(color = Color.LightGray)
         }
     }
 }
-
-@Composable
-fun WorkoutDetailsSection() {
-    // For now, we use "dummy" data to test the UI
-    val todayWorkout = Workout(
-        title = "Antrenament Explozivitate",
-        duration = "45 min",
-        focus = "Viteză și Forță (Teoria lui Bompa)"
-    )
-    WorkoutDetailsCard(workout = todayWorkout)
-}
-
