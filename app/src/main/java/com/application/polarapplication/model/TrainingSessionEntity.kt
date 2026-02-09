@@ -19,5 +19,6 @@ data class TrainingSessionEntity(
     val cnsScoreAtEnd: Int,
 
     // Pentru logica Bompa de mai târziu
-    val microCycleId: Long? = null
+    val microCycleId: Long? = null,
+    val hrSamples: String = ""
 )

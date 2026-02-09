@@ -45,8 +45,11 @@ class PolarManager(context: Context) {
     private val rrBuffer = mutableListOf<Double>()
     private val maxRrSize = 60
 
-
     private var ppiDisposable: Disposable? = null
+
+    private val workoutHeartRateSamples = mutableListOf<Int>()
+
+    private var lastSampleTimestamp = 0L
 
 
     /* ================== POLAR API ================== */
@@ -170,6 +173,12 @@ class PolarManager(context: Context) {
                     val displayHr = smooth.toInt()
                     val zone = calcZone(displayHr, 200)
 
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastSampleTimestamp >= 2000) {
+                        workoutHeartRateSamples.add(displayHr)
+                        lastSampleTimestamp = currentTime
+                    }
+
                     /* ================== BOMPA METRICS CALCULATION ================== */
 
                     // 1. CNS Readiness (0-100)
@@ -218,6 +227,8 @@ class PolarManager(context: Context) {
         reset()
     }
 
+    fun getHrSamples(): List<Int> = workoutHeartRateSamples.toList()
+
     private fun reset() {
 
         lastHr = null
@@ -231,6 +242,8 @@ class PolarManager(context: Context) {
         accumulatedTrimp = 0.0
         accumulatedCalories = 0.0
         lastCalculationTime = 0L
+        workoutHeartRateSamples.clear()
+        lastSampleTimestamp = 0L
     }
 
 

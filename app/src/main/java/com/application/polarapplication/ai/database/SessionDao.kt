@@ -13,5 +13,5 @@ interface SessionDao {
     suspend fun insertSession(session: TrainingSessionEntity)
 
     @Query("SELECT * FROM training_sessions ORDER BY date DESC")
-    fun getAllSessions(): List<Flow<List<TrainingSessionEntity>>>
+    fun getAllSessionsFlow(): Flow<List<TrainingSessionEntity>>
 }

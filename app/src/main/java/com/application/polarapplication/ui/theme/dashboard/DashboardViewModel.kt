@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.google.gson.Gson
+import kotlinx.coroutines.flow.asStateFlow
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -23,9 +25,16 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     // Ținem minte dacă utilizatorul a apăsat START
     private val _isWorkoutActive = MutableStateFlow(false)
+    private val _selectedSession = MutableStateFlow<TrainingSessionEntity?>(null)
+
+    val selectedSession = _selectedSession.asStateFlow()
 
     val allSessions: StateFlow<List<TrainingSessionEntity>> = sessionDao.getAllSessionsFlow()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     val uiState: StateFlow<DashboardUiState> = combine(
         polarManager.deviceState,
@@ -60,6 +69,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     // Funcția care oprește și SALVEAZĂ în baza de date
     fun stopWorkout(workoutType: String) {
         val currentVitals = uiState.value.vitals
+        val samplesList = polarManager.getHrSamples()
+        val samplesJson = Gson().toJson(samplesList) // Transformăm [120, 125, 130] în "[120,125,130]"
         _isWorkoutActive.value = false
 
         // Lansăm o corutină (un proces pe fundal) pentru a scrie în baza de date
@@ -71,10 +82,15 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 finalTrimp = currentVitals.trimpScore,
                 totalCalories = currentVitals.calories,
                 cnsScoreAtStart = 0, // Vom implementa logica de captură la start
-                cnsScoreAtEnd = currentVitals.cnsScore,
+                cnsScoreAtEnd = currentVitals.cnsScore ,
+                hrSamples = samplesJson,
                 isCompleted = true
             )
             sessionDao.insertSession(newSession)
         }
+    }
+
+    fun selectSession(session: TrainingSessionEntity?) {
+        _selectedSession.value = session
     }
 }
