@@ -59,6 +59,16 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        if (uiState.device.isConnected) {
+            WorkoutControlPanel(
+                isActive = uiState.isWorkoutActive,
+                vitals = uiState.vitals,
+                onStart = { viewModel.startWorkout() },
+                onStop = { type -> viewModel.stopWorkout(type) }
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+
         // 3. Phase Cards
         Row(modifier = Modifier.fillMaxWidth()) {
             PhaseCard(
@@ -234,6 +244,75 @@ fun WorkoutDetailsCard(workout: Workout) {
             }
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(color = Color.LightGray)
+        }
+    }
+}
+
+@Composable
+fun WorkoutControlPanel(
+    isActive: Boolean,
+    vitals: AthleteVitals,
+    onStart: () -> Unit,
+    onStop: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isActive) Color(0xFFFFF3E0) else Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = if (isActive) "SESIUNE ACTIVĂ" else "PREGĂTIRE ANTRENAMENT",
+                style = MaterialTheme.typography.labelLarge,
+                color = if (isActive) Color(0xFFE65100) else Color.Gray
+            )
+
+            if (!isActive) {
+                // ECRAN PRE-START
+                Text(
+                    text = "Bazat pe CNS (${vitals.cnsScore}), recomandăm: Forță Maximă",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                Button(
+                    onClick = onStart,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Indigo)
+                ) {
+                    Text("START ANTRENAMENT")
+                }
+            } else {
+                // ECRAN ÎN TIMPUL ANTRENAMENTULUI
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("TRIMP", style = MaterialTheme.typography.bodySmall)
+                        Text("${"%.1f".format(vitals.trimpScore)}", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("CALORII", style = MaterialTheme.typography.bodySmall)
+                        Text("${vitals.calories}", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("CNS LIVE", style = MaterialTheme.typography.bodySmall)
+                        Text("${vitals.cnsScore}", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    }
+                }
+
+                Button(
+                    onClick = { onStop("Forță") }, // Momentan trimitem hardcoded, putem pune un meniu
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC62828))
+                ) {
+                    Text("STOP ȘI SALVEAZĂ")
+                }
+            }
         }
     }
 }

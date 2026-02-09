@@ -5,6 +5,7 @@ import com.application.polarapplication.ai.model.DeviceState
 
 class DashboardUiState (
     val vitals: AthleteVitals = AthleteVitals(),
-    val device: DeviceState = DeviceState()
+    val device: DeviceState = DeviceState(),
+    val isWorkoutActive: Boolean = false
 )
 {}
