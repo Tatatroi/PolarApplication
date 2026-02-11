@@ -272,4 +272,12 @@ class PolarManager(context: Context) {
             else -> 5
         }
     }
+
+    fun prepareNewWorkout() {
+        accumulatedTrimp = 0.0
+        accumulatedCalories = 0.0
+        workoutHeartRateSamples.clear()
+        lastHr = null
+        _athleteVitals.value = AthleteVitals()
+    }
 }

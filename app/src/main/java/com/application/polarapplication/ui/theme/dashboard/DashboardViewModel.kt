@@ -62,6 +62,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     // Funcția care pornește antrenamentul
     fun startWorkout() {
+        polarManager.prepareNewWorkout()
         _isWorkoutActive.value = true
         // Aici am putea reseta TRIMP-ul din PolarManager dacă vrem o sesiune nouă curată
     }

@@ -21,6 +21,7 @@ import com.patrykandpatrick.vico.compose.axis.horizontal.bottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
 import com.patrykandpatrick.vico.core.entry.entryModelOf
 import com.patrykandpatrick.vico.core.entry.entryOf
 
@@ -46,11 +47,19 @@ fun WorkoutDetailsScreen(session: TrainingSessionEntity) {
             val chartEntryModel = com.patrykandpatrick.vico.core.entry.entryModelOf(entries)
 
             Chart(
-                chart = lineChart(),
+                chart = lineChart(
+                    // Forțăm axa Y să se adapteze la valorile reale, nu să fie fixă
+                    axisValuesOverrider = AxisValuesOverrider.fixed(
+                        minY = hrPoints.minOrNull()?.toFloat()?.minus(10f),
+                        maxY = hrPoints.maxOrNull()?.toFloat()?.plus(10f)
+                    )
+                ),
                 model = chartEntryModel,
-                startAxis = startAxis(),
+                startAxis = startAxis(
+                    valueFormatter = { value, _ -> "${value.toInt()} bpm" }
+                ),
                 bottomAxis = bottomAxis(),
-                modifier = Modifier.padding(16.dp).fillMaxWidth().height(200.dp)
+                modifier = Modifier.padding(16.dp).fillMaxWidth().height(250.dp)
             )
         }
 
