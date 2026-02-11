@@ -1,6 +1,7 @@
 package com.application.polarapplication.ui.theme.dashboard
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,12 +9,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,8 +57,11 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
         PolarStatusCard(
             device = uiState.device,
             vitals = uiState.vitals,
-            onConnectClick = {
-                viewModel.toggleConnection("A6FC0B2E")
+            onDisconnectClick = {
+                // Dacă e conectat, trimitem ID-ul dispozitivului către toggleConnection pentru a-l opri
+                if (uiState.device.deviceId.isNotEmpty()) {
+                    viewModel.toggleConnection(uiState.device.deviceId)
+                }
             }
         )
 
@@ -92,81 +100,6 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
 
         // 4. Workout Details
         WorkoutDetailsSection()
-    }
-}
-
-@Composable
-fun PolarStatusCard(
-    device: DeviceState,
-    vitals: AthleteVitals,
-    onConnectClick: () -> Unit
-) {
-    // Culorile se schimbă în funcție de starea tehnică a senzorului
-    val containerColor = if (device.isConnected) Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
-    val statusTextColor = if (device.isConnected) Color(0xFF2E7D32) else Color(0xFFC62828)
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onConnectClick() },
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Favorite,
-                contentDescription = null,
-                tint = if (device.isConnected) Color.Red else Color.Gray,
-                modifier = Modifier.size(40.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column {
-                // Starea Conexiunii
-                Text(
-                    text = if (device.isConnected) "Senzor Conectat" else "Senzor Deconectat",
-                    fontWeight = FontWeight.Bold,
-                    color = statusTextColor
-                )
-
-                if (device.isConnected) {
-                    // Datele Biologice (Vitals)
-                    Text(
-                        text = "${vitals.heartRate} BPM (Zona ${vitals.trainingZone})",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                    Text(
-                        text = "HRV (RMSSD): ${"%.1f".format(vitals.rmssd)} ms",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.DarkGray
-                    )
-
-                    Text(
-                        text = "Status: ${vitals.getBompaReadiness()}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Indigo,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-
-                    Text(
-                        text = "Apasă pentru deconectare",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = statusTextColor.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                } else {
-                    Text(
-                        text = "Apasă pentru a scana...",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-        }
     }
 }
 
@@ -220,6 +153,83 @@ fun WorkoutDetailsSection() {
 }
 
 @Composable
+fun PolarStatusCard(
+    device: DeviceState,
+    vitals: AthleteVitals,
+    onDisconnectClick: () -> Unit // Schimbăm numele pentru claritate
+) {
+    val containerColor = if (device.isConnected) Color(0xFFE8F5E9) else Color(0xFFF5F5F5)
+    val statusTextColor = if (device.isConnected) Color(0xFF2E7D32) else Color.Gray
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            // Click-ul funcționează doar pentru deconectare acum
+            .clickable(enabled = device.isConnected) { onDisconnectClick() },
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (device.isConnected) {
+                // --- STARE CONECTAT ---
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = null,
+                    tint = Color.Red,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(text = "Senzor Activ", fontWeight = FontWeight.Bold, color = statusTextColor)
+                    Text(
+                        text = "${vitals.heartRate} BPM",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        text = "Apasă pentru deconectare",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray
+                    )
+                }
+            } else {
+                // --- STARE DECONECTAT (AȘTEPTARE) ---
+                // Aici simulăm "imaginea" de așteptare cu un icon și un loader
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.FavoriteBorder,
+                        contentDescription = null,
+                        tint = Color.LightGray,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(54.dp),
+                        strokeWidth = 2.dp,
+                        color = Indigo.copy(alpha = 0.5f)
+                    )
+                }
+                Spacer(modifier = Modifier.width(20.dp))
+                Column {
+                    Text(
+                        text = "Așteptare conexiune...",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "Configurează senzorul din tab-ul 'Senzori'",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun WorkoutDetailsCard(workout: Workout) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -248,6 +258,7 @@ fun WorkoutDetailsCard(workout: Workout) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutControlPanel(
     isActive: Boolean,
@@ -255,6 +266,12 @@ fun WorkoutControlPanel(
     onStart: () -> Unit,
     onStop: (String) -> Unit
 ) {
+    // Definirea listei de tipuri
+    val workoutTypes = listOf("STRENGTH", "ENDURANCE", "SPEED", "RECOVERY", "REST")
+
+    // Mutăm starea aici sus ca să fie persistentă pe durata cât afișăm cardul
+    var selectedType by remember { mutableStateOf(workoutTypes[0]) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -271,12 +288,47 @@ fun WorkoutControlPanel(
             )
 
             if (!isActive) {
-                // ECRAN PRE-START
+                // --- ECRAN PRE-START ---
+                val recommendation = when {
+                    vitals.cnsScore >= 80 -> "Sistemul nervos e odihnit. Recomandăm: STRENGTH / SPEED."
+                    vitals.cnsScore >= 50 -> "Stare optimă. Recomandăm: ENDURANCE."
+                    vitals.cnsScore > 0 -> "Sistem nervos obosit. Recomandăm: RECOVERY."
+                    else -> "Se analizează starea CNS..."
+                }
+
                 Text(
-                    text = "Bazat pe CNS (${vitals.cnsScore}), recomandăm: Forță Maximă",
+                    text = recommendation,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = Indigo
                 )
+
+                Text(
+                    text = "Alege tipul sesiunii:",
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                // Selectorul de tipuri (Chips)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .horizontalScroll(rememberScrollState()), // Permite scroll dacă sunt multe
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    workoutTypes.forEach { type ->
+                        FilterChip(
+                            selected = selectedType == type,
+                            onClick = { selectedType = type },
+                            label = { Text(type) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Indigo,
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
+                }
 
                 Button(
                     onClick = onStart,
@@ -286,7 +338,15 @@ fun WorkoutControlPanel(
                     Text("START ANTRENAMENT")
                 }
             } else {
-                // ECRAN ÎN TIMPUL ANTRENAMENTULUI
+                // --- ECRAN ÎN TIMPUL ANTRENAMENTULUI ---
+                // Afișăm tipul curent selectat pentru confirmare
+                Text(
+                    text = "Tip: $selectedType",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -306,7 +366,8 @@ fun WorkoutControlPanel(
                 }
 
                 Button(
-                    onClick = { onStop("Forță") }, // Momentan trimitem hardcoded, putem pune un meniu
+                    // ACUM TRIMITEM TIPUL SELECTAT, NU "FORȚĂ" HARDCODED
+                    onClick = { onStop(selectedType) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC62828))
                 ) {

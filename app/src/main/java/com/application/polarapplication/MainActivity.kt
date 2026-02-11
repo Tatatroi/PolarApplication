@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.polarapplication.ui.theme.Indigo
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
+import com.application.polarapplication.ui.theme.devices.DevicesScreen
 import com.application.polarapplication.ui.theme.progress.WorkoutDetailsScreen
 
 class MainActivity : ComponentActivity() {
@@ -85,6 +86,17 @@ fun MainNavigationWrapper() {
                     }
                 )
 
+                NavigationBarItem(
+                    icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Devices") },
+                    label = { Text("Devices") },
+                    selected = currentRoute == Screen.Devices.route,
+                    onClick = {
+                        navController.navigate(Screen.Devices.route) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+
                 // Buton Istoric
                 NavigationBarItem(
                     icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "History") },
@@ -100,6 +112,7 @@ fun MainNavigationWrapper() {
         }
     ) { innerPadding ->
         // Aici se face schimbul efectiv între ecrane
+        val sharedViewModel: DashboardViewModel = viewModel()
         NavHost(
             navController = navController,
             startDestination = Screen.Dashboard.route,
@@ -107,7 +120,11 @@ fun MainNavigationWrapper() {
         ) {
             composable(Screen.Dashboard.route) {
                 // Dashboard-ul rămâne la fel
-                DashboardScreen()
+                DashboardScreen(viewModel = sharedViewModel)
+            }
+
+            composable(Screen.Devices.route) {
+                DevicesScreen(viewModel = sharedViewModel)
             }
 
             composable(Screen.History.route) {

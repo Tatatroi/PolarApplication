@@ -31,6 +31,10 @@ class PolarManager(context: Context) {
     // Timpul ultimei actualizări pentru integrare (calcul TRIMP)
     private var lastCalculationTime = 0L
 
+    private var scanDisposable: Disposable? = null
+    private val _availableDevices = MutableStateFlow<Set<PolarDeviceInfo>>(emptySet())
+    val availableDevices = _availableDevices.asStateFlow()
+
 
     /* ================== HR FILTER ================== */
 
@@ -217,6 +221,31 @@ class PolarManager(context: Context) {
 
 
     /* ================== CONTROL ================== */
+
+    fun startScan() {
+        // Verificăm dacă avem permisiunea de scanare înainte de a porni
+        // Altfel, sistemul aruncă o SecurityException și închide aplicația
+        try {
+            _availableDevices.value = emptySet()
+            scanDisposable = api.searchForDevice()
+                .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
+                .subscribe(
+                    { info ->
+                        val currentSet = _availableDevices.value.toMutableSet()
+                        currentSet.add(info)
+                        _availableDevices.value = currentSet
+                    },
+                    { err -> Log.e("POLAR", "Scan error: ${err.message}") }
+                )
+        } catch (e: SecurityException) {
+            Log.e("POLAR", "Lipsesc permisiunile de scanare: ${e.message}")
+        }
+    }
+
+    fun stopScan() {
+        scanDisposable?.dispose()
+        scanDisposable = null
+    }
 
     fun connectToDevice(id: String) {
         api.connectToDevice(id)

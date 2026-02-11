@@ -60,6 +60,8 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose:1.13.1")
     implementation("com.patrykandpatrick.vico:compose-m3:1.13.1")
     implementation("com.patrykandpatrick.vico:core:1.13.1")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.compose.foundation)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
