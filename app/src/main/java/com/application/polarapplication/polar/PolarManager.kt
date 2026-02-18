@@ -25,6 +25,16 @@ class PolarManager(context: Context) {
     private val _athleteVitals = MutableStateFlow(AthleteVitals())
     val athleteVitals = _athleteVitals.asStateFlow()
 
+    private var accumulatedTrimp = 0.0
+    private var accumulatedCalories = 0.0
+
+    // Timpul ultimei actualizări pentru integrare (calcul TRIMP)
+    private var lastCalculationTime = 0L
+
+    private var scanDisposable: Disposable? = null
+    private val _availableDevices = MutableStateFlow<Set<PolarDeviceInfo>>(emptySet())
+    val availableDevices = _availableDevices.asStateFlow()
+
 
     /* ================== HR FILTER ================== */
 
@@ -39,8 +49,11 @@ class PolarManager(context: Context) {
     private val rrBuffer = mutableListOf<Double>()
     private val maxRrSize = 60
 
-
     private var ppiDisposable: Disposable? = null
+
+    private val workoutHeartRateSamples = mutableListOf<Int>()
+
+    private var lastSampleTimestamp = 0L
 
 
     /* ================== POLAR API ================== */
@@ -93,129 +106,146 @@ class PolarManager(context: Context) {
     @Suppress("DEPRECATION")
     private fun startPpiStreaming(deviceId: String) {
 
-        ppiDisposable =
-            api.startOhrPPIStreaming(deviceId)
-                .subscribe({ data ->
+        ppiDisposable = api.startOhrPPIStreaming(deviceId)
+            .subscribe({ data ->
 
-                    val now = System.currentTimeMillis()
+                val now = System.currentTimeMillis()
 
-                    val dt = if (lastTimestamp == null) {
-                        1.0
-                    } else {
-                        (now - lastTimestamp!!) / 1000.0
-                    }.coerceIn(0.3, 2.0)
+                // 1. Calculăm timpul scurs de la ultimul pachet (în secunde)
+                val dt = if (lastTimestamp == null) {
+                    1.0
+                } else {
+                    (now - lastTimestamp!!) / 1000.0
+                }.coerceIn(0.1, 2.0) // Limităm la max 2 secunde să nu avem salturi uriașe
 
-                    lastTimestamp = now
+                lastTimestamp = now
 
+                // Împărțim timpul la numărul de mostre din acest pachet
+                // Astfel, TRIMP-ul și Caloriile se adună corect, bucată cu bucată
+                val batchSize = data.samples.size
+                val timePerSampleSec = if (batchSize > 0) dt / batchSize else 0.0
+                val timePerSampleMin = timePerSampleSec / 60.0 // Convertim în minute pentru TRIMP
 
-                    for (sample in data.samples) {
+                for (sample in data.samples) {
 
-                        /* --------- Quality filter --------- */
+                    /* --------- Quality filter --------- */
+                    // Dacă senzorul zice că nu face contact, sărim
+                    if (sample.skinContactSupported && !sample.skinContactStatus) continue
 
-                        if (sample.skinContactSupported &&
-                            !sample.skinContactStatus
-                        ) continue
+                    /* --------- RR interval --------- */
+                    val rr = sample.ppi.toDouble()
 
+                    // Filtru limite biologice (300ms = 200bpm, 1500ms = 40bpm)
+                    if (rr < 300 || rr > 1500) continue
 
-                        /* --------- RR interval --------- */
+                    /* --------- Outlier RR filter --------- */
+                    // Dacă sare brusc cu 300ms față de ultima bătaie, e eroare
+                    val lastRr = rrBuffer.lastOrNull()
+                    if (lastRr != null && abs(rr - lastRr) > 300) continue
 
-                        val rr = sample.ppi.toDouble()
+                    /* --------- HR raw --------- */
+                    val rawHr = 60000.0 / rr
 
-                        if (rr < 300 || rr > 1500) continue
+                    /* --------- HRV buffer --------- */
+                    rrBuffer.add(rr)
+                    if (rrBuffer.size > maxRrSize) rrBuffer.removeAt(0)
 
+                    val rmssd = if (rrBuffer.size >= 10) calcRMSSD(rrBuffer) else 0.0
 
-                        /* --------- Outlier RR filter --------- */
+                    /* --------- Adaptive alpha --------- */
+                    val diff = if (lastHr != null) rawHr - lastHr!! else 0.0
+                    val isOutlier = abs(diff) > 25
 
-                        val lastRr = rrBuffer.lastOrNull()
-
-                        if (lastRr != null &&
-                            abs(rr - lastRr) > 300
-                        ) continue
-
-
-                        /* --------- HR raw --------- */
-
-                        val rawHr = 60000.0 / rr
-
-
-                        /* --------- HRV buffer --------- */
-
-                        rrBuffer.add(rr)
-
-                        if (rrBuffer.size > maxRrSize)
-                            rrBuffer.removeAt(0)
-
-                        val rmssd =
-                            if (rrBuffer.size >= 10)
-                                calcRMSSD(rrBuffer)
-                            else 0.0
-
-
-                        /* --------- Adaptive alpha --------- */
-
-                        val diff =
-                            if (lastHr != null)
-                                rawHr - lastHr!!
-                            else 0.0
-
-                        val isOutlier = abs(diff) > 25
-
-                        val alpha = when {
-                            isOutlier -> 0.05
-                            abs(diff) > 10 -> 0.35
-                            rmssd < 20 -> 0.30
-                            rmssd < 40 -> 0.20
-                            else -> 0.12
-                        }
-
-
-                        /* --------- EMA --------- */
-
-                        val target = if (lastHr == null)
-                            rawHr
-                        else
-                            alpha * rawHr +
-                                    (1 - alpha) * lastHr!!
-
-
-                        /* --------- Rate limiter --------- */
-
-                        val maxStep = maxDeltaPerSec * dt
-
-                        val delta =
-                            (target - (lastHr ?: target))
-                                .coerceIn(-maxStep, maxStep)
-
-                        val smooth =
-                            (lastHr ?: target) + delta
-
-
-                        lastHr = smooth
-
-
-                        /* --------- UI --------- */
-
-                        val displayHr = smooth.toInt()
-
-                        val zone = calcZone(displayHr, 200)
-
-                        _athleteVitals.value =
-                            AthleteVitals(
-                                heartRate = displayHr,
-                                rmssd = rmssd,
-                                trainingZone = zone
-                            )
+                    val alpha = when {
+                        isOutlier -> 0.05       // Ignorăm spike-uri mari
+                        abs(diff) > 10 -> 0.35  // Reacție rapidă la sprint
+                        rmssd < 20 -> 0.30      // Efort intens (oboseală) -> reactiv
+                        rmssd < 40 -> 0.20      // Efort mediu
+                        else -> 0.12            // Repaus -> stabil
                     }
 
-                }, { err ->
+                    /* --------- EMA (Smoothing) --------- */
+                    val target = if (lastHr == null) rawHr else alpha * rawHr + (1 - alpha) * lastHr!!
 
-                    Log.e("POLAR", err.toString())
+                    /* --------- Rate limiter --------- */
+                    // Limităm schimbarea fizică pe secundă
+                    val maxStep = maxDeltaPerSec * dt
+                    val delta = (target - (lastHr ?: target)).coerceIn(-maxStep, maxStep)
+                    val smooth = (lastHr ?: target) + delta
 
-                })
+                    lastHr = smooth
+                    val displayHr = smooth.toInt()
+                    val zone = calcZone(displayHr, 200)
+
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastSampleTimestamp >= 2000) {
+                        workoutHeartRateSamples.add(displayHr)
+                        lastSampleTimestamp = currentTime
+                    }
+
+                    /* ================== BOMPA METRICS CALCULATION ================== */
+
+                    // 1. CNS Readiness (0-100)
+                    // Formula: ln(RMSSD) * 20. Ex: ln(50)*20 = 78 (Fresh). ln(15)*20 = 54 (Tired)
+                    val cnsRaw = if (rmssd > 1.0) kotlin.math.ln(rmssd) * 20.0 else 0.0
+                    val cnsScore = cnsRaw.coerceIn(0.0, 100.0).toInt()
+
+                    // 2. TRIMP (Training Impulse - Edwards)
+                    // Puncte = Zona * Minute. Adunăm fracțiunea de timp a acestui sample.
+                    if (displayHr > 0) {
+                        accumulatedTrimp += zone * timePerSampleMin
+                    }
+
+                    // 3. Calories (Estimare simplă)
+                    // Formula brută: HR * Timp * Factor (0.12 e o medie pt bărbați activi)
+                    if (displayHr > 0) {
+                        accumulatedCalories += displayHr * timePerSampleMin * 0.12
+                    }
+
+                    /* --------- UI UPDATE --------- */
+                    _athleteVitals.value = AthleteVitals(
+                        heartRate = displayHr,
+                        rmssd = rmssd,
+                        trainingZone = zone,
+                        // Adăugăm noile valori în obiect
+                        cnsScore = cnsScore,
+                        trimpScore = accumulatedTrimp,
+                        calories = accumulatedCalories.toInt()
+                    )
+                }
+
+            }, { err ->
+                Log.e("POLAR", err.toString())
+            })
     }
 
 
     /* ================== CONTROL ================== */
+
+    fun startScan() {
+        // Verificăm dacă avem permisiunea de scanare înainte de a porni
+        // Altfel, sistemul aruncă o SecurityException și închide aplicația
+        try {
+            _availableDevices.value = emptySet()
+            scanDisposable = api.searchForDevice()
+                .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
+                .subscribe(
+                    { info ->
+                        val currentSet = _availableDevices.value.toMutableSet()
+                        currentSet.add(info)
+                        _availableDevices.value = currentSet
+                    },
+                    { err -> Log.e("POLAR", "Scan error: ${err.message}") }
+                )
+        } catch (e: SecurityException) {
+            Log.e("POLAR", "Lipsesc permisiunile de scanare: ${e.message}")
+        }
+    }
+
+    fun stopScan() {
+        scanDisposable?.dispose()
+        scanDisposable = null
+    }
 
     fun connectToDevice(id: String) {
         api.connectToDevice(id)
@@ -225,6 +255,8 @@ class PolarManager(context: Context) {
         api.disconnectFromDevice(id)
         reset()
     }
+
+    fun getHrSamples(): List<Int> = workoutHeartRateSamples.toList()
 
     private fun reset() {
 
@@ -236,6 +268,11 @@ class PolarManager(context: Context) {
 
         _deviceState.value = DeviceState(false)
         _athleteVitals.value = AthleteVitals()
+        accumulatedTrimp = 0.0
+        accumulatedCalories = 0.0
+        lastCalculationTime = 0L
+        workoutHeartRateSamples.clear()
+        lastSampleTimestamp = 0L
     }
 
 
@@ -263,5 +300,13 @@ class PolarManager(context: Context) {
             p < 90 -> 4
             else -> 5
         }
+    }
+
+    fun prepareNewWorkout() {
+        accumulatedTrimp = 0.0
+        accumulatedCalories = 0.0
+        workoutHeartRateSamples.clear()
+        lastHr = null
+        _athleteVitals.value = AthleteVitals()
     }
 }
