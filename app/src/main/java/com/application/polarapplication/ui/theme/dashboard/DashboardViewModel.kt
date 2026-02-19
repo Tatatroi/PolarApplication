@@ -26,6 +26,12 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     // Ținem minte dacă utilizatorul a apăsat START
     private val _isWorkoutActive = MutableStateFlow(false)
     private val _selectedSession = MutableStateFlow<TrainingSessionEntity?>(null)
+
+    // Expunem direct vitalele pentru ecranul de antrenament
+    val athleteVitals = polarManager.athleteVitals
+
+    // Statusul antrenamentului (pentru a-l putea accesa din afara UiState-ului combinat)
+    val isWorkoutActive = _isWorkoutActive.asStateFlow()
     val availableDevices = polarManager.availableDevices
     fun startScanning() = polarManager.startScan()
     fun stopScanning() = polarManager.stopScan()
@@ -101,5 +107,12 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     fun connectToSelectedDevice(deviceId: String) {
         polarManager.connectToDevice(deviceId)
         // Aici putem salva ID-ul în "Istoric" (SharedPreferences)
+    }
+
+    // Adaugă asta în DashboardViewModel
+    fun deleteSession(session: TrainingSessionEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            sessionDao.deleteSession(session)
+        }
     }
 }

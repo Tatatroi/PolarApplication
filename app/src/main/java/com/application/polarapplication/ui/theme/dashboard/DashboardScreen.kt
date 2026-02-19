@@ -33,9 +33,10 @@ import com.application.polarapplication.model.Workout
 import com.application.polarapplication.ui.theme.Indigo
 
 @Composable
-fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
+fun DashboardScreen(viewModel: DashboardViewModel = viewModel(), onMaximizeWorkout: () -> Unit) {
 
     val uiState by viewModel.uiState.collectAsState()
+
 
     Column(
         modifier = Modifier
@@ -72,7 +73,8 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
                 isActive = uiState.isWorkoutActive,
                 vitals = uiState.vitals,
                 onStart = { viewModel.startWorkout() },
-                onStop = { type -> viewModel.stopWorkout(type) }
+                onStop = { type -> viewModel.stopWorkout(type) },
+                onMaximizeWorkout = onMaximizeWorkout
             )
             Spacer(modifier = Modifier.height(20.dp))
         }
@@ -264,7 +266,8 @@ fun WorkoutControlPanel(
     isActive: Boolean,
     vitals: AthleteVitals,
     onStart: () -> Unit,
-    onStop: (String) -> Unit
+    onStop: (String) -> Unit,
+    onMaximizeWorkout: () -> Unit
 ) {
     // Definirea listei de tipuri
     val workoutTypes = listOf("STRENGTH", "ENDURANCE", "SPEED", "RECOVERY", "REST")
@@ -363,6 +366,16 @@ fun WorkoutControlPanel(
                         Text("CNS LIVE", style = MaterialTheme.typography.bodySmall)
                         Text("${vitals.cnsScore}", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                     }
+                }
+
+                Button(
+                    onClick = onMaximizeWorkout,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp), // spațiu între el și butonul de stop
+                    colors = ButtonDefaults.buttonColors(containerColor = Indigo) // Sau ce culoare vrei
+                ) {
+                    Text("Detalii Antrenament Live")
                 }
 
                 Button(

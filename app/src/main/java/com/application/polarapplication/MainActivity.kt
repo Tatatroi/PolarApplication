@@ -33,6 +33,7 @@ import com.application.polarapplication.ui.theme.dashboard.DashboardScreen
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.polarapplication.ui.theme.Indigo
+import com.application.polarapplication.ui.theme.dashboard.ActiveWorkoutScreen
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 import com.application.polarapplication.ui.theme.devices.DevicesScreen
 import com.application.polarapplication.ui.theme.progress.WorkoutDetailsScreen
@@ -60,54 +61,71 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainNavigationWrapper() {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    // Ascundem bara de navigare jos dacă suntem în ecranul de antrenament activ
+    val isBottomBarVisible = currentRoute != Screen.ActiveWorkout.route
 
     // Scaffold este "scheletul" paginii care ne permite să punem bara de jos
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 8.dp
-            ) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
+            if (isBottomBarVisible) {
+                NavigationBar(
+                    containerColor = Color.White,
+                    tonalElevation = 8.dp
+                ) {
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentRoute = navBackStackEntry?.destination?.route
 
-                // Buton Dashboard
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Dashboard") },
-                    selected = currentRoute == Screen.Dashboard.route,
-                    onClick = {
-                        navController.navigate(Screen.Dashboard.route) {
-                            // Evită acumularea de ecrane în spate
-                            popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true
+                    // Buton Dashboard
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                        label = { Text("Dashboard") },
+                        selected = currentRoute == Screen.Dashboard.route,
+                        onClick = {
+                            navController.navigate(Screen.Dashboard.route) {
+                                // Evită acumularea de ecrane în spate
+                                popUpTo(navController.graph.startDestinationId)
+                                launchSingleTop = true
+                            }
                         }
-                    }
-                )
+                    )
 
-                NavigationBarItem(
-                    icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Devices") },
-                    label = { Text("Devices") },
-                    selected = currentRoute == Screen.Devices.route,
-                    onClick = {
-                        navController.navigate(Screen.Devices.route) {
-                            launchSingleTop = true
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.List,
+                                contentDescription = "Devices"
+                            )
+                        },
+                        label = { Text("Devices") },
+                        selected = currentRoute == Screen.Devices.route,
+                        onClick = {
+                            navController.navigate(Screen.Devices.route) {
+                                launchSingleTop = true
+                            }
                         }
-                    }
-                )
+                    )
 
-                // Buton Istoric
-                NavigationBarItem(
-                    icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "History") },
-                    label = { Text("Istoric") },
-                    selected = currentRoute == Screen.History.route,
-                    onClick = {
-                        navController.navigate(Screen.History.route) {
-                            launchSingleTop = true
+                    // Buton Istoric
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.List,
+                                contentDescription = "History"
+                            )
+                        },
+                        label = { Text("Istoric") },
+                        selected = currentRoute == Screen.History.route,
+                        onClick = {
+                            navController.navigate(Screen.History.route) {
+                                launchSingleTop = true
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -120,7 +138,9 @@ fun MainNavigationWrapper() {
         ) {
             composable(Screen.Dashboard.route) {
                 // Dashboard-ul rămâne la fel
-                DashboardScreen(viewModel = sharedViewModel)
+                DashboardScreen(viewModel = sharedViewModel, onMaximizeWorkout = {
+                    navController.navigate(Screen.ActiveWorkout.route)
+                })
             }
 
             composable(Screen.Devices.route) {
@@ -156,6 +176,16 @@ fun MainNavigationWrapper() {
                         WorkoutDetailsScreen(session = selectedSession!!)
                     }
                 }
+            }
+            composable(Screen.ActiveWorkout.route) {
+                // Importă ActiveWorkoutScreen dacă e roșu (Alt+Enter)
+                 ActiveWorkoutScreen(
+                    viewModel = sharedViewModel,
+                    onMinimizeClick = {
+                        // Ne întoarcem la Dashboard fără să închidem antrenamentul
+                        navController.popBackStack(Screen.Dashboard.route, inclusive = false)
+                    }
+                )
             }
         }
     }
