@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -32,6 +31,17 @@ import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.SolidColor
+import java.util.Calendar
 
 // --- Paleta de Culori Exacte din Design ---
 val AppBackground = Color(0xFF0D0D12)
@@ -57,6 +67,9 @@ fun HistoryScreen(
 ) {
     val sessions by viewModel.allSessions.collectAsState()
 
+    // STATE: 0 = Listă, 1 = Calendar
+    var selectedTabIndex by remember { mutableStateOf(0) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -69,23 +82,78 @@ fun HistoryScreen(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Black,
             color = Color.White,
-            modifier = Modifier.padding(bottom = 24.dp, start = 8.dp)
+            modifier = Modifier.padding(bottom = 16.dp, start = 8.dp)
         )
+
+        // --- CUSTOM SEGMENTED CONTROL (TABS) ---
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .background(CardSurfaceDark, RoundedCornerShape(12.dp))
+                .padding(4.dp)
+        ) {
+            // Tab 1: Lista
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (selectedTabIndex == 0) Color(0xFF2A2A35) else Color.Transparent)
+                    .clickable { selectedTabIndex = 0 },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Vizualizare Listă",
+                    color = if (selectedTabIndex == 0) Color.White else Color.Gray,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+
+            // Tab 2: Calendar
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (selectedTabIndex == 1) Color(0xFF2A2A35) else Color.Transparent)
+                    .clickable { selectedTabIndex = 1 },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Calendar",
+                    color = if (selectedTabIndex == 1) Color.White else Color.Gray,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         if (sessions.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Nicio sesiune înregistrată.", color = Color.Gray, fontSize = 16.sp)
             }
         } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                items(sessions, key = { it.id }) { session ->
-                    PremiumHistoryCard(
-                        session = session,
-                        onClick = { onSessionClick(session) },
-                        onDelete = { viewModel.deleteSession(session) }
-                    )
+            if (selectedTabIndex == 0) {
+                // Afișăm doar Lista
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    items(sessions, key = { it.id }) { session ->
+                        PremiumHistoryCard(
+                            session = session,
+                            onClick = { onSessionClick(session) },
+                            onDelete = { viewModel.deleteSession(session) }
+                        )
+                    }
+                    item { Spacer(modifier = Modifier.height(32.dp)) }
                 }
-                item { Spacer(modifier = Modifier.height(32.dp)) } // Padding jos
+            } else {
+                WorkoutCalendar(
+                    sessions = sessions,
+                    onSessionClick = onSessionClick
+                )
             }
         }
     }
@@ -277,6 +345,240 @@ fun IntensitySegmentedBar(color: Color, trimp: Float) {
                 color = color.copy(alpha = alpha),
                 topLeft = Offset(i * (segmentWidth + segmentSpacing), 0f),
                 size = Size(segmentWidth, size.height)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WorkoutCalendar(
+    sessions: List<TrainingSessionEntity>,
+    onSessionClick: (TrainingSessionEntity) -> Unit
+) {
+    var currentMonthOffset by remember { mutableStateOf(0) }
+
+    // STATE PENTRU MENIUL DE JOS (Bottom Sheet)
+    var sessionsToSelect by remember { mutableStateOf<List<TrainingSessionEntity>?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val displayCalendar = remember(currentMonthOffset) {
+        Calendar.getInstance().apply { add(Calendar.MONTH, currentMonthOffset) }
+    }
+
+    val currentViewMonth = displayCalendar.get(Calendar.MONTH)
+    val currentViewYear = displayCalendar.get(Calendar.YEAR)
+
+    val monthSetupCalendar = displayCalendar.clone() as Calendar
+    monthSetupCalendar.set(Calendar.DAY_OF_MONTH, 1)
+
+    var firstDayOfWeek = monthSetupCalendar.get(Calendar.DAY_OF_WEEK) - 2
+    if (firstDayOfWeek < 0) firstDayOfWeek += 7
+    val daysInMonth = monthSetupCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+
+    val sessionsByDay: Map<Int, List<TrainingSessionEntity>> = sessions.filter { session ->
+        val sessionCal = Calendar.getInstance().apply { timeInMillis = session.date }
+        sessionCal.get(Calendar.YEAR) == currentViewYear && sessionCal.get(Calendar.MONTH) == currentViewMonth
+    }.groupBy { session ->
+        Calendar.getInstance().apply { timeInMillis = session.date }.get(Calendar.DAY_OF_MONTH)
+    }
+
+    val realTodayCalendar = Calendar.getInstance()
+    val isViewingCurrentMonthAndYear =
+        realTodayCalendar.get(Calendar.YEAR) == currentViewYear &&
+                realTodayCalendar.get(Calendar.MONTH) == currentViewMonth
+    val realTodayDayOfMonth = realTodayCalendar.get(Calendar.DAY_OF_MONTH)
+
+    val weekDays = listOf("L", "M", "M", "J", "V", "S", "D")
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(CardSurfaceDark)
+            .padding(16.dp)
+    ) {
+        // --- HEADER ---
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = { currentMonthOffset -= 1 },
+                modifier = Modifier.size(36.dp).background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp))
+            ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Înapoi", tint = Color.White) }
+
+            val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(displayCalendar.time).uppercase()
+            Text(text = monthName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+            IconButton(
+                onClick = { currentMonthOffset += 1 },
+                modifier = Modifier.size(36.dp).background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp))
+            ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Înainte", tint = Color.White) }
+        }
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+            weekDays.forEach { day -> Text(text = day, color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        val totalCells = firstDayOfWeek + daysInMonth
+        val rows = Math.ceil(totalCells / 7.0).toInt()
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(7),
+            modifier = Modifier.height((rows * 50).dp),
+            userScrollEnabled = false,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            items(totalCells) { index ->
+                val day = index - firstDayOfWeek + 1
+
+                if (day > 0 && day <= daysInMonth) {
+                    val dailySessions = sessionsByDay[day] ?: emptyList()
+                    val isToday = isViewingCurrentMonthAndYear && day == realTodayDayOfMonth
+
+                    CalendarDayCell(
+                        day = day,
+                        dailySessions = dailySessions,
+                        isToday = isToday,
+                        onClick = {
+                            if (dailySessions.size == 1) {
+                                // Dacă e doar unul, mergem direct la detalii
+                                onSessionClick(dailySessions.first())
+                            } else if (dailySessions.size > 1) {
+                                // Dacă sunt mai multe, deschidem Bottom Sheet-ul
+                                sessionsToSelect = dailySessions
+                            }
+                        }
+                    )
+                } else {
+                    Box(modifier = Modifier.aspectRatio(1f))
+                }
+            }
+        }
+    }
+
+    if (sessionsToSelect != null) {
+        ModalBottomSheet(
+            onDismissRequest = { sessionsToSelect = null },
+            sheetState = sheetState,
+            containerColor = CardSurfaceDark,
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp).fillMaxWidth()) {
+                Text(
+                    text = "Alege sesiunea",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                sessionsToSelect!!.forEach { session ->
+                    val theme = getThemeForWorkout(session.type)
+                    val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(session.date))
+
+                    // Card mic pentru fiecare opțiune din meniu
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.White.copy(alpha = 0.05f))
+                            .border(1.dp, theme.color.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                            .clickable {
+                                sessionsToSelect = null
+                                onSessionClick(session)
+                            }
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(session.type.uppercase(), color = theme.color, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text("Ora: $timeStr • TRIMP: ${"%.1f".format(session.finalTrimp)}", color = Color.Gray, fontSize = 12.sp)
+                        }
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Vezi detaliile", tint = Color.Gray)
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun CalendarDayCell(
+    day: Int,
+    dailySessions: List<TrainingSessionEntity>,
+    isToday: Boolean,
+    onClick: () -> Unit
+) {
+    val sessionCount = dailySessions.size
+    val hasWorkout = sessionCount > 0
+
+    val sessionColors = dailySessions.map { getThemeForWorkout(it.type).color }
+
+    val bgBrush = when {
+        !hasWorkout -> SolidColor(Color(0xFF1E1E28)) // Gri gol
+        sessionColors.size == 1 -> SolidColor(sessionColors.first().copy(alpha = 0.15f))
+        else -> Brush.linearGradient(sessionColors.map { it.copy(alpha = 0.2f) })
+    }
+
+    val borderBrush = when {
+        !hasWorkout -> SolidColor(if (isToday) Color.White.copy(alpha = 0.4f) else Color.Transparent)
+        sessionColors.size == 1 -> SolidColor(sessionColors.first().copy(alpha = 0.5f))
+        else -> Brush.linearGradient(sessionColors.map { it.copy(alpha = 0.7f) })
+    }
+
+    val textColor = if (hasWorkout) Color.White else Color.Gray
+
+    Box(
+        modifier = Modifier
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(10.dp))
+            .background(bgBrush)
+            .border(
+                width = 1.dp,
+                brush = borderBrush,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .clickable(enabled = hasWorkout) { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        if (hasWorkout) {
+            if (sessionCount == 1) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Completat",
+                    tint = sessionColors.first(),
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Text(
+                    text = "+$sessionCount",
+                    color = Color.White,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 16.sp
+                )
+            }
+
+            Text(
+                text = "$day",
+                color = textColor.copy(alpha = 0.7f),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.TopEnd).padding(top = 2.dp, end = 4.dp)
+            )
+        } else {
+            Text(
+                text = "$day",
+                color = if (isToday) Color.White else textColor,
+                fontSize = 14.sp,
+                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
             )
         }
     }
