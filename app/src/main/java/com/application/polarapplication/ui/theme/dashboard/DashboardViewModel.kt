@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.application.polarapplication.ai.analysis.AppDatabase
 import com.application.polarapplication.model.TrainingSessionEntity
 import com.application.polarapplication.polar.PolarManager
+import com.application.polarapplication.ui.theme.profile.ProfileManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,6 +38,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     fun stopScanning() = polarManager.stopScan()
 
     val selectedSession = _selectedSession.asStateFlow()
+
+    val profileManager = ProfileManager(application)
 
     val allSessions: StateFlow<List<TrainingSessionEntity>> = sessionDao.getAllSessionsFlow()
         .stateIn(
@@ -114,5 +117,11 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch(Dispatchers.IO) {
             sessionDao.deleteSession(session)
         }
+    }
+
+    fun saveUserProfile(age: Int, weight: Float, height: Int, gender: String, rhr: Int, customHrMax: Int?, profileImageUri: String?) {
+        profileManager.saveProfile(
+            age, weight, height, gender, rhr, customHrMax, profileImageUri
+        )
     }
 }

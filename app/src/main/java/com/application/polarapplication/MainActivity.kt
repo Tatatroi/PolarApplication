@@ -36,7 +36,9 @@ import com.application.polarapplication.ui.theme.Indigo
 import com.application.polarapplication.ui.theme.dashboard.ActiveWorkoutScreen
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 import com.application.polarapplication.ui.theme.devices.DevicesScreen
+import com.application.polarapplication.ui.theme.profile.ProfileScreen
 import com.application.polarapplication.ui.theme.progress.WorkoutDetailsScreen
+import androidx.compose.material.icons.filled.Person
 
 class MainActivity : ComponentActivity() {
 
@@ -109,7 +111,6 @@ fun MainNavigationWrapper() {
                         }
                     )
 
-                    // Buton Istoric
                     NavigationBarItem(
                         icon = {
                             Icon(
@@ -121,6 +122,17 @@ fun MainNavigationWrapper() {
                         selected = currentRoute == Screen.History.route,
                         onClick = {
                             navController.navigate(Screen.History.route) {
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Default.Person, contentDescription = "Profil") },
+                        label = { Text("Profil") },
+                        selected = currentRoute == Screen.Profile.route,
+                        onClick = {
+                            navController.navigate(Screen.Profile.route) {
                                 launchSingleTop = true
                             }
                         }
@@ -178,7 +190,6 @@ fun MainNavigationWrapper() {
                 }
             }
             composable(Screen.ActiveWorkout.route) {
-                // Importă ActiveWorkoutScreen dacă e roșu (Alt+Enter)
                  ActiveWorkoutScreen(
                     viewModel = sharedViewModel,
                     onMinimizeClick = {
@@ -186,6 +197,10 @@ fun MainNavigationWrapper() {
                         navController.popBackStack(Screen.Dashboard.route, inclusive = false)
                     }
                 )
+            }
+
+            composable(Screen.Profile.route) {
+                ProfileScreen()
             }
         }
     }

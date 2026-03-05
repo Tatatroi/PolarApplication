@@ -12,5 +12,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object Devices : Screen("devices", "Senzori", Icons.Default.Settings)
     object History : Screen("history", "Istoric", Icons.AutoMirrored.Filled.List)
 
+    object Profile : Screen("profile", "Profil", Icons.Default.Settings)
+
     object ActiveWorkout : Screen("active_workout", "Antrenament", Icons.Default.PlayArrow)
 }
