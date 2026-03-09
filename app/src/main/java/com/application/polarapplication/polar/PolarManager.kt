@@ -55,6 +55,9 @@ class PolarManager(context: Context) {
 
     private var lastSampleTimestamp = 0L
 
+    private val rawHrWindow = mutableListOf<Double>() // NOU: Fereastra pentru Filtrul Median
+    private val maxWindowSize = 5
+
 
     /* ================== POLAR API ================== */
 
@@ -127,55 +130,51 @@ class PolarManager(context: Context) {
                 val timePerSampleMin = timePerSampleSec / 60.0 // Convertim în minute pentru TRIMP
 
                 for (sample in data.samples) {
-
-                    /* --------- Quality filter --------- */
-                    // Dacă senzorul zice că nu face contact, sărim
                     if (sample.skinContactSupported && !sample.skinContactStatus) continue
 
-                    /* --------- RR interval --------- */
                     val rr = sample.ppi.toDouble()
 
-                    // Filtru limite biologice (300ms = 200bpm, 1500ms = 40bpm)
-                    if (rr < 300 || rr > 1500) continue
+                    /* 1. Eliminare Brută a Zgomotului (Garbage Rejection) */
+                    // Orice e sub 285ms (peste 210 BPM) sau peste 1500ms (sub 40 BPM) este fizic imposibil
+                    // pentru un sportiv activ și reprezintă senzor mișcat de pe mână. Îl ignorăm complet.
+                    if (rr < 285.0 || rr > 1500.0) continue
 
-                    /* --------- Outlier RR filter --------- */
-                    // Dacă sare brusc cu 300ms față de ultima bătaie, e eroare
-                    val lastRr = rrBuffer.lastOrNull()
-                    if (lastRr != null && abs(rr - lastRr) > 300) continue
-
-                    /* --------- HR raw --------- */
-                    val rawHr = 60000.0 / rr
-
-                    /* --------- HRV buffer --------- */
+                    /* 2. Calcul RMSSD (Pentru CNS - rămâne cum am stabilit) */
                     rrBuffer.add(rr)
                     if (rrBuffer.size > maxRrSize) rrBuffer.removeAt(0)
+                    val rmssd = if (rrBuffer.size >= 10) calcRobustRMSSD(rrBuffer) else 0.0
 
-                    val rmssd = if (rrBuffer.size >= 10) calcRMSSD(rrBuffer) else 0.0
+                    /* 3. Transformare în Puls Brut (Raw HR) */
+                    val rawHr = 60000.0 / rr
 
-                    /* --------- Adaptive alpha --------- */
-                    val diff = if (lastHr != null) rawHr - lastHr!! else 0.0
-                    val isOutlier = abs(diff) > 25
-
-                    val alpha = when {
-                        isOutlier -> 0.05       // Ignorăm spike-uri mari
-                        abs(diff) > 10 -> 0.35  // Reacție rapidă la sprint
-                        rmssd < 20 -> 0.30      // Efort intens (oboseală) -> reactiv
-                        rmssd < 40 -> 0.20      // Efort mediu
-                        else -> 0.12            // Repaus -> stabil
+                    /* 4. FILTRUL MEDIAN (Taie Spike-urile) */
+                    rawHrWindow.add(rawHr)
+                    if (rawHrWindow.size > maxWindowSize) {
+                        rawHrWindow.removeAt(0)
                     }
 
-                    /* --------- EMA (Smoothing) --------- */
-                    val target = if (lastHr == null) rawHr else alpha * rawHr + (1 - alpha) * lastHr!!
+                    // Calculăm mediana sortând lista.
+                    // Asta va ignora complet valorile care "sar" brusc sus sau jos pentru scurt timp.
+                    val sortedWindow = rawHrWindow.sorted()
+                    val medianHr = sortedWindow[sortedWindow.size / 2]
 
-                    /* --------- Rate limiter --------- */
-                    // Limităm schimbarea fizică pe secundă
-                    val maxStep = maxDeltaPerSec * dt
-                    val delta = (target - (lastHr ?: target)).coerceIn(-maxStep, maxStep)
-                    val smooth = (lastHr ?: target) + delta
+                    /* 5. Netezire Ușoară (Light EMA) */
+                    // Aplicăm un Alpha mai mare (0.35) ca să reacționeze repede când pulsul crește cu adevărat
+                    val alpha = 0.35
+                    val smoothHr = if (lastHr == null) medianHr else (alpha * medianHr) + ((1.0 - alpha) * lastHr!!)
+                    lastHr = smoothHr
 
-                    lastHr = smooth
-                    val displayHr = smooth.toInt()
-                    val zone = calcZone(displayHr, 200)
+                    val displayHr = smoothHr.toInt()
+
+                    /* 6. Calcul Metrici Bompa & UI Update */
+                    val zone = calcZone(displayHr, 200) // Încearcă să pui formula ta 220-vârstă aici pe viitor
+
+                    // Corecție RMSSD pentru CNS să nu dea scoruri dubioase dacă e mult zgomot
+                    val cnsRaw = if (rmssd > 5.0 && rmssd < 150.0) (kotlin.math.ln(rmssd) * 20.0) else 0.0
+                    val cnsScore = cnsRaw.coerceIn(0.0, 100.0).toInt()
+
+                    accumulatedTrimp += zone * timePerSampleMin
+                    accumulatedCalories += displayHr * timePerSampleMin * 0.12
 
                     val currentTime = System.currentTimeMillis()
                     if (currentTime - lastSampleTimestamp >= 2000) {
@@ -183,36 +182,178 @@ class PolarManager(context: Context) {
                         lastSampleTimestamp = currentTime
                     }
 
-                    /* ================== BOMPA METRICS CALCULATION ================== */
-
-                    // 1. CNS Readiness (0-100)
-                    // Formula: ln(RMSSD) * 20. Ex: ln(50)*20 = 78 (Fresh). ln(15)*20 = 54 (Tired)
-                    val cnsRaw = if (rmssd > 1.0) kotlin.math.ln(rmssd) * 20.0 else 0.0
-                    val cnsScore = cnsRaw.coerceIn(0.0, 100.0).toInt()
-
-                    // 2. TRIMP (Training Impulse - Edwards)
-                    // Puncte = Zona * Minute. Adunăm fracțiunea de timp a acestui sample.
-                    if (displayHr > 0) {
-                        accumulatedTrimp += zone * timePerSampleMin
-                    }
-
-                    // 3. Calories (Estimare simplă)
-                    // Formula brută: HR * Timp * Factor (0.12 e o medie pt bărbați activi)
-                    if (displayHr > 0) {
-                        accumulatedCalories += displayHr * timePerSampleMin * 0.12
-                    }
-
-                    /* --------- UI UPDATE --------- */
                     _athleteVitals.value = AthleteVitals(
                         heartRate = displayHr,
                         rmssd = rmssd,
                         trainingZone = zone,
-                        // Adăugăm noile valori în obiect
                         cnsScore = cnsScore,
                         trimpScore = accumulatedTrimp,
                         calories = accumulatedCalories.toInt()
                     )
                 }
+
+                //Asta e a 2 varianta care nu merge
+//                for (sample in data.samples) {
+//                    if (sample.skinContactSupported && !sample.skinContactStatus) continue
+//
+//                    var rr = sample.ppi.toDouble()
+//                    val lastRrFromBuffer = rrBuffer.lastOrNull() ?: rr
+//
+//                    /* 1. Corecție "Double PPI" (Bătăi sărite) */
+//                    // Dacă valoarea curentă e aproximativ dublul ultimei valori validată (±15%),
+//                    // înseamnă că senzorul a sărit o bătaie. O împărțim la 2 pentru a menține BPM-ul real.
+//                    if (rr > 700 && abs(rr - (lastRrFromBuffer * 2)) < (lastRrFromBuffer * 0.3)) {
+//                        rr /= 2.0
+//                    }
+//
+//                    /* 2. Filtru de plauzibilitate biologică */
+//                    // Ignorăm tot ce este sub 330ms (~180 BPM) sau peste 1500ms (~40 BPM)
+//                    // doar dacă sunt spike-uri izolate.
+//                    if (rr < 330.0 || rr > 1500.0) continue
+//
+//                    /* 3. HRV Buffer & RMSSD */
+//                    rrBuffer.add(rr)
+//                    if (rrBuffer.size > maxRrSize) rrBuffer.removeAt(0)
+//
+//                    // Folosim o metodă de calcul mai stabilă pentru RMSSD
+//                    val rmssd = if (rrBuffer.size >= 15) calcRobustRMSSD(rrBuffer) else 0.0
+//
+//                    /* 4. Adaptive Alpha (Reactivitate) */
+//                    val rawHr = 60000.0 / rr
+//
+//                    // Creștem valorile alpha pentru a nu avea latență (lag) în UI
+//                    val alpha = when {
+//                        abs(rawHr - (lastHr ?: rawHr)) > 20 -> 0.40 // Schimbare bruscă (sprint) -> urmărim rapid
+//                        rmssd < 30 -> 0.30                         // Efort intens -> reactivitate medie
+//                        else -> 0.20                               // Repaus -> stabilitate
+//                    }
+//
+//                    /* 5. EMA & Rate Limiting */
+//                    val target = if (lastHr == null) rawHr else alpha * rawHr + (1 - alpha) * lastHr!!
+//
+//                    // Limităm fizic creșterea (max 15 BPM pe secundă) pentru a tăia erorile optice
+//                    val maxStep = 15.0 * dt
+//                    val delta = (target - (lastHr ?: target)).coerceIn(-maxStep, maxStep)
+//                    val smooth = (lastHr ?: target) + delta
+//
+//                    lastHr = smooth
+//                    val displayHr = smooth.toInt()
+//
+//                    /* 6. Actualizare Metrici Bompa */
+//                    val zone = calcZone(displayHr, 200) // Recomandat: folosește maxHr din profilul utilizatorului
+//
+//                    // CNS Score bazat pe logaritm (Formula ta e bună, dar RMSSD are nevoie de filtrare)
+//                    val cnsRaw = if (rmssd > 5.0) (kotlin.math.ln(rmssd) * 20.0) else 0.0
+//                    val cnsScore = cnsRaw.coerceIn(0.0, 100.0).toInt()
+//
+//                    accumulatedTrimp += zone * timePerSampleMin
+//                    accumulatedCalories += displayHr * timePerSampleMin * 0.12
+//
+//                    // Salvare eșantion pentru grafic la fiecare 2 secunde
+//                    val currentTime = System.currentTimeMillis()
+//                    if (currentTime - lastSampleTimestamp >= 2000) {
+//                        workoutHeartRateSamples.add(displayHr)
+//                        lastSampleTimestamp = currentTime
+//                    }
+//
+//                    _athleteVitals.value = AthleteVitals(
+//                        heartRate = displayHr,
+//                        rmssd = rmssd,
+//                        trainingZone = zone,
+//                        cnsScore = cnsScore,
+//                        trimpScore = accumulatedTrimp,
+//                        calories = accumulatedCalories.toInt()
+//                    )
+//                }
+
+                //Asta e prima variante care nu e perfecta
+//                for (sample in data.samples) {
+//
+//                    /* --------- Quality filter --------- */
+//                    // Dacă senzorul zice că nu face contact, sărim
+//                    if (sample.skinContactSupported && !sample.skinContactStatus) continue
+//
+//                    /* --------- RR interval --------- */
+//                    val rr = sample.ppi.toDouble()
+//
+//                    // Filtru limite biologice (300ms = 200bpm, 1500ms = 40bpm)
+//                    if (rr < 300 || rr > 1500) continue
+//
+//                    /* --------- Outlier RR filter --------- */
+//                    // Dacă sare brusc cu 300ms față de ultima bătaie, e eroare
+//                    val lastRr = rrBuffer.lastOrNull()
+//                    if (lastRr != null && abs(rr - lastRr) > 300) continue
+//
+//                    /* --------- HR raw --------- */
+//                    val rawHr = 60000.0 / rr
+//
+//                    /* --------- HRV buffer --------- */
+//                    rrBuffer.add(rr)
+//                    if (rrBuffer.size > maxRrSize) rrBuffer.removeAt(0)
+//
+//                    val rmssd = if (rrBuffer.size >= 10) calcRMSSD(rrBuffer) else 0.0
+//
+//                    /* --------- Adaptive alpha --------- */
+//                    val diff = if (lastHr != null) rawHr - lastHr!! else 0.0
+//                    val isOutlier = abs(diff) > 25
+//
+//                    val alpha = when {
+//                        isOutlier -> 0.05       // Ignorăm spike-uri mari
+//                        abs(diff) > 10 -> 0.35  // Reacție rapidă la sprint
+//                        rmssd < 20 -> 0.30      // Efort intens (oboseală) -> reactiv
+//                        rmssd < 40 -> 0.20      // Efort mediu
+//                        else -> 0.12            // Repaus -> stabil
+//                    }
+//
+//                    /* --------- EMA (Smoothing) --------- */
+//                    val target = if (lastHr == null) rawHr else alpha * rawHr + (1 - alpha) * lastHr!!
+//
+//                    /* --------- Rate limiter --------- */
+//                    // Limităm schimbarea fizică pe secundă
+//                    val maxStep = maxDeltaPerSec * dt
+//                    val delta = (target - (lastHr ?: target)).coerceIn(-maxStep, maxStep)
+//                    val smooth = (lastHr ?: target) + delta
+//
+//                    lastHr = smooth
+//                    val displayHr = smooth.toInt()
+//                    val zone = calcZone(displayHr, 200)
+//
+//                    val currentTime = System.currentTimeMillis()
+//                    if (currentTime - lastSampleTimestamp >= 2000) {
+//                        workoutHeartRateSamples.add(displayHr)
+//                        lastSampleTimestamp = currentTime
+//                    }
+//
+//                    /* ================== BOMPA METRICS CALCULATION ================== */
+//
+//                    // 1. CNS Readiness (0-100)
+//                    // Formula: ln(RMSSD) * 20. Ex: ln(50)*20 = 78 (Fresh). ln(15)*20 = 54 (Tired)
+//                    val cnsRaw = if (rmssd > 1.0) kotlin.math.ln(rmssd) * 20.0 else 0.0
+//                    val cnsScore = cnsRaw.coerceIn(0.0, 100.0).toInt()
+//
+//                    // 2. TRIMP (Training Impulse - Edwards)
+//                    // Puncte = Zona * Minute. Adunăm fracțiunea de timp a acestui sample.
+//                    if (displayHr > 0) {
+//                        accumulatedTrimp += zone * timePerSampleMin
+//                    }
+//
+//                    // 3. Calories (Estimare simplă)
+//                    // Formula brută: HR * Timp * Factor (0.12 e o medie pt bărbați activi)
+//                    if (displayHr > 0) {
+//                        accumulatedCalories += displayHr * timePerSampleMin * 0.12
+//                    }
+//
+//                    /* --------- UI UPDATE --------- */
+//                    _athleteVitals.value = AthleteVitals(
+//                        heartRate = displayHr,
+//                        rmssd = rmssd,
+//                        trainingZone = zone,
+//                        // Adăugăm noile valori în obiect
+//                        cnsScore = cnsScore,
+//                        trimpScore = accumulatedTrimp,
+//                        calories = accumulatedCalories.toInt()
+//                    )
+//                }
 
             }, { err ->
                 Log.e("POLAR", err.toString())
@@ -277,6 +418,24 @@ class PolarManager(context: Context) {
 
 
     /* ================== UTILS ================== */
+
+    private fun calcRobustRMSSD(rrList: List<Double>): Double {
+        if (rrList.size < 2) return 0.0
+
+        val diffs = mutableListOf<Double>()
+        for (i in 0 until rrList.size - 1) {
+            val d = abs(rrList[i + 1] - rrList[i])
+
+            // Filtru: Dacă diferența dintre două bătăi succesive e > 250ms,
+            // probabil e un artefact de mișcare, nu variabilitate reală.
+            if (d < 250.0) {
+                diffs.add(d * d)
+            }
+        }
+
+        if (diffs.isEmpty()) return 0.0
+        return sqrt(diffs.average())
+    }
 
     private fun calcRMSSD(rr: List<Double>): Double {
 

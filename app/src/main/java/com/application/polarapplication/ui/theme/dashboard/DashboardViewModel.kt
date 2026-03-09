@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.application.polarapplication.ai.analysis.AppDatabase
 import com.application.polarapplication.model.TrainingSessionEntity
 import com.application.polarapplication.polar.PolarManager
+import com.application.polarapplication.ui.theme.profile.ProfileManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,11 +27,19 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     // Ținem minte dacă utilizatorul a apăsat START
     private val _isWorkoutActive = MutableStateFlow(false)
     private val _selectedSession = MutableStateFlow<TrainingSessionEntity?>(null)
+
+    // Expunem direct vitalele pentru ecranul de antrenament
+    val athleteVitals = polarManager.athleteVitals
+
+    // Statusul antrenamentului (pentru a-l putea accesa din afara UiState-ului combinat)
+    val isWorkoutActive = _isWorkoutActive.asStateFlow()
     val availableDevices = polarManager.availableDevices
     fun startScanning() = polarManager.startScan()
     fun stopScanning() = polarManager.stopScan()
 
     val selectedSession = _selectedSession.asStateFlow()
+
+    val profileManager = ProfileManager(application)
 
     val allSessions: StateFlow<List<TrainingSessionEntity>> = sessionDao.getAllSessionsFlow()
         .stateIn(
@@ -101,5 +110,18 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     fun connectToSelectedDevice(deviceId: String) {
         polarManager.connectToDevice(deviceId)
         // Aici putem salva ID-ul în "Istoric" (SharedPreferences)
+    }
+
+    // Adaugă asta în DashboardViewModel
+    fun deleteSession(session: TrainingSessionEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            sessionDao.deleteSession(session)
+        }
+    }
+
+    fun saveUserProfile(age: Int, weight: Float, height: Int, gender: String, rhr: Int, customHrMax: Int?, profileImageUri: String?) {
+        profileManager.saveProfile(
+            age, weight, height, gender, rhr, customHrMax, profileImageUri
+        )
     }
 }
