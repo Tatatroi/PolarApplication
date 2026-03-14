@@ -6,87 +6,87 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
 fun HrZoneVerticalBar(
     currentHr: Int,
-    maxHr: Int = 200 // Aici vei pune maxHr-ul setat pentru utilizator
+    maxHr: Int
 ) {
-    // 1. Calculăm procentajul pulsului (0.0 la 1.0)
+    // 1. Calculăm procentajul
     val hrPercentage = (currentHr.toFloat() / maxHr.toFloat()).coerceIn(0f, 1f)
 
-    // 2. Determinăm zona și culoarea bazată pe procentaj
+    // 2. Zonele de efort conform culorilor tale din grafic
     val (zoneText, zoneColor) = when {
-        hrPercentage >= 0.90f -> "Z5 - VO2max" to Color(0xFFD32F2F) // Roșu
-        hrPercentage >= 0.80f -> "Z4 - Anaerob" to Color(0xFFF57C00) // Portocaliu
-        hrPercentage >= 0.70f -> "Z3 - Aerob Mod." to Color(0xFF388E3C) // Verde
-        hrPercentage >= 0.60f -> "Z2 - Aerob Ușor" to Color(0xFF1976D2) // Albastru
-        hrPercentage >= 0.50f -> "Z1 - Recuperare" to Color(0xFF9E9E9E) // Gri
-        else -> "Sub Z1" to Color(0xFFE0E0E0) // Gri foarte deschis (repaus)
+        hrPercentage >= 0.90f -> "Z5 MAXIMUM" to Color(0xFFD32F2F)
+        hrPercentage >= 0.80f -> "Z4 ANAEROB" to Color(0xFFF57C00)
+        hrPercentage >= 0.70f -> "Z3 AEROBIC" to Color(0xFF388E3C)
+        hrPercentage >= 0.60f -> "Z2 CONTROL" to Color(0xFF1976D2)
+        else -> "Z1 RECOVERY" to Color(0xFF9E9E9E)
     }
 
-    // 3. Animăm nivelul de umplere și culoarea pentru o tranziție fluidă
-    val animatedHeight by animateFloatAsState(
-        targetValue = hrPercentage,
-        animationSpec = tween(durationMillis = 500),
-        label = "BarHeightAnimation"
-    )
-    val animatedColor by animateColorAsState(
-        targetValue = zoneColor,
-        animationSpec = tween(durationMillis = 500),
-        label = "BarColorAnimation"
-    )
+    val animatedHeight by animateFloatAsState(targetValue = hrPercentage, animationSpec = tween(500))
+    val animatedColor by animateColorAsState(targetValue = zoneColor, animationSpec = tween(500))
 
-    // 4. Randarea UI-ului
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(16.dp)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxHeight().padding(vertical = 8.dp)
     ) {
-        // Textul cu Zona în stânga
+        // Textul zonei sus
         Text(
             text = zoneText,
             color = animatedColor,
-            fontSize = 16.sp,
-            modifier = Modifier.width(120.dp)
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Black,
+            modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // Bara propriu-zisă
+        // Containerul Barei (Track-ul)
         Box(
             modifier = Modifier
-                .width(40.dp)
-                .height(300.dp) // Înălțimea totală a barei
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color.DarkGray.copy(alpha = 0.2f)), // Background track
+                .width(28.dp) // Lățime optimizată pentru a încăpea lângă omuleț
+                .weight(1f)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color.White.copy(alpha = 0.05f)), // Fundal foarte discret
             contentAlignment = Alignment.BottomCenter
         ) {
-            // Partea umplută a barei
+            // Nivelul de umplere cu Gradient
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(animatedHeight) // Aici se aplică umplerea (0.0 - 1.0)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(animatedColor)
+                    .fillMaxHeight(animatedHeight)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(animatedColor, animatedColor.copy(alpha = 0.4f))
+                        )
+                    )
             )
         }
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        // Afișăm BPM-ul curent în dreapta
+        // Valoarea pulsului jos
         Text(
-            text = "$currentHr\nBPM",
-            fontSize = 18.sp,
-            color = MaterialTheme.colorScheme.onSurface
+            text = "$currentHr",
+            color = Color.White,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Black
+        )
+        Text(
+            text = "BPM",
+            color = Color.Gray,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
