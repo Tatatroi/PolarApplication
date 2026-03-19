@@ -6,7 +6,9 @@ data class AthleteVitals(
     val trainingZone: Int = 0,
     val cnsScore: Int = 0,
     val trimpScore: Double = 0.0,
-    val calories: Int = 0
+    val calories: Int = 0,
+    val stressScore: Float = 0f,
+    val stressLevel: Int = 0
 
 ) {
 

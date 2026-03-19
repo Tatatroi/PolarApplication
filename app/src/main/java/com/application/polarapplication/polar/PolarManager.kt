@@ -2,6 +2,8 @@ package com.application.polarapplication.polar
 
 import android.content.Context
 import android.util.Log
+import com.application.polarapplication.ai.analysis.StressDataStream
+import com.application.polarapplication.ai.analysis.StressManager
 import com.application.polarapplication.ai.model.AthleteVitals
 import com.application.polarapplication.ai.model.DeviceState
 import com.polar.sdk.api.PolarBleApi
@@ -43,6 +45,16 @@ class PolarManager(context: Context) {
 
     private val maxDeltaPerSec = 20.0
 
+    var userMaxHr: Int = 200
+
+    /* ================== ACC ================== */
+
+    private var latestAccMagnitude: Double = 0.0
+
+    /* =============== AIENGINE ================ */
+
+    private val stressManager = StressManager()
+    private val stressDataStream = StressDataStream(stressManager)
 
     /* ================== HRV ================== */
 
@@ -50,6 +62,8 @@ class PolarManager(context: Context) {
     private val maxRrSize = 60
 
     private var ppiDisposable: Disposable? = null
+
+    private var accDisposable: Disposable? = null
 
     private val workoutHeartRateSamples = mutableListOf<Int>()
 
@@ -89,6 +103,9 @@ class PolarManager(context: Context) {
             ) {
                 if (features.contains(PolarBleApi.PolarDeviceDataType.PPI)) {
                     startPpiStreaming(id)
+                }
+                if (features.contains(PolarBleApi.PolarDeviceDataType.ACC)) {
+                    startAccStreaming(id)
                 }
             }
 
@@ -167,7 +184,7 @@ class PolarManager(context: Context) {
                     val displayHr = smoothHr.toInt()
 
                     /* 6. Calcul Metrici Bompa & UI Update */
-                    val zone = calcZone(displayHr, 200) // Încearcă să pui formula ta 220-vârstă aici pe viitor
+                    val zone = calcZone(displayHr, userMaxHr)
 
                     // Corecție RMSSD pentru CNS să nu dea scoruri dubioase dacă e mult zgomot
                     val cnsRaw = if (rmssd > 5.0 && rmssd < 150.0) (kotlin.math.ln(rmssd) * 20.0) else 0.0
@@ -182,13 +199,25 @@ class PolarManager(context: Context) {
                         lastSampleTimestamp = currentTime
                     }
 
+                    // APELEAZĂ MANAGERUL AI AICI:
+                    stressDataStream?.onNewDataReceived(
+                        bvp = displayHr.toDouble(),
+                        acc = latestAccMagnitude
+                    )
+
+                    // Pentru a vedea pe UI, salvăm scorul de la AI în starea vitalelor:
+                    val currentStressScore = stressDataStream.currentStressScore
+                    val currentStressLevel = stressDataStream.currentStressLevel
+
                     _athleteVitals.value = AthleteVitals(
                         heartRate = displayHr,
                         rmssd = rmssd,
                         trainingZone = zone,
                         cnsScore = cnsScore,
                         trimpScore = accumulatedTrimp,
-                        calories = accumulatedCalories.toInt()
+                        calories = accumulatedCalories.toInt(),
+                        stressScore = currentStressScore,
+                        stressLevel = currentStressLevel
                     )
                 }
 
@@ -360,6 +389,29 @@ class PolarManager(context: Context) {
             })
     }
 
+    private fun startAccStreaming(deviceId: String) {
+        accDisposable = api.requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
+            .flatMapPublisher { settings ->
+                api.startAccStreaming(deviceId, settings.maxSettings())
+            }
+            .subscribe(
+                { polarAccelerometerData ->
+                    for (sample in polarAccelerometerData.samples) {
+                        // 1. Luăm valorile X, Y, Z
+                        val x = sample.x.toDouble()
+                        val y = sample.y.toDouble()
+                        val z = sample.z.toDouble()
+
+                        // 2. Calculăm Magnitudinea (Pitagora în 3D)
+                        val magnitude = sqrt(x * x + y * y + z * z)
+
+                        // 3. Salvăm valoarea pentru când va veni rândul pulsului să fie procesat
+                        latestAccMagnitude = magnitude
+                    }
+                },
+                { error -> Log.e("POLAR_ACC", "Eroare la stream ACC: $error") }
+            )
+    }
 
     /* ================== CONTROL ================== */
 
@@ -406,6 +458,7 @@ class PolarManager(context: Context) {
         rrBuffer.clear()
 
         ppiDisposable?.dispose()
+        accDisposable?.dispose()
 
         _deviceState.value = DeviceState(false)
         _athleteVitals.value = AthleteVitals()
