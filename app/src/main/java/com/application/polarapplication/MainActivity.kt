@@ -185,7 +185,7 @@ fun MainNavigationWrapper() {
                         }
 
                         // Ecranul care conține graficul Vico
-                        WorkoutDetailsScreen(session = selectedSession!!)
+                        WorkoutDetailsScreen(session = selectedSession!!,  maxHr = dashboardViewModel.userMaxHr.value)
                     }
                 }
             }

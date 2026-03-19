@@ -41,6 +41,17 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     val profileManager = ProfileManager(application)
 
+    val userMaxHr: StateFlow<Int> = combine(
+        profileManager.age,
+        profileManager.customHrMax
+    ) { age, customMax ->
+        customMax ?: (208 - (0.7 * age)).toInt()
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = 190
+    )
+
     val allSessions: StateFlow<List<TrainingSessionEntity>> = sessionDao.getAllSessionsFlow()
         .stateIn(
             scope = viewModelScope,
@@ -64,6 +75,14 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         initialValue = DashboardUiState()
     )
 
+    init {
+        viewModelScope.launch {
+            userMaxHr.collect { maxHr ->
+                polarManager.userMaxHr = maxHr
+            }
+        }
+    }
+
     fun toggleConnection(deviceId: String) {
         if (uiState.value.device.isConnected) {
             polarManager.disconnectFromDevice(deviceId)
@@ -80,22 +99,49 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     // Funcția care oprește și SALVEAZĂ în baza de date
+    //TODO check new stopWorkoutFunction
+//    fun stopWorkout(workoutType: String) {
+//        val currentVitals = uiState.value.vitals
+//        val samplesList = polarManager.getHrSamples()
+//        val samplesJson = Gson().toJson(samplesList) // Transformăm [120, 125, 130] în "[120,125,130]"
+//        _isWorkoutActive.value = false
+//
+//        // Lansăm o corutină (un proces pe fundal) pentru a scrie în baza de date
+//        viewModelScope.launch(Dispatchers.IO) {
+//            val newSession = TrainingSessionEntity(
+//                type = workoutType,
+//                avgHeartRate = currentVitals.heartRate, // În viitor putem calcula media reală
+//                maxHeartRate = currentVitals.heartRate,
+//                finalTrimp = currentVitals.trimpScore,
+//                totalCalories = currentVitals.calories,
+//                cnsScoreAtStart = 0, // Vom implementa logica de captură la start
+//                cnsScoreAtEnd = currentVitals.cnsScore ,
+//                hrSamples = samplesJson,
+//                isCompleted = true
+//            )
+//            sessionDao.insertSession(newSession)
+//        }
+//    }
+
     fun stopWorkout(workoutType: String) {
         val currentVitals = uiState.value.vitals
         val samplesList = polarManager.getHrSamples()
-        val samplesJson = Gson().toJson(samplesList) // Transformăm [120, 125, 130] în "[120,125,130]"
+        val samplesJson = Gson().toJson(samplesList)
         _isWorkoutActive.value = false
 
-        // Lansăm o corutină (un proces pe fundal) pentru a scrie în baza de date
+        // Calculăm avg și max din lista reală de eșantioane
+        val avgHr = if (samplesList.isNotEmpty()) samplesList.average().toInt() else currentVitals.heartRate
+        val maxHr = if (samplesList.isNotEmpty()) samplesList.max() else currentVitals.heartRate
+
         viewModelScope.launch(Dispatchers.IO) {
             val newSession = TrainingSessionEntity(
                 type = workoutType,
-                avgHeartRate = currentVitals.heartRate, // În viitor putem calcula media reală
-                maxHeartRate = currentVitals.heartRate,
+                avgHeartRate = avgHr,
+                maxHeartRate = maxHr,
                 finalTrimp = currentVitals.trimpScore,
                 totalCalories = currentVitals.calories,
-                cnsScoreAtStart = 0, // Vom implementa logica de captură la start
-                cnsScoreAtEnd = currentVitals.cnsScore ,
+                cnsScoreAtStart = 0,
+                cnsScoreAtEnd = currentVitals.cnsScore,
                 hrSamples = samplesJson,
                 isCompleted = true
             )

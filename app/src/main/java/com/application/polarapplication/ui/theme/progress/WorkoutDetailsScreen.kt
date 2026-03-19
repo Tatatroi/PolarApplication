@@ -35,7 +35,7 @@ val Zone2Color = Color(0xFF1976D2) // Albastru
 val Zone1Color = Color(0xFF9E9E9E) // Gri
 
 @Composable
-fun WorkoutDetailsScreen(session: TrainingSessionEntity) {
+fun WorkoutDetailsScreen(session: TrainingSessionEntity,  maxHr: Int = 200) {
     val hrList: List<Int> = try {
         val type = object : TypeToken<List<Int>>() {}.type
         Gson().fromJson(session.hrSamples, type) ?: emptyList()
@@ -128,7 +128,7 @@ fun WorkoutDetailsScreen(session: TrainingSessionEntity) {
         Spacer(modifier = Modifier.height(24.dp))
 
         if (hrList.isNotEmpty()) {
-            ZoneBreakdownSection(hrList = hrList, maxHr = 200)
+            ZoneBreakdownSection(hrList = hrList, maxHr = maxHr)
         }
 
         Spacer(modifier = Modifier.height(40.dp))

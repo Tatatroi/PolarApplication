@@ -45,6 +45,8 @@ class PolarManager(context: Context) {
 
     private val maxDeltaPerSec = 20.0
 
+    var userMaxHr: Int = 200
+
     /* ================== ACC ================== */
 
     private var latestAccMagnitude: Double = 0.0
@@ -182,7 +184,7 @@ class PolarManager(context: Context) {
                     val displayHr = smoothHr.toInt()
 
                     /* 6. Calcul Metrici Bompa & UI Update */
-                    val zone = calcZone(displayHr, 200) // Încearcă să pui formula ta 220-vârstă aici pe viitor
+                    val zone = calcZone(displayHr, userMaxHr)
 
                     // Corecție RMSSD pentru CNS să nu dea scoruri dubioase dacă e mult zgomot
                     val cnsRaw = if (rmssd > 5.0 && rmssd < 150.0) (kotlin.math.ln(rmssd) * 20.0) else 0.0

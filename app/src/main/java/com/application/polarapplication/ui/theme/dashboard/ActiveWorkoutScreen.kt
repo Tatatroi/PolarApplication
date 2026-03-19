@@ -82,9 +82,11 @@ fun ActiveWorkoutScreen(
                     modifier = Modifier.weight(0.35f).fillMaxHeight(),
                     contentAlignment = Alignment.Center
                 ) {
+                    val maxHr by viewModel.userMaxHr.collectAsState()
+
                     HrZoneVerticalBar(
                         currentHr = vitals.heartRate,
-                        maxHr = userMaxHr
+                        maxHr = maxHr
                     )
                 }
 
