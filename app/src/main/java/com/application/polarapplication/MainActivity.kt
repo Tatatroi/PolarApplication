@@ -185,13 +185,17 @@ fun MainNavigationWrapper() {
                         }
 
                         // Ecranul care conține graficul Vico
-                        WorkoutDetailsScreen(session = selectedSession!!)
+                        WorkoutDetailsScreen(session = selectedSession!!,  maxHr = dashboardViewModel.userMaxHr.value)
                     }
                 }
             }
             composable(Screen.ActiveWorkout.route) {
+                val testGender = "Masculin"
+                val testMaxHr = 200
                  ActiveWorkoutScreen(
                     viewModel = sharedViewModel,
+                     userGender = testGender,
+                     userMaxHr = testMaxHr,
                     onMinimizeClick = {
                         // Ne întoarcem la Dashboard fără să închidem antrenamentul
                         navController.popBackStack(Screen.Dashboard.route, inclusive = false)
