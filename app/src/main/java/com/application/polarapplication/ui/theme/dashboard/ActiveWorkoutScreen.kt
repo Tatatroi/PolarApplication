@@ -1,6 +1,5 @@
 package com.application.polarapplication.ui.theme.dashboard
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,17 +20,17 @@ import com.application.polarapplication.ui.stressPredictor.StressIndicator
 fun ActiveWorkoutScreen(
     viewModel: DashboardViewModel,
     userGender: String,
-    userMaxHr: Int,
     onMinimizeClick: () -> Unit
 ) {
     val vitals by viewModel.athleteVitals.collectAsState()
     val isWorkoutActive by viewModel.isWorkoutActive.collectAsState()
+    val workoutType by viewModel.selectedWorkoutType.collectAsState()
 
     // State pentru confirmarea opririi
     var showStopConfirmation by remember { mutableStateOf(false) }
 
     // Mapăm textul din vitals către Int-ul cerut de StressIndicator (0 = Calm, 1 = Stres)
-    val stressLevelInt = if (vitals.stressLevel.toString().contains("Stres", ignoreCase = true)) 1 else 0
+    val stressLevelInt = vitals.stressLevel
 
     // Închide ecranul automat dacă antrenamentul a fost oprit din altă parte
     if (!isWorkoutActive) {
@@ -69,7 +68,6 @@ fun ActiveWorkoutScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             // --- 1. ZONA DE BIO-FEEDBACK (Puls + Siluetă AI) ---
             Row(
                 modifier = Modifier
@@ -167,7 +165,7 @@ fun ActiveWorkoutScreen(
             text = { Text("Ești sigur că vrei să oprești monitorizarea acum?", color = Color.Gray) },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.stopWorkout("BOMPA_SESSION")
+                    viewModel.stopWorkout(workoutType)
                     showStopConfirmation = false
                     onMinimizeClick()
                 }) {

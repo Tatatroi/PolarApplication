@@ -3,7 +3,7 @@ package com.application.polarapplication.ai.planning
 import com.application.polarapplication.ai.daily.WorkoutType
 
 object MicroCycleGenerator {
-    fun generate(phase: String): List<WorkoutType>{
+    fun generate(phase: String): List<WorkoutType> {
         return when (phase) {
             "general" -> listOf(
                 WorkoutType.STRENGTH,

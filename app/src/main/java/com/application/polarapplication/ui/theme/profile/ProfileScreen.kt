@@ -16,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,7 +53,6 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
     val savedCustomHrMax by viewModel.profileManager.customHrMax.collectAsState()
     val savedImageUri by viewModel.profileManager.profileImageUri.collectAsState()
 
-
     var age by remember(savedAge) { mutableStateOf(savedAge) }
     var weight by remember(savedWeight) { mutableStateOf(savedWeight) }
     var height by remember(savedHeight) { mutableStateOf(savedHeight) }
@@ -78,8 +76,6 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
     val calculatedHrMax = (208 - (0.7 * age)).roundToInt()
     val displayHrMax = customHrMax ?: calculatedHrMax
 
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -91,7 +87,6 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
 
         // --- HEADER ---
         Row(verticalAlignment = Alignment.CenterVertically) {
-
             // Cutia Avatarului (acum e clickabilă!)
             Box(
                 modifier = Modifier
@@ -150,19 +145,34 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             MetricEditorCard(
-                title = "Vârstă", value = "$age", unit = "ani", color = NeonBlue, modifier = Modifier.weight(1f),
-                onDecrease = { if (age > 14) age-- }, onIncrease = { if (age < 100) age++ }
+                title = "Vârstă",
+                value = "$age",
+                unit = "ani",
+                color = NeonBlue,
+                modifier = Modifier.weight(1f),
+                onDecrease = { if (age > 14) age-- },
+                onIncrease = { if (age < 100) age++ }
             )
             MetricEditorCard(
-                title = "Greutate", value = "${weight.toInt()}", unit = "kg", color = NeonBlue, modifier = Modifier.weight(1f),
-                onDecrease = { if (weight > 40) weight -= 1f }, onIncrease = { if (weight < 150) weight += 1f }
+                title = "Greutate",
+                value = "${weight.toInt()}",
+                unit = "kg",
+                color = NeonBlue,
+                modifier = Modifier.weight(1f),
+                onDecrease = { if (weight > 40) weight -= 1f },
+                onIncrease = { if (weight < 150) weight += 1f }
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             MetricEditorCard(
-                title = "Înălțime", value = "$height", unit = "cm", color = NeonBlue, modifier = Modifier.weight(1f),
-                onDecrease = { if (height > 140) height-- }, onIncrease = { if (height < 220) height++ }
+                title = "Înălțime",
+                value = "$height",
+                unit = "cm",
+                color = NeonBlue,
+                modifier = Modifier.weight(1f),
+                onDecrease = { if (height > 140) height-- },
+                onIncrease = { if (height < 220) height++ }
             )
 
             // Selector simplu de sex
@@ -225,7 +235,7 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
                 }
                 if (customHrMax != null) {
                     TextButton(onClick = { customHrMax = null }, modifier = Modifier.align(Alignment.End)) {
-                        Text("Resetează la Auto-calcul (${calculatedHrMax})", color = Color.Gray, fontSize = 12.sp)
+                        Text("Resetează la Auto-calcul ($calculatedHrMax)", color = Color.Gray, fontSize = 12.sp)
                     }
                 }
             }
@@ -250,8 +260,13 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
 
 @Composable
 fun MetricEditorCard(
-    title: String, value: String, unit: String, color: Color,
-    modifier: Modifier = Modifier, onDecrease: () -> Unit, onIncrease: () -> Unit
+    title: String,
+    value: String,
+    unit: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = CardSurfaceDark),

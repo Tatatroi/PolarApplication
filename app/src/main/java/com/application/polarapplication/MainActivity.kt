@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -20,7 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -28,17 +32,17 @@ import androidx.navigation.compose.rememberNavController
 import com.application.polarapplication.polar.PermissionHelper
 import com.application.polarapplication.ui.Screen
 import com.application.polarapplication.ui.history.HistoryScreen
-import com.application.polarapplication.ui.theme.PolarApplicationTheme
-import com.application.polarapplication.ui.theme.dashboard.DashboardScreen
-import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.application.polarapplication.ui.planning.TargetSetupScreen
 import com.application.polarapplication.ui.theme.Indigo
+import com.application.polarapplication.ui.theme.PolarApplicationTheme
 import com.application.polarapplication.ui.theme.dashboard.ActiveWorkoutScreen
+import com.application.polarapplication.ui.theme.dashboard.DashboardScreen
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
+import com.application.polarapplication.ui.theme.dashboard.PeriodizationCalendarScreen
 import com.application.polarapplication.ui.theme.devices.DevicesScreen
 import com.application.polarapplication.ui.theme.profile.ProfileScreen
 import com.application.polarapplication.ui.theme.progress.WorkoutDetailsScreen
-import androidx.compose.material.icons.filled.Person
+import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
 
@@ -137,12 +141,25 @@ fun MainNavigationWrapper() {
                             }
                         }
                     )
+
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Default.DateRange, contentDescription = "Calendar") },
+                        label = { Text("Plan") },
+                        selected = currentRoute == Screen.PeriodizationCalendar.route
+                                || currentRoute == Screen.TargetSetup.route,
+                        onClick = {
+                            navController.navigate(Screen.TargetSetup.route) {
+                                launchSingleTop = true
+                            }
+                        }
+                    )
                 }
             }
         }
     ) { innerPadding ->
         // Aici se face schimbul efectiv între ecrane
         val sharedViewModel: DashboardViewModel = viewModel()
+        val currentMaxHr by sharedViewModel.userMaxHr.collectAsState()
         NavHost(
             navController = navController,
             startDestination = Screen.Dashboard.route,
@@ -161,16 +178,15 @@ fun MainNavigationWrapper() {
 
             composable(Screen.History.route) {
                 // Obținem ViewModel-ul pentru a accesa sesiunea selectată
-                val dashboardViewModel: DashboardViewModel = viewModel()
-                val selectedSession by dashboardViewModel.selectedSession.collectAsState()
+                val selectedSession by sharedViewModel.selectedSession.collectAsState()
 
                 if (selectedSession == null) {
                     // 1. Afișăm lista de antrenamente
                     HistoryScreen(
-                        viewModel = dashboardViewModel,
+                        viewModel = sharedViewModel,
                         onSessionClick = { session ->
                             // Când dăm click, salvăm sesiunea în ViewModel
-                            dashboardViewModel.selectSession(session)
+                            sharedViewModel.selectSession(session)
                         }
                     )
                 } else {
@@ -178,33 +194,52 @@ fun MainNavigationWrapper() {
                     Column(modifier = Modifier.fillMaxSize()) {
                         // Buton de "Înapoi" pentru a reveni la listă
                         TextButton(
-                            onClick = { dashboardViewModel.selectSession(null) },
+                            onClick = { sharedViewModel.selectSession(null) },
                             modifier = Modifier.padding(8.dp)
                         ) {
                             Text("< Înapoi la listă", color = Indigo)
                         }
 
                         // Ecranul care conține graficul Vico
-                        WorkoutDetailsScreen(session = selectedSession!!,  maxHr = dashboardViewModel.userMaxHr.value)
+                        WorkoutDetailsScreen(session = selectedSession!!, maxHr = currentMaxHr)
                     }
                 }
             }
             composable(Screen.ActiveWorkout.route) {
-                val testGender = "Masculin"
-                val testMaxHr = 200
-                 ActiveWorkoutScreen(
+                val userGender by sharedViewModel.profileManager.gender.collectAsState()
+                ActiveWorkoutScreen(
                     viewModel = sharedViewModel,
-                     userGender = testGender,
-                     userMaxHr = testMaxHr,
+                    userGender = userGender,
                     onMinimizeClick = {
-                        // Ne întoarcem la Dashboard fără să închidem antrenamentul
                         navController.popBackStack(Screen.Dashboard.route, inclusive = false)
                     }
                 )
             }
 
             composable(Screen.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(viewModel = sharedViewModel)
+            }
+
+            composable(Screen.TargetSetup.route) {
+                TargetSetupScreen(
+                    viewModel = sharedViewModel,   // ← adaugă
+                    onPlanGenerated = {
+                        navController.navigate(Screen.PeriodizationCalendar.route) {
+                            popUpTo(Screen.TargetSetup.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable(Screen.PeriodizationCalendar.route) {
+                PeriodizationCalendarScreen(
+                    viewModel = sharedViewModel,   // ← adaugă
+                    onBack = {
+                        navController.navigate(Screen.TargetSetup.route) {
+                            popUpTo(Screen.PeriodizationCalendar.route) { inclusive = true }
+                        }
+                    }
+                )
             }
         }
     }

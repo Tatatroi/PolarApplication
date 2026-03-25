@@ -1,4 +1,3 @@
 package com.application.polarapplication.ai.planning
 
-class MacroCycle {
-}
+class MacroCycle

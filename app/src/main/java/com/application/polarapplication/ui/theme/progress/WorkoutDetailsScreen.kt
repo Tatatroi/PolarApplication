@@ -35,7 +35,7 @@ val Zone2Color = Color(0xFF1976D2) // Albastru
 val Zone1Color = Color(0xFF9E9E9E) // Gri
 
 @Composable
-fun WorkoutDetailsScreen(session: TrainingSessionEntity,  maxHr: Int = 200) {
+fun WorkoutDetailsScreen(session: TrainingSessionEntity, maxHr: Int) {
     val hrList: List<Int> = try {
         val type = object : TypeToken<List<Int>>() {}.type
         Gson().fromJson(session.hrSamples, type) ?: emptyList()
@@ -149,7 +149,7 @@ fun ZoneBreakdownSection(hrList: List<Int>, maxHr: Int) {
     val secondsPerSample = 2
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        ZoneItem("Zone 5: Maximum", z5Count, totalSamples, secondsPerSample, Zone5Color, "${(maxHr * 0.9).toInt()}-${maxHr} bpm")
+        ZoneItem("Zone 5: Maximum", z5Count, totalSamples, secondsPerSample, Zone5Color, "${(maxHr * 0.9).toInt()}-$maxHr bpm")
         ZoneItem("Zone 4: Anaerobic", z4Count, totalSamples, secondsPerSample, Zone4Color, "${(maxHr * 0.8).toInt()}-${(maxHr * 0.9 - 1).toInt()} bpm")
         ZoneItem("Zone 3: Aerobic", z3Count, totalSamples, secondsPerSample, Zone3Color, "${(maxHr * 0.7).toInt()}-${(maxHr * 0.8 - 1).toInt()} bpm")
         ZoneItem("Zone 2: Weight control", z2Count, totalSamples, secondsPerSample, Zone2Color, "${(maxHr * 0.6).toInt()}-${(maxHr * 0.7 - 1).toInt()} bpm")

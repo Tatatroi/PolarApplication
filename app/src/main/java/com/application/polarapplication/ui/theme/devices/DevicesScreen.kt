@@ -53,9 +53,9 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
         Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
             ListItem(
                 headlineContent = { Text("Polar H10 / OH1") },
-                supportingContent = { Text(if(deviceState.device.isConnected) "Conectat" else "Deconectat") },
+                supportingContent = { Text(if (deviceState.device.isConnected) "Conectat" else "Deconectat") },
                 trailingContent = {
-                    if(!deviceState.device.isConnected) Button(onClick = { /* reconectare la ultimul id */ }) { Text("Connect") }
+                    if (!deviceState.device.isConnected) Button(onClick = { /* reconectare la ultimul id */ }) { Text("Connect") }
                 }
             )
         }

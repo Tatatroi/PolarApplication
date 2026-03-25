@@ -10,7 +10,6 @@ import com.polar.sdk.api.PolarBleApi
 import com.polar.sdk.api.PolarBleApiCallback
 import com.polar.sdk.api.PolarBleApiDefaultImpl
 import com.polar.sdk.api.model.PolarDeviceInfo
-import com.polar.sdk.api.model.PolarOhrPPIData
 import io.reactivex.rxjava3.disposables.Disposable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,7 +35,6 @@ class PolarManager(context: Context) {
     private var scanDisposable: Disposable? = null
     private val _availableDevices = MutableStateFlow<Set<PolarDeviceInfo>>(emptySet())
     val availableDevices = _availableDevices.asStateFlow()
-
 
     /* ================== HR FILTER ================== */
 
@@ -72,7 +70,6 @@ class PolarManager(context: Context) {
     private val rawHrWindow = mutableListOf<Double>() // NOU: Fereastra pentru Filtrul Median
     private val maxWindowSize = 5
 
-
     /* ================== POLAR API ================== */
 
     private val api: PolarBleApi by lazy {
@@ -85,7 +82,6 @@ class PolarManager(context: Context) {
             )
         )
     }
-
 
     init {
         api.setApiCallback(object : PolarBleApiCallback() {
@@ -120,12 +116,10 @@ class PolarManager(context: Context) {
         })
     }
 
-
     /* ================== STREAM ================== */
 
     @Suppress("DEPRECATION")
     private fun startPpiStreaming(deviceId: String) {
-
         ppiDisposable = api.startOhrPPIStreaming(deviceId)
             .subscribe({ data ->
 
@@ -221,7 +215,7 @@ class PolarManager(context: Context) {
                     )
                 }
 
-                //Asta e a 2 varianta care nu merge
+                // Asta e a 2 varianta care nu merge
 //                for (sample in data.samples) {
 //                    if (sample.skinContactSupported && !sample.skinContactStatus) continue
 //
@@ -295,7 +289,7 @@ class PolarManager(context: Context) {
 //                    )
 //                }
 
-                //Asta e prima variante care nu e perfecta
+                // Asta e prima variante care nu e perfecta
 //                for (sample in data.samples) {
 //
 //                    /* --------- Quality filter --------- */
@@ -383,7 +377,6 @@ class PolarManager(context: Context) {
 //                        calories = accumulatedCalories.toInt()
 //                    )
 //                }
-
             }, { err ->
                 Log.e("POLAR", err.toString())
             })
@@ -452,13 +445,15 @@ class PolarManager(context: Context) {
     fun getHrSamples(): List<Int> = workoutHeartRateSamples.toList()
 
     private fun reset() {
-
         lastHr = null
         lastTimestamp = null
         rrBuffer.clear()
 
         ppiDisposable?.dispose()
         accDisposable?.dispose()
+
+        ppiDisposable = null
+        accDisposable = null
 
         _deviceState.value = DeviceState(false)
         _athleteVitals.value = AthleteVitals()
@@ -468,7 +463,6 @@ class PolarManager(context: Context) {
         workoutHeartRateSamples.clear()
         lastSampleTimestamp = 0L
     }
-
 
     /* ================== UTILS ================== */
 
@@ -491,7 +485,6 @@ class PolarManager(context: Context) {
     }
 
     private fun calcRMSSD(rr: List<Double>): Double {
-
         val diffs =
             rr.zipWithNext { a, b ->
                 val d = b - a
@@ -502,7 +495,6 @@ class PolarManager(context: Context) {
     }
 
     private fun calcZone(hr: Int, max: Int): Int {
-
         val p = hr.toDouble() / max * 100
 
         return when {
