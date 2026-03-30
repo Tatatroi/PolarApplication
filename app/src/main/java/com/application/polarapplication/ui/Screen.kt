@@ -20,4 +20,6 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object PeriodizationCalendar : Screen("periodization", "Calendar", Icons.Default.DateRange)
 
     object TargetSetup : Screen("target_setup", "Setup", Icons.Default.DateRange)
+
+    object ActivePlan : Screen("active_plan", "Plan", Icons.Default.DateRange)
 }

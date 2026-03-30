@@ -23,16 +23,40 @@ class StressManager {
         bvpSamples: List<Double>,
         accSamples: List<Double>
     ): DoubleArray {
-        // Asigură-te că mărimea DoubleArray(X) corespunde cu ce cere modelul tau
         val inputs = DoubleArray(15)
+        if (bvpSamples.isEmpty()) return inputs
 
-        // Exemplu de populare (trebuie să respecți ordinea din Kaggle!)
-        if (bvpSamples.isNotEmpty()) {
-            inputs[0] = bvpSamples.average()
-            inputs[1] = calculateStd(bvpSamples)
+        // BVP features (RR intervals ca proxy)
+        inputs[0] = bvpSamples.average()                    // mean_bvp
+        inputs[1] = calculateStd(bvpSamples)                // std_bvp
+        inputs[2] = bvpSamples.min()                        // min_bvp
+        inputs[3] = bvpSamples.max()                        // max_bvp
+        inputs[4] = inputs[3] - inputs[2]                   // range_bvp
+
+        // Percentile 25, 50, 75
+        val sorted = bvpSamples.sorted()
+        val n = sorted.size
+        inputs[5] = sorted[(n * 0.25).toInt().coerceIn(0, n-1)]  // p25
+        inputs[6] = sorted[(n * 0.50).toInt().coerceIn(0, n-1)]  // p50 (median)
+        inputs[7] = sorted[(n * 0.75).toInt().coerceIn(0, n-1)]  // p75
+
+        // ACC features
+        if (accSamples.isNotEmpty()) {
+            inputs[8]  = accSamples.average()               // acc_mean
+            inputs[9]  = calculateStd(accSamples)           // acc_std
+            inputs[10] = accSamples.min()                   // acc_min
+            inputs[11] = accSamples.max()                   // acc_max
+            inputs[12] = inputs[11] - inputs[10]            // acc_range
         }
 
-        // ... adaugă restul până la capăt ...
+        // RMSSD din RR intervals (HRV feature)
+        if (bvpSamples.size >= 2) {
+            val diffs = bvpSamples.zipWithNext { a, b -> (b - a) * (b - a) }
+            inputs[13] = Math.sqrt(diffs.average())         // rmssd proxy
+        }
+
+        // Sample count normalizat
+        inputs[14] = (bvpSamples.size / 500.0).coerceIn(0.0, 1.0)
 
         return inputs
     }

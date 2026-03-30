@@ -195,7 +195,7 @@ class PolarManager(context: Context) {
 
                     // APELEAZĂ MANAGERUL AI AICI:
                     stressDataStream?.onNewDataReceived(
-                        bvp = displayHr.toDouble(),
+                        bvp = rr,
                         acc = latestAccMagnitude
                     )
 

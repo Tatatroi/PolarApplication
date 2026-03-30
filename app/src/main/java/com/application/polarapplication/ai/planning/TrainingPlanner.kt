@@ -16,7 +16,7 @@ class TrainingPlanner {
 
     fun generatePlan(
         competitionDate: LocalDate,
-        startDate: LocalDate = LocalDate.now()   // ← acum accepta start custom
+        startDate: LocalDate = LocalDate.now()
     ): TrainingPlan {
         val start = startDate
         val totalDays = ChronoUnit.DAYS.between(start, competitionDate).toInt()

@@ -152,7 +152,10 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     fun saveUserProfile(
         age: Int, weight: Float, height: Int,
         gender: String, rhr: Int,
-        customHrMax: Int?, profileImageUri: String?
+        customHrMax: Int?, profileImageUri: String?,
+
+        dobMillis: Long?,
+        availableDays: Set<Int>
     ) {
         profileManager.saveProfile(
             newAge            = age,
@@ -161,12 +164,12 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             newGender         = gender,
             newRhr            = rhr,
             newCustomHrMax    = customHrMax,
-            newProfileImageUri = profileImageUri
-            // competitionDate si planStartDate nu se ating aici
+            newProfileImageUri = profileImageUri,
+            newDobMillis      = dobMillis,
+            newAvailableDays  = availableDays
         )
     }
 
-    // Apelat din TargetSetupScreen cand userul genereaza planul
     fun setCompetitionDate(date: LocalDate) {
         val compMillis = date
             .atStartOfDay(ZoneId.systemDefault())

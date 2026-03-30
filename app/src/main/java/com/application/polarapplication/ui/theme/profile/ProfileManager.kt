@@ -40,6 +40,19 @@ class ProfileManager(context: Context) {
     )
     val planStartDateMillis: StateFlow<Long?> = _planStartDateMillis
 
+    // Data nașterii — înlocuiește vârsta introdusă manual
+    private val _dobMillis = MutableStateFlow(
+        if (prefs.contains("dobMillis")) prefs.getLong("dobMillis", -1L) else null
+    )
+    val dobMillis: StateFlow<Long?> = _dobMillis
+
+    // Zilele disponibile: Set<Int> unde 1=Luni ... 7=Duminică
+    private val _availableDays = MutableStateFlow(
+        prefs.getStringSet("availableDays", setOf("1", "2", "4", "5"))
+            ?.mapNotNull { it.toIntOrNull() }?.toSet() ?: setOf(1, 2, 4, 5)
+    )
+    val availableDays: StateFlow<Set<Int>> = _availableDays
+
     fun saveProfile(
         newAge: Int,
         newWeight: Float,
@@ -49,7 +62,9 @@ class ProfileManager(context: Context) {
         newCustomHrMax: Int?,
         newProfileImageUri: String?,
         newCompetitionDateMillis: Long? = _competitionDateMillis.value,
-        newPlanStartDateMillis: Long?   = _planStartDateMillis.value
+        newPlanStartDateMillis: Long?   = _planStartDateMillis.value,
+        newDobMillis: Long?             = _dobMillis.value,
+        newAvailableDays: Set<Int>      = _availableDays.value
     ) {
         val editor = prefs.edit()
 
@@ -71,16 +86,23 @@ class ProfileManager(context: Context) {
         if (newPlanStartDateMillis != null) editor.putLong("planStartDate", newPlanStartDateMillis)
         else editor.remove("planStartDate")
 
+        if (newDobMillis != null) editor.putLong("dobMillis", newDobMillis)
+        else editor.remove("dobMillis")
+
+        editor.putStringSet("availableDays", newAvailableDays.map { it.toString() }.toSet())
+
         editor.apply()
 
-        _age.value                    = newAge
-        _weight.value                 = newWeight
-        _height.value                 = newHeight
-        _gender.value                 = newGender
-        _rhr.value                    = newRhr
-        _customHrMax.value            = newCustomHrMax
-        _profileImageUri.value        = newProfileImageUri
-        _competitionDateMillis.value  = newCompetitionDateMillis
-        _planStartDateMillis.value    = newPlanStartDateMillis
+        _age.value                   = newAge
+        _weight.value                = newWeight
+        _height.value                = newHeight
+        _gender.value                = newGender
+        _rhr.value                   = newRhr
+        _customHrMax.value           = newCustomHrMax
+        _profileImageUri.value       = newProfileImageUri
+        _competitionDateMillis.value = newCompetitionDateMillis
+        _planStartDateMillis.value   = newPlanStartDateMillis
+        _dobMillis.value             = newDobMillis
+        _availableDays.value         = newAvailableDays
     }
 }

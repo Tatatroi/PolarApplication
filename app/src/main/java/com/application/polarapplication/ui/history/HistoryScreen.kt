@@ -37,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -616,7 +617,7 @@ fun CalendarDayCell(
 
         // ── Conținut central ──────────────────────────────────────────────────
         when {
-            isCompetitionDay -> Text("🏆", fontSize = 16.sp)
+            isCompetitionDay -> Icon(Icons.Default.EmojiEvents, contentDescription = "Competiție", tint = Color(0xFFF87171), modifier = Modifier.size(18.dp))
             hasWorkout && sessionCount == 1 -> Icon(
                 imageVector     = Icons.Default.Check,
                 contentDescription = null,

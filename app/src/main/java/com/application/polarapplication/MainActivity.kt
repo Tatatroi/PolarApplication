@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -29,6 +31,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.application.polarapplication.ai.planning.ActivePlanScreen
 import com.application.polarapplication.polar.PermissionHelper
 import com.application.polarapplication.ui.Screen
 import com.application.polarapplication.ui.history.HistoryScreen
@@ -88,7 +91,7 @@ fun MainNavigationWrapper() {
                     // Buton Dashboard
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Dashboard") },
+                        label = { Text("Home") },
                         selected = currentRoute == Screen.Dashboard.route,
                         onClick = {
                             navController.navigate(Screen.Dashboard.route) {
@@ -100,12 +103,7 @@ fun MainNavigationWrapper() {
                     )
 
                     NavigationBarItem(
-                        icon = {
-                            Icon(
-                                Icons.AutoMirrored.Filled.List,
-                                contentDescription = "Devices"
-                            )
-                        },
+                        icon = { Icon(Icons.Default.Sensors, contentDescription = "Devices") },
                         label = { Text("Devices") },
                         selected = currentRoute == Screen.Devices.route,
                         onClick = {
@@ -116,13 +114,8 @@ fun MainNavigationWrapper() {
                     )
 
                     NavigationBarItem(
-                        icon = {
-                            Icon(
-                                Icons.AutoMirrored.Filled.List,
-                                contentDescription = "History"
-                            )
-                        },
-                        label = { Text("Istoric") },
+                        icon = { Icon(Icons.Default.History, contentDescription = "History") },
+                        label = { Text("History") },
                         selected = currentRoute == Screen.History.route,
                         onClick = {
                             navController.navigate(Screen.History.route) {
@@ -132,8 +125,8 @@ fun MainNavigationWrapper() {
                     )
 
                     NavigationBarItem(
-                        icon = { Icon(Icons.Default.Person, contentDescription = "Profil") },
-                        label = { Text("Profil") },
+                        icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+                        label = { Text("Profile") },
                         selected = currentRoute == Screen.Profile.route,
                         onClick = {
                             navController.navigate(Screen.Profile.route) {
@@ -143,12 +136,12 @@ fun MainNavigationWrapper() {
                     )
 
                     NavigationBarItem(
-                        icon = { Icon(Icons.Default.DateRange, contentDescription = "Calendar") },
+                        icon = { Icon(Icons.Default.DateRange, contentDescription = "Plan") },
                         label = { Text("Plan") },
-                        selected = currentRoute == Screen.PeriodizationCalendar.route
+                        selected = currentRoute == Screen.ActivePlan.route
                                 || currentRoute == Screen.TargetSetup.route,
                         onClick = {
-                            navController.navigate(Screen.TargetSetup.route) {
+                            navController.navigate(Screen.ActivePlan.route) {
                                 launchSingleTop = true
                             }
                         }
@@ -222,7 +215,7 @@ fun MainNavigationWrapper() {
 
             composable(Screen.TargetSetup.route) {
                 TargetSetupScreen(
-                    viewModel = sharedViewModel,   // ← adaugă
+                    viewModel = sharedViewModel,
                     onPlanGenerated = {
                         navController.navigate(Screen.PeriodizationCalendar.route) {
                             popUpTo(Screen.TargetSetup.route) { inclusive = true }
@@ -233,11 +226,20 @@ fun MainNavigationWrapper() {
 
             composable(Screen.PeriodizationCalendar.route) {
                 PeriodizationCalendarScreen(
-                    viewModel = sharedViewModel,   // ← adaugă
+                    viewModel = sharedViewModel,
                     onBack = {
                         navController.navigate(Screen.TargetSetup.route) {
                             popUpTo(Screen.PeriodizationCalendar.route) { inclusive = true }
                         }
+                    }
+                )
+            }
+
+            composable(Screen.ActivePlan.route) {
+                ActivePlanScreen(
+                    viewModel = sharedViewModel,
+                    onGenerateNewPlan = {
+                        navController.navigate(Screen.TargetSetup.route)
                     }
                 )
             }
