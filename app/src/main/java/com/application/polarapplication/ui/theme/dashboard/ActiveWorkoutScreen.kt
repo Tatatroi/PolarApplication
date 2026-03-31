@@ -507,6 +507,7 @@ private fun AiStatusStrip(
                     fontWeight = FontWeight.Black
                 )
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
         // Badge scurt dreapta
@@ -564,6 +565,30 @@ private fun MetricsRow(
             barFrac = (vitals.cnsScore / 100f).coerceIn(0f, 1f),
             barColor = Color(0xFF4ADE80),
             modifier = Modifier.weight(1f)
+        )
+    }
+
+    // --- DIALOG DE CONFIRMARE ---
+    if (showStopConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showStopConfirmation = false },
+            containerColor = Color(0xFF1E1E24),
+            title = { Text("Finalizare sesiune", color = Color.White) },
+            text = { Text("Ești sigur că vrei să oprești monitorizarea acum?", color = Color.Gray) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.stopWorkout("BOMPA_SESSION")
+                    showStopConfirmation = false
+                    onMinimizeClick()
+                }) {
+                    Text("DA, OPREȘTE", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStopConfirmation = false }) {
+                    Text("CONTINUĂ", color = Color.White)
+                }
+            }
         )
     }
 }
