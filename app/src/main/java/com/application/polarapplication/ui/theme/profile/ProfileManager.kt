@@ -30,13 +30,44 @@ class ProfileManager(context: Context) {
     private val _profileImageUri = MutableStateFlow(prefs.getString("profileImageUri", null))
     val profileImageUri: StateFlow<String?> = _profileImageUri
 
-    // Funcție pentru salvare
+    private val _competitionDateMillis = MutableStateFlow(
+        if (prefs.contains("competitionDate")) prefs.getLong("competitionDate", -1L) else null
+    )
+    val competitionDateMillis: StateFlow<Long?> = _competitionDateMillis
+
+    private val _planStartDateMillis = MutableStateFlow(
+        if (prefs.contains("planStartDate")) prefs.getLong("planStartDate", -1L) else null
+    )
+    val planStartDateMillis: StateFlow<Long?> = _planStartDateMillis
+
+    // Data nașterii — înlocuiește vârsta introdusă manual
+    private val _dobMillis = MutableStateFlow(
+        if (prefs.contains("dobMillis")) prefs.getLong("dobMillis", -1L) else null
+    )
+    val dobMillis: StateFlow<Long?> = _dobMillis
+
+    // Zilele disponibile: Set<Int> unde 1=Luni ... 7=Duminică
+    private val _availableDays = MutableStateFlow(
+        prefs.getStringSet("availableDays", setOf("1", "2", "4", "5"))
+            ?.mapNotNull { it.toIntOrNull() }?.toSet() ?: setOf(1, 2, 4, 5)
+    )
+    val availableDays: StateFlow<Set<Int>> = _availableDays
+
     fun saveProfile(
-        newAge: Int, newWeight: Float, newHeight: Int,
-        newGender: String, newRhr: Int, newCustomHrMax: Int?,
-        newProfileImageUri: String?
+        newAge: Int,
+        newWeight: Float,
+        newHeight: Int,
+        newGender: String,
+        newRhr: Int,
+        newCustomHrMax: Int?,
+        newProfileImageUri: String?,
+        newCompetitionDateMillis: Long? = _competitionDateMillis.value,
+        newPlanStartDateMillis: Long? = _planStartDateMillis.value,
+        newDobMillis: Long? = _dobMillis.value,
+        newAvailableDays: Set<Int> = _availableDays.value
     ) {
         val editor = prefs.edit()
+
         editor.putInt("age", newAge)
         editor.putFloat("weight", newWeight)
         editor.putInt("height", newHeight)
@@ -55,6 +86,26 @@ class ProfileManager(context: Context) {
             editor.remove("profileImageUri")
         }
 
+        if (newCompetitionDateMillis != null) {
+            editor.putLong("competitionDate", newCompetitionDateMillis)
+        } else {
+            editor.remove("competitionDate")
+        }
+
+        if (newPlanStartDateMillis != null) {
+            editor.putLong("planStartDate", newPlanStartDateMillis)
+        } else {
+            editor.remove("planStartDate")
+        }
+
+        if (newDobMillis != null) {
+            editor.putLong("dobMillis", newDobMillis)
+        } else {
+            editor.remove("dobMillis")
+        }
+
+        editor.putStringSet("availableDays", newAvailableDays.map { it.toString() }.toSet())
+
         editor.apply()
 
         _age.value = newAge
@@ -64,5 +115,9 @@ class ProfileManager(context: Context) {
         _rhr.value = newRhr
         _customHrMax.value = newCustomHrMax
         _profileImageUri.value = newProfileImageUri
+        _competitionDateMillis.value = newCompetitionDateMillis
+        _planStartDateMillis.value = newPlanStartDateMillis
+        _dobMillis.value = newDobMillis
+        _availableDays.value = newAvailableDays
     }
 }

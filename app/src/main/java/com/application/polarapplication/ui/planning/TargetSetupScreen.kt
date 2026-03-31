@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -28,7 +30,10 @@ val NeonPink = Color(0xFFFF5252)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TargetSetupScreen(onPlanGenerated: () -> Unit) {
+fun TargetSetupScreen(
+    viewModel: DashboardViewModel = viewModel(),
+    onPlanGenerated: () -> Unit
+) {
     var competitionDate by remember { mutableStateOf(System.currentTimeMillis() + (86400000 * 30)) } // Default peste 30 zile
     var selectedGoal by remember { mutableStateOf("Maraton / Endurance") }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -101,7 +106,11 @@ fun TargetSetupScreen(onPlanGenerated: () -> Unit) {
         // --- BUTON GENERARE ---
         Button(
             onClick = {
-                // Aici vom apela algoritmul de periodizare
+                val selectedLocalDate = java.time.Instant
+                    .ofEpochMilli(competitionDate)
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDate()
+                viewModel.setCompetitionDate(selectedLocalDate)
                 onPlanGenerated()
             },
             modifier = Modifier

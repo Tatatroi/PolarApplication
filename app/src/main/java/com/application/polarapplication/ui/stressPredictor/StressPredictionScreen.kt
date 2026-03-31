@@ -1,6 +1,5 @@
 package com.application.polarapplication.ui.stressPredictor
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,10 +27,10 @@ fun StressPredictionScreen(stressManager: StressManager) {
     // Aici simulăm scorul de stres.
     // În realitate, 'Prezent' vine din senzor, restul din algoritmul tău AI.
     val displayScore = when (selectedTimeFrame) {
-        "Prezent" -> 0.2f  // Exemplu: Calm acum
-        "Mâine" -> 0.45f   // Exemplu: Stres mediu estimat
-        "7 Zile" -> 0.8f   // Exemplu: Acumulare oboseală mare
-        "Concurs" -> 0.1f  // Exemplu: Tapering reușit, ești fresh
+        "Prezent" -> 0.2f // Exemplu: Calm acum
+        "Mâine" -> 0.45f // Exemplu: Stres mediu estimat
+        "7 Zile" -> 0.8f // Exemplu: Acumulare oboseală mare
+        "Concurs" -> 0.1f // Exemplu: Tapering reușit, ești fresh
         else -> 0.0f
     }
 

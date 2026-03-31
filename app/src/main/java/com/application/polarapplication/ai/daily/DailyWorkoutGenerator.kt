@@ -1,10 +1,8 @@
 package com.application.polarapplication.ai.daily
 
-
 object DailyWorkoutGenerator {
 
     fun generate(type: WorkoutType, fatigue: Int = 0): String {
-
         val strengthOptions = listOf(
             "Forță maximă: 5×5, pauză 3 min",
             "Forță explozivă: 6×30 sec intensitate mare",
@@ -34,7 +32,7 @@ object DailyWorkoutGenerator {
 
         val restOptions = listOf("Zi de odihnă totală.")
 
-        val chosen = when(type) {
+        val chosen = when (type) {
             WorkoutType.STRENGTH -> strengthOptions.random()
             WorkoutType.ENDURANCE -> enduranceOptions.random()
             WorkoutType.SPEED -> speedOptions.random()
