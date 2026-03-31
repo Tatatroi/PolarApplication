@@ -7,16 +7,16 @@ import com.application.polarapplication.ai.analysis.AppDatabase
 import com.application.polarapplication.model.TrainingSessionEntity
 import com.application.polarapplication.polar.PolarManager
 import com.application.polarapplication.ui.theme.profile.ProfileManager
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import com.google.gson.Gson
-import kotlinx.coroutines.flow.asStateFlow
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -24,7 +24,7 @@ import java.time.ZoneId
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
     private val polarManager = PolarManager(application)
-    private val sessionDao   = AppDatabase.getDatabase(application).sessionDao()
+    private val sessionDao = AppDatabase.getDatabase(application).sessionDao()
 
     val profileManager = ProfileManager(application)
 
@@ -39,7 +39,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     val selectedWorkoutType = _selectedWorkoutType.asStateFlow()
 
     // ── Polar ──────────────────────────────────────────────────────────────────
-    val athleteVitals  = polarManager.athleteVitals
+    val athleteVitals = polarManager.athleteVitals
     val availableDevices = polarManager.availableDevices
 
     // ── Profil ─────────────────────────────────────────────────────────────────
@@ -96,12 +96,15 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     // ── Actiuni ────────────────────────────────────────────────────────────────
 
     fun toggleConnection(deviceId: String) {
-        if (uiState.value.device.isConnected) polarManager.disconnectFromDevice(deviceId)
-        else polarManager.connectToDevice(deviceId)
+        if (uiState.value.device.isConnected) {
+            polarManager.disconnectFromDevice(deviceId)
+        } else {
+            polarManager.connectToDevice(deviceId)
+        }
     }
 
-    fun startScanning()  = polarManager.startScan()
-    fun stopScanning()   = polarManager.stopScan()
+    fun startScanning() = polarManager.startScan()
+    fun stopScanning() = polarManager.stopScan()
 
     fun connectToSelectedDevice(deviceId: String) = polarManager.connectToDevice(deviceId)
 
@@ -112,8 +115,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun stopWorkout(workoutType: String) {
         val currentVitals = uiState.value.vitals
-        val samplesList   = polarManager.getHrSamples()
-        val samplesJson   = Gson().toJson(samplesList)
+        val samplesList = polarManager.getHrSamples()
+        val samplesJson = Gson().toJson(samplesList)
 
         _isWorkoutActive.value = false
 
@@ -123,15 +126,15 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch(Dispatchers.IO) {
             sessionDao.insertSession(
                 TrainingSessionEntity(
-                    type            = workoutType,
-                    avgHeartRate    = avgHr,
-                    maxHeartRate    = maxHr,
-                    finalTrimp      = currentVitals.trimpScore,
-                    totalCalories   = currentVitals.calories,
+                    type = workoutType,
+                    avgHeartRate = avgHr,
+                    maxHeartRate = maxHr,
+                    finalTrimp = currentVitals.trimpScore,
+                    totalCalories = currentVitals.calories,
                     cnsScoreAtStart = 0,
-                    cnsScoreAtEnd   = currentVitals.cnsScore,
-                    hrSamples       = samplesJson,
-                    isCompleted     = true
+                    cnsScoreAtEnd = currentVitals.cnsScore,
+                    hrSamples = samplesJson,
+                    isCompleted = true
                 )
             )
         }
@@ -150,23 +153,27 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun saveUserProfile(
-        age: Int, weight: Float, height: Int,
-        gender: String, rhr: Int,
-        customHrMax: Int?, profileImageUri: String?,
+        age: Int,
+        weight: Float,
+        height: Int,
+        gender: String,
+        rhr: Int,
+        customHrMax: Int?,
+        profileImageUri: String?,
 
         dobMillis: Long?,
         availableDays: Set<Int>
     ) {
         profileManager.saveProfile(
-            newAge            = age,
-            newWeight         = weight,
-            newHeight         = height,
-            newGender         = gender,
-            newRhr            = rhr,
-            newCustomHrMax    = customHrMax,
+            newAge = age,
+            newWeight = weight,
+            newHeight = height,
+            newGender = gender,
+            newRhr = rhr,
+            newCustomHrMax = customHrMax,
             newProfileImageUri = profileImageUri,
-            newDobMillis      = dobMillis,
-            newAvailableDays  = availableDays
+            newDobMillis = dobMillis,
+            newAvailableDays = availableDays
         )
     }
 
@@ -179,15 +186,15 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             .toInstant().toEpochMilli()
 
         profileManager.saveProfile(
-            newAge                  = profileManager.age.value,
-            newWeight               = profileManager.weight.value,
-            newHeight               = profileManager.height.value,
-            newGender               = profileManager.gender.value,
-            newRhr                  = profileManager.rhr.value,
-            newCustomHrMax          = profileManager.customHrMax.value,
-            newProfileImageUri      = profileManager.profileImageUri.value,
+            newAge = profileManager.age.value,
+            newWeight = profileManager.weight.value,
+            newHeight = profileManager.height.value,
+            newGender = profileManager.gender.value,
+            newRhr = profileManager.rhr.value,
+            newCustomHrMax = profileManager.customHrMax.value,
+            newProfileImageUri = profileManager.profileImageUri.value,
             newCompetitionDateMillis = compMillis,
-            newPlanStartDateMillis  = startMillis
+            newPlanStartDateMillis = startMillis
         )
     }
 }

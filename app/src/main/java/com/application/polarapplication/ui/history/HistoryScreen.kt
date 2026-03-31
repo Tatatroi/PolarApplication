@@ -6,13 +6,23 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,48 +30,38 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.application.polarapplication.ai.daily.WorkoutType
+import com.application.polarapplication.ai.planning.BompaCalendarHelper
 import com.application.polarapplication.model.TrainingSessionEntity
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.SolidColor
-import java.util.Calendar
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import com.application.polarapplication.ai.daily.WorkoutType
-import com.application.polarapplication.ai.planning.BompaCalendarHelper
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 // ─────────────────────────────────────────────
 // CULORI TEMĂ
 // ─────────────────────────────────────────────
-val AppBackground  = Color(0xFF0D0D12)
+val AppBackground = Color(0xFF0D0D12)
 val CardSurfaceDark = Color(0xFF15151C)
 
 fun getThemeForWorkout(type: String): WorkoutTheme {
     return when (type.uppercase()) {
         "STRENGTH" -> WorkoutTheme(Color(0xFFFF3B30), "High Load")
         "ENDURANCE" -> WorkoutTheme(Color(0xFF34C759), "Aerobic Base")
-        "SPEED"    -> WorkoutTheme(Color(0xFFFF9500), "Anaerobic Load")
+        "SPEED" -> WorkoutTheme(Color(0xFFFF9500), "Anaerobic Load")
         "RECOVERY" -> WorkoutTheme(Color(0xFF007AFF), "Active Recovery")
-        else       -> WorkoutTheme(Color(0xFF00E5FF), "General Load")
+        else -> WorkoutTheme(Color(0xFF00E5FF), "General Load")
     }
 }
 
@@ -76,9 +76,9 @@ fun HistoryScreen(
     viewModel: DashboardViewModel = viewModel(),
     onSessionClick: (TrainingSessionEntity) -> Unit
 ) {
-    val sessions        by viewModel.allSessions.collectAsState()
+    val sessions by viewModel.allSessions.collectAsState()
     val competitionDate by viewModel.competitionDate.collectAsState()
-    val planStartDate   by viewModel.planStartDate.collectAsState()
+    val planStartDate by viewModel.planStartDate.collectAsState()
 
     var selectedTabIndex by remember { mutableStateOf(0) }
 
@@ -166,8 +166,11 @@ fun HistoryScreen(
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(8.dp))
                         .background(
-                            if (selectedTabIndex == index) Color(0xFF2A2A35)
-                            else Color.Transparent
+                            if (selectedTabIndex == index) {
+                                Color(0xFF2A2A35)
+                            } else {
+                                Color.Transparent
+                            }
                         )
                         .clickable { selectedTabIndex = index },
                     contentAlignment = Alignment.Center
@@ -193,8 +196,8 @@ fun HistoryScreen(
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     items(sessions, key = { it.id }) { session ->
                         PremiumHistoryCard(
-                            session  = session,
-                            onClick  = { onSessionClick(session) },
+                            session = session,
+                            onClick = { onSessionClick(session) },
                             onDelete = { viewModel.deleteSession(session) }
                         )
                     }
@@ -202,9 +205,9 @@ fun HistoryScreen(
                 }
             } else {
                 WorkoutCalendar(
-                    sessions        = sessions,
-                    onSessionClick  = onSessionClick,
-                    planStartDate   = planStartDate,
+                    sessions = sessions,
+                    onSessionClick = onSessionClick,
+                    planStartDate = planStartDate,
                     competitionDate = competitionDate
                 )
             }
@@ -223,7 +226,7 @@ fun PremiumHistoryCard(
     onDelete: () -> Unit
 ) {
     val dateStr = SimpleDateFormat("dd MMM yyyy • HH:mm", Locale.getDefault()).format(Date(session.date))
-    val theme   = getThemeForWorkout(session.type)
+    val theme = getThemeForWorkout(session.type)
 
     val cardBackgroundBrush = Brush.horizontalGradient(
         colors = listOf(
@@ -249,7 +252,7 @@ fun PremiumHistoryCard(
             .padding(16.dp)
     ) {
         IconButton(
-            onClick  = onDelete,
+            onClick = onDelete,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .size(24.dp)
@@ -266,10 +269,10 @@ fun PremiumHistoryCard(
             Column(modifier = Modifier.weight(1f)) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text     = session.type.uppercase(),
+                        text = session.type.uppercase(),
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 20.sp,
-                        color    = Color.White,
+                        color = Color.White,
                         letterSpacing = 1.sp,
                         modifier = Modifier.padding(end = 32.dp)
                     )
@@ -290,8 +293,8 @@ fun PremiumHistoryCard(
                     Column(modifier = Modifier.weight(1f)) {
                         Text("TRIMP Score", color = Color.Gray, fontSize = 12.sp)
                         Text(
-                            text     = "%.1f".format(session.finalTrimp),
-                            color    = Color.White,
+                            text = "%.1f".format(session.finalTrimp),
+                            color = Color.White,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(top = 4.dp)
@@ -338,13 +341,13 @@ fun CnsCircularRing(cnsValue: Int, color: Color) {
 fun IntensitySegmentedBar(color: Color, trimp: Float) {
     val percentage = (trimp / 150f).coerceIn(0f, 1f)
     Canvas(modifier = Modifier.fillMaxWidth(0.8f).height(12.dp)) {
-        val segmentWidth  = 3.dp.toPx()
+        val segmentWidth = 3.dp.toPx()
         val segmentSpacing = 3.dp.toPx()
-        val totalSegments  = (size.width / (segmentWidth + segmentSpacing)).toInt()
+        val totalSegments = (size.width / (segmentWidth + segmentSpacing)).toInt()
         val activeSegments = (totalSegments * percentage).toInt()
         for (i in 0 until totalSegments) {
             val isActive = i < activeSegments
-            val alpha    = if (isActive) 1f - (i.toFloat() / totalSegments * 0.5f) else 0.1f
+            val alpha = if (isActive) 1f - (i.toFloat() / totalSegments * 0.5f) else 0.1f
             drawRect(color = color.copy(alpha = alpha), topLeft = Offset(i * (segmentWidth + segmentSpacing), 0f), size = Size(segmentWidth, size.height))
         }
     }
@@ -371,7 +374,7 @@ fun WorkoutCalendar(
     }
 
     val currentViewMonth = displayCalendar.get(Calendar.MONTH)
-    val currentViewYear  = displayCalendar.get(Calendar.YEAR)
+    val currentViewYear = displayCalendar.get(Calendar.YEAR)
 
     val monthSetupCalendar = displayCalendar.clone() as Calendar
     monthSetupCalendar.set(Calendar.DAY_OF_MONTH, 1)
@@ -383,17 +386,17 @@ fun WorkoutCalendar(
     val sessionsByDay: Map<Int, List<TrainingSessionEntity>> = sessions.filter { session ->
         val sessionCal = Calendar.getInstance().apply { timeInMillis = session.date }
         sessionCal.get(Calendar.YEAR) == currentViewYear &&
-                sessionCal.get(Calendar.MONTH) == currentViewMonth
+            sessionCal.get(Calendar.MONTH) == currentViewMonth
     }.groupBy { session ->
         Calendar.getInstance().apply { timeInMillis = session.date }.get(Calendar.DAY_OF_MONTH)
     }
 
-    val realTodayCalendar      = Calendar.getInstance()
+    val realTodayCalendar = Calendar.getInstance()
     val isViewingCurrentMonthAndYear =
-        realTodayCalendar.get(Calendar.YEAR)  == currentViewYear &&
-                realTodayCalendar.get(Calendar.MONTH) == currentViewMonth
-    val realTodayDayOfMonth    = realTodayCalendar.get(Calendar.DAY_OF_MONTH)
-    val weekDays               = listOf("L", "M", "M", "J", "V", "S", "D")
+        realTodayCalendar.get(Calendar.YEAR) == currentViewYear &&
+            realTodayCalendar.get(Calendar.MONTH) == currentViewMonth
+    val realTodayDayOfMonth = realTodayCalendar.get(Calendar.DAY_OF_MONTH)
+    val weekDays = listOf("L", "M", "M", "J", "V", "S", "D")
 
     Column(
         modifier = Modifier
@@ -409,7 +412,7 @@ fun WorkoutCalendar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                onClick  = { currentMonthOffset -= 1 },
+                onClick = { currentMonthOffset -= 1 },
                 modifier = Modifier.size(36.dp).background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp))
             ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Înapoi", tint = Color.White) }
 
@@ -417,7 +420,7 @@ fun WorkoutCalendar(
             Text(text = monthName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
 
             IconButton(
-                onClick  = { currentMonthOffset += 1 },
+                onClick = { currentMonthOffset += 1 },
                 modifier = Modifier.size(36.dp).background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp))
             ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Înainte", tint = Color.White) }
         }
@@ -437,35 +440,37 @@ fun WorkoutCalendar(
         Spacer(modifier = Modifier.height(8.dp))
 
         val totalCells = firstDayOfWeek + daysInMonth
-        val rows       = Math.ceil(totalCells / 7.0).toInt()
+        val rows = Math.ceil(totalCells / 7.0).toInt()
 
         LazyVerticalGrid(
-            columns               = GridCells.Fixed(7),
-            modifier              = Modifier.height((rows * 58).dp),
-            userScrollEnabled     = false,
+            columns = GridCells.Fixed(7),
+            modifier = Modifier.height((rows * 58).dp),
+            userScrollEnabled = false,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement   = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             items(totalCells) { index ->
                 val day = index - firstDayOfWeek + 1
                 if (day > 0 && day <= daysInMonth) {
-                    val cellDate    = LocalDate.of(currentViewYear, currentViewMonth + 1, day)
+                    val cellDate = LocalDate.of(currentViewYear, currentViewMonth + 1, day)
                     val dailySessions = sessionsByDay[day] ?: emptyList()
-                    val isToday     = isViewingCurrentMonthAndYear && day == realTodayDayOfMonth
-                    val isCompDay   = competitionDate != null && cellDate == competitionDate
+                    val isToday = isViewingCurrentMonthAndYear && day == realTodayDayOfMonth
+                    val isCompDay = competitionDate != null && cellDate == competitionDate
 
                     // Workout planificat pentru această zi
                     val plannedWorkout = if (planStartDate != null && competitionDate != null) {
                         BompaCalendarHelper.getPlannedWorkout(cellDate, planStartDate, competitionDate)
-                    } else null
+                    } else {
+                        null
+                    }
 
                     CalendarDayCell(
-                        day             = day,
-                        dailySessions   = dailySessions,
-                        isToday         = isToday,
-                        plannedWorkout  = plannedWorkout,
+                        day = day,
+                        dailySessions = dailySessions,
+                        isToday = isToday,
+                        plannedWorkout = plannedWorkout,
                         isCompetitionDay = isCompDay,
-                        onClick         = {
+                        onClick = {
                             if (dailySessions.size == 1) {
                                 onSessionClick(dailySessions.first())
                             } else if (dailySessions.size > 1) {
@@ -484,13 +489,13 @@ fun WorkoutCalendar(
     if (sessionsToSelect != null) {
         ModalBottomSheet(
             onDismissRequest = { sessionsToSelect = null },
-            sheetState       = sheetState,
-            containerColor   = CardSurfaceDark,
+            sheetState = sheetState,
+            containerColor = CardSurfaceDark
         ) {
             Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp).fillMaxWidth()) {
                 Text(text = "Alege sesiunea", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(bottom = 16.dp))
                 sessionsToSelect!!.forEach { session ->
-                    val theme   = getThemeForWorkout(session.type)
+                    val theme = getThemeForWorkout(session.type)
                     val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(session.date))
                     Row(
                         modifier = Modifier
@@ -502,7 +507,7 @@ fun WorkoutCalendar(
                             .clickable { sessionsToSelect = null; onSessionClick(session) }
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment     = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
                             Text(session.type.uppercase(), color = theme.color, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -576,11 +581,11 @@ fun CalendarDayCell(
     dailySessions: List<TrainingSessionEntity>,
     isToday: Boolean,
     onClick: () -> Unit,
-    plannedWorkout: WorkoutType?    = null,
-    isCompetitionDay: Boolean       = false
+    plannedWorkout: WorkoutType? = null,
+    isCompetitionDay: Boolean = false
 ) {
-    val sessionCount  = dailySessions.size
-    val hasWorkout    = sessionCount > 0
+    val sessionCount = dailySessions.size
+    val hasWorkout = sessionCount > 0
     val sessionColors = dailySessions.map { getThemeForWorkout(it.type).color }
 
     // Warning dacă prima sesiune diferă de tipul planificat
@@ -601,8 +606,8 @@ fun CalendarDayCell(
         isCompetitionDay -> SolidColor(Color(0xFFEF4444).copy(alpha = 0.6f))
         hasWorkout && sessionColors.size == 1 -> SolidColor(sessionColors.first().copy(alpha = 0.5f))
         hasWorkout -> Brush.linearGradient(sessionColors.map { it.copy(alpha = 0.7f) })
-        isToday    -> SolidColor(Color.White.copy(alpha = 0.4f))
-        else       -> SolidColor(Color.Transparent)
+        isToday -> SolidColor(Color.White.copy(alpha = 0.4f))
+        else -> SolidColor(Color.Transparent)
     }
 
     Box(
@@ -614,35 +619,34 @@ fun CalendarDayCell(
             .clickable(enabled = hasWorkout || isCompetitionDay) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-
         // ── Conținut central ──────────────────────────────────────────────────
         when {
             isCompetitionDay -> Icon(Icons.Default.EmojiEvents, contentDescription = "Competiție", tint = Color(0xFFF87171), modifier = Modifier.size(18.dp))
             hasWorkout && sessionCount == 1 -> Icon(
-                imageVector     = Icons.Default.Check,
+                imageVector = Icons.Default.Check,
                 contentDescription = null,
-                tint            = sessionColors.first(),
-                modifier        = Modifier.size(20.dp)
+                tint = sessionColors.first(),
+                modifier = Modifier.size(20.dp)
             )
             hasWorkout -> Text(
-                text       = "+$sessionCount",
-                color      = Color.White,
+                text = "+$sessionCount",
+                color = Color.White,
                 fontWeight = FontWeight.Black,
-                fontSize   = 14.sp
+                fontSize = 14.sp
             )
         }
 
         // ── Numărul zilei (sus-dreapta) ───────────────────────────────────────
         Text(
-            text       = "$day",
-            color      = when {
-                isToday    -> Color.White
+            text = "$day",
+            color = when {
+                isToday -> Color.White
                 hasWorkout -> Color.White.copy(alpha = 0.7f)
-                else       -> Color(0xFF555566)
+                else -> Color(0xFF555566)
             },
-            fontSize   = if (isToday) 12.sp else 11.sp,
+            fontSize = if (isToday) 12.sp else 11.sp,
             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-            modifier   = Modifier
+            modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 3.dp, end = 3.dp)
         )
@@ -655,11 +659,11 @@ fun CalendarDayCell(
             if (planned != WorkoutType.REST) {
                 val indicatorColor = when {
                     hasWarning -> Color(0xFFF97316)
-                    else       -> BompaCalendarHelper.workoutColor(planned)
+                    else -> BompaCalendarHelper.workoutColor(planned)
                 }
                 val letter = when {
                     hasWarning -> "!"
-                    else       -> BompaCalendarHelper.workoutLetter(planned)
+                    else -> BompaCalendarHelper.workoutLetter(planned)
                 }
 
                 Box(
@@ -677,11 +681,11 @@ fun CalendarDayCell(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text       = letter,
-                        color      = indicatorColor,
-                        fontSize   = 9.sp,          // mai mare și vizibil
+                        text = letter,
+                        color = indicatorColor,
+                        fontSize = 9.sp, // mai mare și vizibil
                         fontWeight = FontWeight.Black,
-                        lineHeight = 9.sp           // previne offset vertical
+                        lineHeight = 9.sp // previne offset vertical
                     )
                 }
             }

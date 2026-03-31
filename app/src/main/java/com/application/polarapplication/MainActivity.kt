@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
@@ -45,7 +44,6 @@ import com.application.polarapplication.ui.theme.dashboard.PeriodizationCalendar
 import com.application.polarapplication.ui.theme.devices.DevicesScreen
 import com.application.polarapplication.ui.theme.profile.ProfileScreen
 import com.application.polarapplication.ui.theme.progress.WorkoutDetailsScreen
-import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
 
@@ -138,8 +136,8 @@ fun MainNavigationWrapper() {
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.DateRange, contentDescription = "Plan") },
                         label = { Text("Plan") },
-                        selected = currentRoute == Screen.ActivePlan.route
-                                || currentRoute == Screen.TargetSetup.route,
+                        selected = currentRoute == Screen.ActivePlan.route ||
+                            currentRoute == Screen.TargetSetup.route,
                         onClick = {
                             navController.navigate(Screen.ActivePlan.route) {
                                 launchSingleTop = true

@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -25,9 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.polarapplication.ai.daily.WorkoutType
-import com.application.polarapplication.ai.planning.MesoCycle
-import com.application.polarapplication.ai.planning.MicroCycle
-import com.application.polarapplication.ai.planning.TrainingPlanner
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -36,68 +32,68 @@ import java.time.temporal.ChronoUnit
 // ─────────────────────────────────────────────
 // CULORI
 // ─────────────────────────────────────────────
-private val BgDark      = Color(0xFF0D0D12)
-private val CardDark    = Color(0xFF15151C)
-private val BorderDark  = Color(0xFF1E1E2E)
+private val BgDark = Color(0xFF0D0D12)
+private val CardDark = Color(0xFF15151C)
+private val BorderDark = Color(0xFF1E1E2E)
 private val ColorIndigo = Color(0xFF6366F1)
 
 private fun phaseColor(phase: String) = when (phase.lowercase()) {
-    "general"  -> Color(0xFF4ADE80)
+    "general" -> Color(0xFF4ADE80)
     "specific" -> Color(0xFFFBBF24)
-    "precomp"  -> Color(0xFFA78BFA)
-    "comp"     -> Color(0xFFF87171)
+    "precomp" -> Color(0xFFA78BFA)
+    "comp" -> Color(0xFFF87171)
     "recovery" -> Color(0xFF67E8F9)
-    else       -> Color.Gray
+    else -> Color.Gray
 }
 
 private fun phaseBg(phase: String) = when (phase.lowercase()) {
-    "general"  -> Color(0xFF1D3A2A)
+    "general" -> Color(0xFF1D3A2A)
     "specific" -> Color(0xFF2A1F00)
-    "precomp"  -> Color(0xFF1A0D2E)
-    "comp"     -> Color(0xFF1A0808)
+    "precomp" -> Color(0xFF1A0D2E)
+    "comp" -> Color(0xFF1A0808)
     "recovery" -> Color(0xFF0D1A1A)
-    else       -> CardDark
+    else -> CardDark
 }
 
 private fun phaseDesc(phase: String) = when (phase.lowercase()) {
-    "general"  -> "Volum ridicat, intensitate moderată. Focus pe rezistență aerobă și forță de bază."
+    "general" -> "Volum ridicat, intensitate moderată. Focus pe rezistență aerobă și forță de bază."
     "specific" -> "Transfer spre cerințele sportului. Intensitate crescută, volum moderat."
-    "precomp"  -> "Simulare competițională. Volum scăzut, intensitate maximă."
-    "comp"     -> "Menținerea formei de vârf. Antrenamente scurte și explosive."
+    "precomp" -> "Simulare competițională. Volum scăzut, intensitate maximă."
+    "comp" -> "Menținerea formei de vârf. Antrenamente scurte și explosive."
     "recovery" -> "Regenerare completă neuromusculară. Pregătire pentru următorul ciclu."
-    else       -> ""
+    else -> ""
 }
 
 private fun workoutColor(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH  -> Color(0xFF818CF8)
+    WorkoutType.STRENGTH -> Color(0xFF818CF8)
     WorkoutType.ENDURANCE -> Color(0xFF4ADE80)
-    WorkoutType.SPEED     -> Color(0xFFFBBF24)
-    WorkoutType.RECOVERY  -> Color(0xFF60A5FA)
-    WorkoutType.REST      -> Color(0xFF444455)
+    WorkoutType.SPEED -> Color(0xFFFBBF24)
+    WorkoutType.RECOVERY -> Color(0xFF60A5FA)
+    WorkoutType.REST -> Color(0xFF444455)
 }
 
 private fun workoutBg(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH  -> Color(0xFF1A1A3E)
+    WorkoutType.STRENGTH -> Color(0xFF1A1A3E)
     WorkoutType.ENDURANCE -> Color(0xFF0F2A1A)
-    WorkoutType.SPEED     -> Color(0xFF2A1F00)
-    WorkoutType.RECOVERY  -> Color(0xFF0A1A2A)
-    WorkoutType.REST      -> Color(0xFF1A1A1A)
+    WorkoutType.SPEED -> Color(0xFF2A1F00)
+    WorkoutType.RECOVERY -> Color(0xFF0A1A2A)
+    WorkoutType.REST -> Color(0xFF1A1A1A)
 }
 
 private fun workoutLabel(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH  -> "STR"
+    WorkoutType.STRENGTH -> "STR"
     WorkoutType.ENDURANCE -> "END"
-    WorkoutType.SPEED     -> "SPD"
-    WorkoutType.RECOVERY  -> "REC"
-    WorkoutType.REST      -> "REST"
+    WorkoutType.SPEED -> "SPD"
+    WorkoutType.RECOVERY -> "REC"
+    WorkoutType.REST -> "REST"
 }
 
 private fun workoutIcon(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH  -> "💪"
+    WorkoutType.STRENGTH -> "💪"
     WorkoutType.ENDURANCE -> "🏃"
-    WorkoutType.SPEED     -> "⚡"
-    WorkoutType.RECOVERY  -> "💧"
-    WorkoutType.REST      -> "—"
+    WorkoutType.SPEED -> "⚡"
+    WorkoutType.RECOVERY -> "💧"
+    WorkoutType.REST -> "—"
 }
 
 // ─────────────────────────────────────────────
@@ -110,8 +106,8 @@ fun ActivePlanScreen(
     onGenerateNewPlan: () -> Unit
 ) {
     val competitionDate by viewModel.competitionDate.collectAsState()
-    val planStartDate   by viewModel.planStartDate.collectAsState()
-    val today           = remember { LocalDate.now() }
+    val planStartDate by viewModel.planStartDate.collectAsState()
+    val today = remember { LocalDate.now() }
 
     // Dacă nu există plan generat → ecran gol cu buton
     if (competitionDate == null || planStartDate == null) {
@@ -120,15 +116,15 @@ fun ActivePlanScreen(
     }
 
     val effectiveStart = planStartDate!!
-    val effectiveComp  = competitionDate!!
+    val effectiveComp = competitionDate!!
 
     val planner = remember { TrainingPlanner() }
-    val plan    = remember(effectiveStart, effectiveComp) {
+    val plan = remember(effectiveStart, effectiveComp) {
         planner.generatePlan(effectiveComp, effectiveStart)
     }
 
     val totalWeeks = plan.mesoCycles.sumOf { it.microCycle.size }
-    val totalDays  = ChronoUnit.DAYS.between(effectiveStart, effectiveComp).toInt().coerceAtLeast(1)
+    val totalDays = ChronoUnit.DAYS.between(effectiveStart, effectiveComp).toInt().coerceAtLeast(1)
     val elapsedDays = ChronoUnit.DAYS.between(effectiveStart, today).toInt().coerceIn(0, totalDays)
     val progressFraction = elapsedDays.toFloat() / totalDays.toFloat()
     val currentWeekNum = ((elapsedDays / 7) + 1).coerceIn(1, totalWeeks)
@@ -161,9 +157,9 @@ fun ActivePlanScreen(
         // ── Header ──
         PlanHeader(
             competitionDate = effectiveComp,
-            planStart       = effectiveStart,
-            daysToComp      = daysToComp,
-            onNewPlan       = onGenerateNewPlan
+            planStart = effectiveStart,
+            daysToComp = daysToComp,
+            onNewPlan = onGenerateNewPlan
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -172,11 +168,11 @@ fun ActivePlanScreen(
         SectionLabel("Macrociclu")
         Spacer(modifier = Modifier.height(8.dp))
         MacroProgressCard(
-            planStart        = effectiveStart,
-            competitionDate  = effectiveComp,
+            planStart = effectiveStart,
+            competitionDate = effectiveComp,
             progressFraction = progressFraction,
-            currentWeek      = currentWeekNum,
-            totalWeeks       = totalWeeks
+            currentWeek = currentWeekNum,
+            totalWeeks = totalWeeks
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -185,7 +181,7 @@ fun ActivePlanScreen(
         SectionLabel("Faza curentă")
         Spacer(modifier = Modifier.height(8.dp))
         CurrentPhaseCard(
-            meso                  = currentMeso,
+            meso = currentMeso,
             weeksRemainingInPhase = weeksRemainingInPhase
         )
 
@@ -204,9 +200,9 @@ fun ActivePlanScreen(
         plan.mesoCycles.forEach { meso ->
             val isCurrentMeso = meso.startDate == currentMeso.startDate
             PhaseCard(
-                meso      = meso,
+                meso = meso,
                 isCurrent = isCurrentMeso,
-                today     = today
+                today = today
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -229,22 +225,21 @@ private fun NoPlanScreen(onGenerateNewPlan: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-
         Icon(Icons.AutoMirrored.Filled.EventNote, contentDescription = null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(56.dp))
 
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text       = "Niciun plan activ",
-            color      = Color.White,
-            fontSize   = 20.sp,
+            text = "Niciun plan activ",
+            color = Color.White,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Black,
-            textAlign  = TextAlign.Center
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text      = "Generează un plan de periodizare Bompa pe baza datei competiției tale.",
-            color     = Color(0xFF555566),
-            fontSize  = 13.sp,
+            text = "Generează un plan de periodizare Bompa pe baza datei competiției tale.",
+            color = Color(0xFF555566),
+            fontSize = 13.sp,
             textAlign = TextAlign.Center,
             lineHeight = 19.sp
         )
@@ -255,13 +250,13 @@ private fun NoPlanScreen(onGenerateNewPlan: () -> Unit) {
                 .fillMaxWidth()
                 .height(54.dp),
             colors = ButtonDefaults.buttonColors(containerColor = ColorIndigo),
-            shape  = RoundedCornerShape(14.dp)
+            shape = RoundedCornerShape(14.dp)
         ) {
             Text(
-                text       = "Generează plan nou",
-                fontSize   = 15.sp,
+                text = "Generează plan nou",
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color      = Color.White
+                color = Color.White
             )
         }
     }
@@ -286,13 +281,13 @@ private fun PlanHeader(
     ) {
         Column {
             Text(
-                text       = "Plan Activ",
-                color      = Color.White,
-                fontSize   = 22.sp,
+                text = "Plan Activ",
+                color = Color.White,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Black
             )
             Text(
-                text  = "${planStart.format(fmt)} → ${competitionDate.format(fmt)}",
+                text = "${planStart.format(fmt)} → ${competitionDate.format(fmt)}",
                 color = Color(0xFF555566),
                 fontSize = 12.sp
             )
@@ -308,14 +303,14 @@ private fun PlanHeader(
             ) {
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text       = "$daysToComp",
-                        color      = Color(0xFFF87171),
-                        fontSize   = 22.sp,
+                        text = "$daysToComp",
+                        color = Color(0xFFF87171),
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Black,
                         lineHeight = 24.sp
                     )
                     Text(
-                        text  = "zile rămase",
+                        text = "zile rămase",
                         color = Color(0xFFF87171).copy(alpha = 0.6f),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
@@ -323,13 +318,13 @@ private fun PlanHeader(
                 }
             }
             TextButton(
-                onClick      = onNewPlan,
-                modifier     = Modifier.height(28.dp),
+                onClick = onNewPlan,
+                modifier = Modifier.height(28.dp),
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
             ) {
                 Text(
-                    text     = "+ plan nou",
-                    color    = ColorIndigo.copy(alpha = 0.7f),
+                    text = "+ plan nou",
+                    color = ColorIndigo.copy(alpha = 0.7f),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -347,9 +342,9 @@ private fun MacroProgressCard(
     totalWeeks: Int
 ) {
     val animatedProgress by animateFloatAsState(
-        targetValue    = progressFraction,
-        animationSpec  = tween(1000),
-        label          = "macroProgress"
+        targetValue = progressFraction,
+        animationSpec = tween(1000),
+        label = "macroProgress"
     )
     val fmt = DateTimeFormatter.ofPattern("dd MMM")
 
@@ -367,15 +362,15 @@ private fun MacroProgressCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text       = "Macrociclu Forță",
-                color      = Color.White,
-                fontSize   = 14.sp,
+                text = "Macrociclu Forță",
+                color = Color.White,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text       = "${(progressFraction * 100).toInt()}% completat",
-                color      = ColorIndigo,
-                fontSize   = 12.sp,
+                text = "${(progressFraction * 100).toInt()}% completat",
+                color = ColorIndigo,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -415,18 +410,18 @@ private fun MacroProgressCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text  = planStart.format(fmt),
+                text = planStart.format(fmt),
                 color = Color(0xFF444455),
                 fontSize = 10.sp
             )
             Text(
-                text       = "Săpt. $currentWeek / $totalWeeks",
-                color      = Color(0xFF666677),
-                fontSize   = 10.sp,
+                text = "Săpt. $currentWeek / $totalWeeks",
+                color = Color(0xFF666677),
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text  = competitionDate.format(fmt),
+                text = competitionDate.format(fmt),
                 color = Color(0xFFF87171).copy(alpha = 0.7f),
                 fontSize = 10.sp
             )
@@ -440,8 +435,8 @@ private fun CurrentPhaseCard(
     weeksRemainingInPhase: Int
 ) {
     val color = phaseColor(meso.phase)
-    val bg    = phaseBg(meso.phase)
-    val fmt   = DateTimeFormatter.ofPattern("dd MMM")
+    val bg = phaseBg(meso.phase)
+    val fmt = DateTimeFormatter.ofPattern("dd MMM")
 
     Row(
         modifier = Modifier
@@ -463,21 +458,21 @@ private fun CurrentPhaseCard(
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text       = "Faza ${meso.phase.replaceFirstChar { it.uppercase() }}",
-                color      = Color.White,
-                fontSize   = 17.sp,
+                text = "Faza ${meso.phase.replaceFirstChar { it.uppercase() }}",
+                color = Color.White,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Black
             )
             Text(
-                text  = "${meso.startDate.format(fmt)} → ${meso.endDate.format(fmt)}",
+                text = "${meso.startDate.format(fmt)} → ${meso.endDate.format(fmt)}",
                 color = color.copy(alpha = 0.7f),
                 fontSize = 11.sp
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text      = phaseDesc(meso.phase),
-                color     = Color(0xFF777788),
-                fontSize  = 11.sp,
+                text = phaseDesc(meso.phase),
+                color = Color(0xFF777788),
+                fontSize = 11.sp,
                 lineHeight = 16.sp
             )
         }
@@ -490,14 +485,14 @@ private fun CurrentPhaseCard(
                 .padding(horizontal = 10.dp, vertical = 8.dp)
         ) {
             Text(
-                text       = "$weeksRemainingInPhase",
-                color      = color,
-                fontSize   = 26.sp,
+                text = "$weeksRemainingInPhase",
+                color = color,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Black,
                 lineHeight = 28.sp
             )
             Text(
-                text  = "săpt.\nrămase",
+                text = "săpt.\nrămase",
                 color = color.copy(alpha = 0.6f),
                 fontSize = 9.sp,
                 textAlign = TextAlign.Center,
@@ -519,7 +514,6 @@ private fun CurrentWeekCard(micro: MicroCycle, today: LocalDate) {
             .border(1.dp, BorderDark, RoundedCornerShape(16.dp))
             .padding(14.dp)
     ) {
-
         Text(
             text = "Azi: ${today.dayOfWeek.getDisplayName(
                 java.time.format.TextStyle.FULL,
@@ -536,12 +530,12 @@ private fun CurrentWeekCard(micro: MicroCycle, today: LocalDate) {
         Row(modifier = Modifier.fillMaxWidth()) {
             dayLabels.forEach { label ->
                 Text(
-                    text      = label,
-                    color     = Color(0xFF444455),
-                    fontSize  = 10.sp,
+                    text = label,
+                    color = Color(0xFF444455),
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
-                    modifier  = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -552,9 +546,9 @@ private fun CurrentWeekCard(micro: MicroCycle, today: LocalDate) {
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             micro.workouts.forEachIndexed { index, workoutType ->
-                val date    = micro.startDate.plusDays(index.toLong())
+                val date = micro.startDate.plusDays(index.toLong())
                 val isToday = date == today
-                val isPast  = date.isBefore(today)
+                val isPast = date.isBefore(today)
 
                 Column(
                     modifier = Modifier
@@ -563,16 +557,16 @@ private fun CurrentWeekCard(micro: MicroCycle, today: LocalDate) {
                         .background(
                             when {
                                 isToday -> workoutBg(workoutType)
-                                isPast  -> Color(0xFF0D0D12)
-                                else    -> Color(0xFF111118)
+                                isPast -> Color(0xFF0D0D12)
+                                else -> Color(0xFF111118)
                             }
                         )
                         .border(
                             width = if (isToday) 1.5.dp else 0.5.dp,
                             color = when {
                                 isToday -> workoutColor(workoutType)
-                                isPast  -> Color(0xFF222228)
-                                else    -> BorderDark
+                                isPast -> Color(0xFF222228)
+                                else -> BorderDark
                             },
                             shape = RoundedCornerShape(10.dp)
                         )
@@ -581,36 +575,38 @@ private fun CurrentWeekCard(micro: MicroCycle, today: LocalDate) {
                 ) {
                     // Numărul zilei
                     Text(
-                        text       = "${date.dayOfMonth}",
-                        color      = when {
+                        text = "${date.dayOfMonth}",
+                        color = when {
                             isToday -> Color.White
-                            isPast  -> Color(0xFF333340)
-                            else    -> Color(0xFF555566)
+                            isPast -> Color(0xFF333340)
+                            else -> Color(0xFF555566)
                         },
-                        fontSize   = 9.sp,
+                        fontSize = 9.sp,
                         fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
                     )
                     Spacer(modifier = Modifier.height(4.dp))
 
                     // Icon workout
                     Text(
-                        text     = workoutIcon(workoutType),
+                        text = workoutIcon(workoutType),
                         fontSize = 14.sp,
-                        color    = if (isPast && !isToday)
+                        color = if (isPast && !isToday) {
                             workoutColor(workoutType).copy(alpha = 0.3f)
-                        else workoutColor(workoutType)
+                        } else {
+                            workoutColor(workoutType)
+                        }
                     )
                     Spacer(modifier = Modifier.height(2.dp))
 
                     // Label tip
                     Text(
-                        text       = workoutLabel(workoutType),
-                        color      = when {
+                        text = workoutLabel(workoutType),
+                        color = when {
                             isToday -> workoutColor(workoutType)
-                            isPast  -> workoutColor(workoutType).copy(alpha = 0.3f)
-                            else    -> workoutColor(workoutType).copy(alpha = 0.7f)
+                            isPast -> workoutColor(workoutType).copy(alpha = 0.3f)
+                            else -> workoutColor(workoutType).copy(alpha = 0.7f)
                         },
-                        fontSize   = 7.sp,
+                        fontSize = 7.sp,
                         fontWeight = FontWeight.Black
                     )
 
@@ -636,11 +632,11 @@ private fun PhaseCard(
     isCurrent: Boolean,
     today: LocalDate
 ) {
-    val color   = phaseColor(meso.phase)
-    val bg      = phaseBg(meso.phase)
-    val fmt     = DateTimeFormatter.ofPattern("dd MMM")
-    val isPast  = meso.endDate.isBefore(today)
-    val alpha   = if (isPast) 0.5f else 1f
+    val color = phaseColor(meso.phase)
+    val bg = phaseBg(meso.phase)
+    val fmt = DateTimeFormatter.ofPattern("dd MMM")
+    val isPast = meso.endDate.isBefore(today)
+    val alpha = if (isPast) 0.5f else 1f
 
     Column(
         modifier = Modifier
@@ -671,9 +667,9 @@ private fun PhaseCard(
                         .background(color.copy(alpha = alpha))
                 )
                 Text(
-                    text       = meso.phase.replaceFirstChar { it.uppercase() },
-                    color      = Color.White.copy(alpha = alpha),
-                    fontSize   = 15.sp,
+                    text = meso.phase.replaceFirstChar { it.uppercase() },
+                    color = Color.White.copy(alpha = alpha),
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
                 if (isCurrent) {
@@ -685,9 +681,9 @@ private fun PhaseCard(
                             .padding(horizontal = 7.dp, vertical = 2.dp)
                     ) {
                         Text(
-                            text       = "ACTIV",
-                            color      = ColorIndigo,
-                            fontSize   = 9.sp,
+                            text = "ACTIV",
+                            color = ColorIndigo,
+                            fontSize = 9.sp,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 0.5.sp
                         )
@@ -701,9 +697,9 @@ private fun PhaseCard(
                             .padding(horizontal = 7.dp, vertical = 2.dp)
                     ) {
                         Text(
-                            text       = "FINALIZAT",
-                            color      = Color(0xFF444455),
-                            fontSize   = 9.sp,
+                            text = "FINALIZAT",
+                            color = Color(0xFF444455),
+                            fontSize = 9.sp,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 0.5.sp
                         )
@@ -711,9 +707,9 @@ private fun PhaseCard(
                 }
             }
             Text(
-                text       = "${meso.microCycle.size} săpt.",
-                color      = color.copy(alpha = alpha * 0.7f),
-                fontSize   = 12.sp,
+                text = "${meso.microCycle.size} săpt.",
+                color = color.copy(alpha = alpha * 0.7f),
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -722,7 +718,7 @@ private fun PhaseCard(
 
         // Date
         Text(
-            text  = "${meso.startDate.format(fmt)} → ${meso.endDate.format(fmt)}",
+            text = "${meso.startDate.format(fmt)} → ${meso.endDate.format(fmt)}",
             color = Color(0xFF555566).copy(alpha = alpha),
             fontSize = 11.sp
         )
@@ -731,9 +727,9 @@ private fun PhaseCard(
 
         // Descriere
         Text(
-            text      = phaseDesc(meso.phase),
-            color     = Color(0xFF666677).copy(alpha = alpha),
-            fontSize  = 11.sp,
+            text = phaseDesc(meso.phase),
+            color = Color(0xFF666677).copy(alpha = alpha),
+            fontSize = 11.sp,
             lineHeight = 16.sp
         )
 
@@ -741,14 +737,14 @@ private fun PhaseCard(
 
         // Săptămânile fazei ca pill-uri
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             meso.microCycle.forEachIndexed { index, micro ->
-                val weekIsPast    = micro.endDate.isBefore(today)
+                val weekIsPast = micro.endDate.isBefore(today)
                 val weekIsCurrent = !micro.startDate.isAfter(today) && !micro.endDate.isBefore(today)
-                val totalInPhase  = meso.microCycle.size
-                val weekLabel     = "S${index + 1}"
+                val totalInPhase = meso.microCycle.size
+                val weekLabel = "S${index + 1}"
 
                 Box(
                     modifier = Modifier
@@ -758,29 +754,29 @@ private fun PhaseCard(
                         .background(
                             when {
                                 weekIsCurrent -> color.copy(alpha = 0.2f)
-                                weekIsPast    -> Color(0xFF111115)
-                                else          -> color.copy(alpha = 0.06f)
+                                weekIsPast -> Color(0xFF111115)
+                                else -> color.copy(alpha = 0.06f)
                             }
                         )
                         .border(
                             width = if (weekIsCurrent) 1.dp else 0.5.dp,
                             color = when {
                                 weekIsCurrent -> color.copy(alpha = 0.7f)
-                                weekIsPast    -> Color(0xFF222228)
-                                else          -> color.copy(alpha = 0.15f)
+                                weekIsPast -> Color(0xFF222228)
+                                else -> color.copy(alpha = 0.15f)
                             },
                             shape = RoundedCornerShape(6.dp)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text       = weekLabel,
-                        color      = when {
+                        text = weekLabel,
+                        color = when {
                             weekIsCurrent -> color
-                            weekIsPast    -> Color(0xFF333340)
-                            else          -> color.copy(alpha = 0.5f)
+                            weekIsPast -> Color(0xFF333340)
+                            else -> color.copy(alpha = 0.5f)
                         },
-                        fontSize   = 8.sp,
+                        fontSize = 8.sp,
                         fontWeight = if (weekIsCurrent) FontWeight.Black else FontWeight.Bold
                     )
                 }
@@ -792,9 +788,9 @@ private fun PhaseCard(
 @Composable
 private fun SectionLabel(text: String) {
     Text(
-        text       = text.uppercase(),
-        color      = Color(0xFF444455),
-        fontSize   = 10.sp,
+        text = text.uppercase(),
+        color = Color(0xFF444455),
+        fontSize = 10.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp
     )

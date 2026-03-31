@@ -62,9 +62,9 @@ class ProfileManager(context: Context) {
         newCustomHrMax: Int?,
         newProfileImageUri: String?,
         newCompetitionDateMillis: Long? = _competitionDateMillis.value,
-        newPlanStartDateMillis: Long?   = _planStartDateMillis.value,
-        newDobMillis: Long?             = _dobMillis.value,
-        newAvailableDays: Set<Int>      = _availableDays.value
+        newPlanStartDateMillis: Long? = _planStartDateMillis.value,
+        newDobMillis: Long? = _dobMillis.value,
+        newAvailableDays: Set<Int> = _availableDays.value
     ) {
         val editor = prefs.edit()
 
@@ -74,35 +74,50 @@ class ProfileManager(context: Context) {
         editor.putString("gender", newGender)
         editor.putInt("rhr", newRhr)
 
-        if (newCustomHrMax != null) editor.putInt("customHrMax", newCustomHrMax)
-        else editor.remove("customHrMax")
+        if (newCustomHrMax != null) {
+            editor.putInt("customHrMax", newCustomHrMax)
+        } else {
+            editor.remove("customHrMax")
+        }
 
-        if (newProfileImageUri != null) editor.putString("profileImageUri", newProfileImageUri)
-        else editor.remove("profileImageUri")
+        if (newProfileImageUri != null) {
+            editor.putString("profileImageUri", newProfileImageUri)
+        } else {
+            editor.remove("profileImageUri")
+        }
 
-        if (newCompetitionDateMillis != null) editor.putLong("competitionDate", newCompetitionDateMillis)
-        else editor.remove("competitionDate")
+        if (newCompetitionDateMillis != null) {
+            editor.putLong("competitionDate", newCompetitionDateMillis)
+        } else {
+            editor.remove("competitionDate")
+        }
 
-        if (newPlanStartDateMillis != null) editor.putLong("planStartDate", newPlanStartDateMillis)
-        else editor.remove("planStartDate")
+        if (newPlanStartDateMillis != null) {
+            editor.putLong("planStartDate", newPlanStartDateMillis)
+        } else {
+            editor.remove("planStartDate")
+        }
 
-        if (newDobMillis != null) editor.putLong("dobMillis", newDobMillis)
-        else editor.remove("dobMillis")
+        if (newDobMillis != null) {
+            editor.putLong("dobMillis", newDobMillis)
+        } else {
+            editor.remove("dobMillis")
+        }
 
         editor.putStringSet("availableDays", newAvailableDays.map { it.toString() }.toSet())
 
         editor.apply()
 
-        _age.value                   = newAge
-        _weight.value                = newWeight
-        _height.value                = newHeight
-        _gender.value                = newGender
-        _rhr.value                   = newRhr
-        _customHrMax.value           = newCustomHrMax
-        _profileImageUri.value       = newProfileImageUri
+        _age.value = newAge
+        _weight.value = newWeight
+        _height.value = newHeight
+        _gender.value = newGender
+        _rhr.value = newRhr
+        _customHrMax.value = newCustomHrMax
+        _profileImageUri.value = newProfileImageUri
         _competitionDateMillis.value = newCompetitionDateMillis
-        _planStartDateMillis.value   = newPlanStartDateMillis
-        _dobMillis.value             = newDobMillis
-        _availableDays.value         = newAvailableDays
+        _planStartDateMillis.value = newPlanStartDateMillis
+        _dobMillis.value = newDobMillis
+        _availableDays.value = newAvailableDays
     }
 }

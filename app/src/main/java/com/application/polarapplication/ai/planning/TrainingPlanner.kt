@@ -7,10 +7,10 @@ import java.time.temporal.ChronoUnit
 class TrainingPlanner {
 
     private val phases = listOf(
-        "general"  to 0.40,
+        "general" to 0.40,
         "specific" to 0.30,
-        "precomp"  to 0.20,
-        "comp"     to 0.05,
+        "precomp" to 0.20,
+        "comp" to 0.05,
         "recovery" to 0.05
     )
 
@@ -33,16 +33,16 @@ class TrainingPlanner {
             val microcycles = (0 until weeks).map { weekIndex ->
                 MicroCycle(
                     startDate = currentStart.plusDays((weekIndex * 7).toLong()),
-                    endDate   = currentStart.plusDays((weekIndex * 7 + 6).toLong()),
-                    workouts  = MicroCycleGenerator.generate(phase)
+                    endDate = currentStart.plusDays((weekIndex * 7 + 6).toLong()),
+                    workouts = MicroCycleGenerator.generate(phase)
                 )
             }
 
             mesoList.add(
                 MesoCycle(
-                    startDate  = currentStart,
-                    endDate    = phaseEnd,
-                    phase      = phase,
+                    startDate = currentStart,
+                    endDate = phaseEnd,
+                    phase = phase,
                     microCycle = microcycles
                 )
             )

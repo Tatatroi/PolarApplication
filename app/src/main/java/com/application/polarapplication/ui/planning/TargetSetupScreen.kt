@@ -32,7 +32,8 @@ val NeonPink = Color(0xFFFF5252)
 @Composable
 fun TargetSetupScreen(
     viewModel: DashboardViewModel = viewModel(),
-    onPlanGenerated: () -> Unit) {
+    onPlanGenerated: () -> Unit
+) {
     var competitionDate by remember { mutableStateOf(System.currentTimeMillis() + (86400000 * 30)) } // Default peste 30 zile
     var selectedGoal by remember { mutableStateOf("Maraton / Endurance") }
     var showDatePicker by remember { mutableStateOf(false) }

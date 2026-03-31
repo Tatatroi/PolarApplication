@@ -1,8 +1,8 @@
 package com.application.polarapplication.ui.theme.dashboard
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -15,15 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.application.polarapplication.R
 import com.application.polarapplication.ui.stressPredictor.StressBodyVisualizer
 
 // ─────────────────────────────────────────────
@@ -44,33 +40,48 @@ private fun getZoneConfig(heartRate: Int, maxHr: Int): HrZoneConfig {
     val pct = heartRate.toFloat() / maxHr.toFloat()
     return when {
         pct >= 0.90f -> HrZoneConfig(
-            label = "Z5 · MAXIMUM", shortLabel = "Z5",
-            color = Color(0xFFEF4444), bgColor = Color(0x1AEF4444),
-            aiStatus = "Stres ridicat", aiShort = "ALERT",
+            label = "Z5 · MAXIMUM",
+            shortLabel = "Z5",
+            color = Color(0xFFEF4444),
+            bgColor = Color(0x1AEF4444),
+            aiStatus = "Stres ridicat",
+            aiShort = "ALERT",
             aiColor = Color(0xFFEF4444)
         )
         pct >= 0.80f -> HrZoneConfig(
-            label = "Z4 · ANAEROB", shortLabel = "Z4",
-            color = Color(0xFFF97316), bgColor = Color(0x1AF97316),
-            aiStatus = "Stres detectat", aiShort = "STRES",
+            label = "Z4 · ANAEROB",
+            shortLabel = "Z4",
+            color = Color(0xFFF97316),
+            bgColor = Color(0x1AF97316),
+            aiStatus = "Stres detectat",
+            aiShort = "STRES",
             aiColor = Color(0xFFF97316)
         )
         pct >= 0.70f -> HrZoneConfig(
-            label = "Z3 · AEROBIC", shortLabel = "Z3",
-            color = Color(0xFF4ADE80), bgColor = Color(0x1A4ADE80),
-            aiStatus = "Efort aerob", aiShort = "AEROB",
+            label = "Z3 · AEROBIC",
+            shortLabel = "Z3",
+            color = Color(0xFF4ADE80),
+            bgColor = Color(0x1A4ADE80),
+            aiStatus = "Efort aerob",
+            aiShort = "AEROB",
             aiColor = Color(0xFF4ADE80)
         )
         pct >= 0.60f -> HrZoneConfig(
-            label = "Z2 · CONTROL", shortLabel = "Z2",
-            color = Color(0xFF60A5FA), bgColor = Color(0x1A60A5FA),
-            aiStatus = "Efort ușor", aiShort = "UȘOR",
+            label = "Z2 · CONTROL",
+            shortLabel = "Z2",
+            color = Color(0xFF60A5FA),
+            bgColor = Color(0x1A60A5FA),
+            aiStatus = "Efort ușor",
+            aiShort = "UȘOR",
             aiColor = Color(0xFF60A5FA)
         )
         else -> HrZoneConfig(
-            label = "SUB Z1", shortLabel = "Z1",
-            color = Color(0xFFA3E635), bgColor = Color(0x1AA3E635),
-            aiStatus = "Stare calmă", aiShort = "CALM",
+            label = "SUB Z1",
+            shortLabel = "Z1",
+            color = Color(0xFFA3E635),
+            bgColor = Color(0x1AA3E635),
+            aiStatus = "Stare calmă",
+            aiShort = "CALM",
             aiColor = Color(0xFF4ADE80)
         )
     }
@@ -80,10 +91,10 @@ private fun getZoneConfig(heartRate: Int, maxHr: Int): HrZoneConfig {
 // CULORI GLOBALE
 // ─────────────────────────────────────────────
 
-private val BgDark       = Color(0xFF080808)
-private val GlassBg      = Color(0x0AFFFFFF)
-private val GlassBorder  = Color(0x14FFFFFF)
-private val GlassSmBg    = Color(0x0DFFFFFF)
+private val BgDark = Color(0xFF080808)
+private val GlassBg = Color(0x0AFFFFFF)
+private val GlassBorder = Color(0x14FFFFFF)
+private val GlassSmBg = Color(0x0DFFFFFF)
 private val GlassSmBorder = Color(0x17FFFFFF)
 
 // ─────────────────────────────────────────────
@@ -97,10 +108,10 @@ fun ActiveWorkoutScreen(
     userGender: String,
     onMinimizeClick: () -> Unit
 ) {
-    val vitals          by viewModel.athleteVitals.collectAsState()
+    val vitals by viewModel.athleteVitals.collectAsState()
     val isWorkoutActive by viewModel.isWorkoutActive.collectAsState()
-    val workoutType     by viewModel.selectedWorkoutType.collectAsState()
-    val maxHr           by viewModel.userMaxHr.collectAsState()
+    val workoutType by viewModel.selectedWorkoutType.collectAsState()
+    val maxHr by viewModel.userMaxHr.collectAsState()
 
     var showStopDialog by remember { mutableStateOf(false) }
 
@@ -112,24 +123,24 @@ fun ActiveWorkoutScreen(
     val stressFraction = ((hrFraction - 0.4f) / 0.5f).coerceIn(0f, 1f)
 
     val animatedHrFraction by animateFloatAsState(
-        targetValue   = hrFraction,
+        targetValue = hrFraction,
         animationSpec = tween(600),
-        label         = "hrFraction"
+        label = "hrFraction"
     )
     val animatedZoneColor by animateColorAsState(
-        targetValue   = zoneConfig.color,
+        targetValue = zoneConfig.color,
         animationSpec = tween(500),
-        label         = "zoneColor"
+        label = "zoneColor"
     )
     val animatedAiColor by animateColorAsState(
-        targetValue   = zoneConfig.aiColor,
+        targetValue = zoneConfig.aiColor,
         animationSpec = tween(500),
-        label         = "aiColor"
+        label = "aiColor"
     )
     val animatedAuraScale by animateFloatAsState(
-        targetValue   = 1f + stressFraction * 0.25f,
+        targetValue = 1f + stressFraction * 0.25f,
         animationSpec = tween(800),
-        label         = "auraScale"
+        label = "auraScale"
     )
 
     if (!isWorkoutActive) {
@@ -147,8 +158,8 @@ fun ActiveWorkoutScreen(
             // ── TopBar ──────────────────────────────────────────────────────
             TopBar(
                 workoutType = workoutType,
-                vitals      = vitals,
-                onClose     = onMinimizeClick
+                vitals = vitals,
+                onClose = onMinimizeClick
             )
 
             // ── Hero: Bara HR + Omuleț ───────────────────────────────────────
@@ -162,23 +173,23 @@ fun ActiveWorkoutScreen(
             ) {
                 // Bara HR verticală
                 HrVerticalBar(
-                    heartRate        = vitals.heartRate,
-                    hrFraction       = animatedHrFraction,
-                    zoneColor        = animatedZoneColor,
-                    zoneConfig       = zoneConfig,
-                    modifier         = Modifier
+                    heartRate = vitals.heartRate,
+                    hrFraction = animatedHrFraction,
+                    zoneColor = animatedZoneColor,
+                    zoneConfig = zoneConfig,
+                    modifier = Modifier
                         .width(60.dp)
                         .fillMaxHeight()
                 )
 
                 // Omuleț cu aură
                 BodyVisualizerPanel(
-                    userGender     = userGender,
+                    userGender = userGender,
                     stressFraction = stressFraction,
-                    auraScale      = animatedAuraScale,
-                    zoneColor      = animatedZoneColor,
-                    workoutType    = workoutType,
-                    modifier       = Modifier
+                    auraScale = animatedAuraScale,
+                    zoneColor = animatedZoneColor,
+                    workoutType = workoutType,
+                    modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
                 )
@@ -186,10 +197,10 @@ fun ActiveWorkoutScreen(
 
             // ── AI Strip ─────────────────────────────────────────────────────
             AiStatusStrip(
-                aiStatus  = zoneConfig.aiStatus,
-                aiShort   = zoneConfig.aiShort,
-                aiColor   = animatedAiColor,
-                modifier  = Modifier
+                aiStatus = zoneConfig.aiStatus,
+                aiShort = zoneConfig.aiShort,
+                aiColor = animatedAiColor,
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 10.dp)
@@ -197,7 +208,7 @@ fun ActiveWorkoutScreen(
 
             // ── Metrici ───────────────────────────────────────────────────────
             MetricsRow(
-                vitals   = vitals,
+                vitals = vitals,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
@@ -206,7 +217,7 @@ fun ActiveWorkoutScreen(
 
             // ── Buton Stop ────────────────────────────────────────────────────
             Button(
-                onClick  = { showStopDialog = true },
+                onClick = { showStopDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
@@ -215,15 +226,16 @@ fun ActiveWorkoutScreen(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0x10EF4444)
                 ),
-                shape  = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(16.dp),
                 border = androidx.compose.foundation.BorderStroke(
-                    1.dp, Color(0x33EF4444)
+                    1.dp,
+                    Color(0x33EF4444)
                 )
             ) {
                 Text(
-                    text       = "ÎNCHEIE ANTRENAMENTUL",
-                    color      = Color(0xFFF87171),
-                    fontSize   = 14.sp,
+                    text = "ÎNCHEIE ANTRENAMENTUL",
+                    color = Color(0xFFF87171),
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 0.5.sp
                 )
@@ -235,9 +247,9 @@ fun ActiveWorkoutScreen(
     if (showStopDialog) {
         AlertDialog(
             onDismissRequest = { showStopDialog = false },
-            containerColor   = Color(0xFF1E1E24),
+            containerColor = Color(0xFF1E1E24),
             title = { Text("Finalizare sesiune", color = Color.White) },
-            text  = { Text("Ești sigur că vrei să oprești monitorizarea?", color = Color.Gray) },
+            text = { Text("Ești sigur că vrei să oprești monitorizarea?", color = Color.Gray) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.stopWorkout(workoutType)
@@ -271,10 +283,10 @@ private fun TopBar(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Box(
@@ -287,21 +299,21 @@ private fun TopBar(
                 contentAlignment = Alignment.Center
             ) {
                 IconButton(
-                    onClick  = onClose,
+                    onClick = onClose,
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
                         Icons.Default.Close,
                         contentDescription = "Minimizează",
-                        tint     = Color.White.copy(alpha = 0.5f),
+                        tint = Color.White.copy(alpha = 0.5f),
                         modifier = Modifier.size(16.dp)
                     )
                 }
             }
             Text(
-                text       = "Sesiune Live",
-                color      = Color.White,
-                fontSize   = 15.sp,
+                text = "Sesiune Live",
+                color = Color.White,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -315,9 +327,9 @@ private fun TopBar(
                 .padding(horizontal = 10.dp, vertical = 5.dp)
         ) {
             Text(
-                text       = workoutType,
-                color      = Color.White.copy(alpha = 0.4f),
-                fontSize   = 11.sp,
+                text = workoutType,
+                color = Color.White.copy(alpha = 0.4f),
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -337,26 +349,26 @@ private fun HrVerticalBar(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier              = modifier
+        modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(GlassBg)
             .border(1.dp, GlassBorder, RoundedCornerShape(16.dp))
             .padding(vertical = 12.dp, horizontal = 8.dp),
-        horizontalAlignment   = Alignment.CenterHorizontally,
-        verticalArrangement   = Arrangement.SpaceBetween
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         // Eticheta zonei sus
         Text(
-            text       = zoneConfig.shortLabel,
-            color      = zoneColor,
-            fontSize   = 11.sp,
+            text = zoneConfig.shortLabel,
+            color = zoneColor,
+            fontSize = 11.sp,
             fontWeight = FontWeight.Black,
             letterSpacing = 0.5.sp
         )
 
         // Track-ul barei
         Box(
-            modifier         = Modifier
+            modifier = Modifier
                 .width(28.dp)
                 .weight(1f)
                 .padding(vertical = 8.dp)
@@ -383,14 +395,14 @@ private fun HrVerticalBar(
         // BPM jos
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text       = "$heartRate",
-                color      = zoneColor,
-                fontSize   = 24.sp,
+                text = "$heartRate",
+                color = zoneColor,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Black,
                 lineHeight = 26.sp
             )
             Text(
-                text  = "BPM",
+                text = "BPM",
                 color = Color.White.copy(alpha = 0.2f),
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Bold,
@@ -414,7 +426,7 @@ private fun BodyVisualizerPanel(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier         = modifier
+        modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(GlassBg)
             .border(1.dp, GlassBorder, RoundedCornerShape(16.dp)),
@@ -424,8 +436,7 @@ private fun BodyVisualizerPanel(
         // stressFraction 0.0 = Z1 (calm), 1.0 = Z5 (maxim)
         StressBodyVisualizer(
             stressScore = stressFraction,
-            userGender  = userGender
-
+            userGender = userGender
 
         )
 
@@ -440,10 +451,10 @@ private fun BodyVisualizerPanel(
                 .padding(horizontal = 7.dp, vertical = 3.dp)
         ) {
             Text(
-                text          = workoutType,
-                color         = Color.White.copy(alpha = 0.4f),
-                fontSize      = 8.sp,
-                fontWeight    = FontWeight.Bold,
+                text = workoutType,
+                color = Color.White.copy(alpha = 0.4f),
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp
             )
         }
@@ -462,16 +473,16 @@ private fun AiStatusStrip(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier              = modifier
+        modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .background(GlassBg)
             .border(1.dp, GlassBorder, RoundedCornerShape(14.dp))
             .padding(horizontal = 14.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Dot animat
@@ -483,16 +494,16 @@ private fun AiStatusStrip(
             )
             Column {
                 Text(
-                    text       = "AI BIOMETRIC ANALYSIS",
-                    color      = Color.White.copy(alpha = 0.25f),
-                    fontSize   = 9.sp,
+                    text = "AI BIOMETRIC ANALYSIS",
+                    color = Color.White.copy(alpha = 0.25f),
+                    fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.8.sp
                 )
                 Text(
-                    text       = aiStatus,
-                    color      = aiColor,
-                    fontSize   = 14.sp,
+                    text = aiStatus,
+                    color = aiColor,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Black
                 )
             }
@@ -507,9 +518,9 @@ private fun AiStatusStrip(
                 .padding(horizontal = 8.dp, vertical = 3.dp)
         ) {
             Text(
-                text       = aiShort,
-                color      = aiColor,
-                fontSize   = 10.sp,
+                text = aiShort,
+                color = aiColor,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 0.5.sp
             )
@@ -527,30 +538,30 @@ private fun MetricsRow(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier              = modifier,
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         MetricCard(
-            label    = "TRIMP",
-            value    = "%.1f".format(vitals.trimpScore),
-            unit     = "",
-            barFrac  = (vitals.trimpScore / 150.0).toFloat().coerceIn(0f, 1f),
+            label = "TRIMP",
+            value = "%.1f".format(vitals.trimpScore),
+            unit = "",
+            barFrac = (vitals.trimpScore / 150.0).toFloat().coerceIn(0f, 1f),
             barColor = Color(0xFF818CF8),
             modifier = Modifier.weight(1f)
         )
         MetricCard(
-            label    = "CALORII",
-            value    = "${vitals.calories}",
-            unit     = "kcal",
-            barFrac  = (vitals.calories / 500f).coerceIn(0f, 1f),
+            label = "CALORII",
+            value = "${vitals.calories}",
+            unit = "kcal",
+            barFrac = (vitals.calories / 500f).coerceIn(0f, 1f),
             barColor = Color.White.copy(alpha = 0.3f),
             modifier = Modifier.weight(1f)
         )
         MetricCard(
-            label    = "CNS LIVE",
-            value    = "${vitals.cnsScore}",
-            unit     = "%",
-            barFrac  = (vitals.cnsScore / 100f).coerceIn(0f, 1f),
+            label = "CNS LIVE",
+            value = "${vitals.cnsScore}",
+            unit = "%",
+            barFrac = (vitals.cnsScore / 100f).coerceIn(0f, 1f),
             barColor = Color(0xFF4ADE80),
             modifier = Modifier.weight(1f)
         )
@@ -567,13 +578,13 @@ private fun MetricCard(
     modifier: Modifier = Modifier
 ) {
     val animatedFrac by animateFloatAsState(
-        targetValue   = barFrac,
+        targetValue = barFrac,
         animationSpec = tween(800),
-        label         = "metricBar"
+        label = "metricBar"
     )
 
     Column(
-        modifier            = modifier
+        modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .background(GlassSmBg)
             .border(1.dp, GlassSmBorder, RoundedCornerShape(14.dp))
@@ -581,23 +592,23 @@ private fun MetricCard(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text       = label,
-            color      = Color.White.copy(alpha = 0.2f),
-            fontSize   = 9.sp,
+            text = label,
+            color = Color.White.copy(alpha = 0.2f),
+            fontSize = 9.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text       = value,
-            color      = Color.White,
-            fontSize   = 24.sp,
+            text = value,
+            color = Color.White,
+            fontSize = 24.sp,
             fontWeight = FontWeight.Black,
             lineHeight = 26.sp
         )
         if (unit.isNotEmpty()) {
             Text(
-                text  = unit,
+                text = unit,
                 color = Color.White.copy(alpha = 0.18f),
                 fontSize = 9.sp
             )
@@ -634,12 +645,12 @@ fun MetricSquareCard(
 ) {
     Card(
         modifier = modifier.aspectRatio(1f),
-        shape    = RoundedCornerShape(20.dp),
-        colors   = CardDefaults.cardColors(containerColor = Color(0xFF15151C)),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF15151C)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier            = Modifier.fillMaxSize().padding(8.dp),
+            modifier = Modifier.fillMaxSize().padding(8.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

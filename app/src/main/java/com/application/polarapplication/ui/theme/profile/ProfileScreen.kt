@@ -5,8 +5,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,14 +43,14 @@ import kotlin.math.roundToInt
 // ─────────────────────────────────────────────
 // CULORI
 // ─────────────────────────────────────────────
-private val BgDark        = Color(0xFF080808)
-private val GlassBg       = Color(0x0AFFFFFF)
-private val GlassBorder   = Color(0x14FFFFFF)
-private val GlassSmBg     = Color(0x0DFFFFFF)
+private val BgDark = Color(0xFF080808)
+private val GlassBg = Color(0x0AFFFFFF)
+private val GlassBorder = Color(0x14FFFFFF)
+private val GlassSmBg = Color(0x0DFFFFFF)
 private val GlassSmBorder = Color(0x17FFFFFF)
-private val AccentGreen   = Color(0xFF4ADE80)
-private val AccentRed     = Color(0xFFF87171)
-private val AccentIndigo  = Color(0xFF818CF8)
+private val AccentGreen = Color(0xFF4ADE80)
+private val AccentRed = Color(0xFFF87171)
+private val AccentIndigo = Color(0xFF818CF8)
 
 // ─────────────────────────────────────────────
 // ECRAN PRINCIPAL
@@ -64,28 +62,28 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
     val context = LocalContext.current
 
     // State din ProfileManager
-    val savedDobMillis      by viewModel.profileManager.dobMillis.collectAsState()
-    val savedWeight         by viewModel.profileManager.weight.collectAsState()
-    val savedHeight         by viewModel.profileManager.height.collectAsState()
-    val savedGender         by viewModel.profileManager.gender.collectAsState()
-    val savedRhr            by viewModel.profileManager.rhr.collectAsState()
-    val savedCustomHrMax    by viewModel.profileManager.customHrMax.collectAsState()
-    val savedImageUri       by viewModel.profileManager.profileImageUri.collectAsState()
-    val savedAvailableDays  by viewModel.profileManager.availableDays.collectAsState()
+    val savedDobMillis by viewModel.profileManager.dobMillis.collectAsState()
+    val savedWeight by viewModel.profileManager.weight.collectAsState()
+    val savedHeight by viewModel.profileManager.height.collectAsState()
+    val savedGender by viewModel.profileManager.gender.collectAsState()
+    val savedRhr by viewModel.profileManager.rhr.collectAsState()
+    val savedCustomHrMax by viewModel.profileManager.customHrMax.collectAsState()
+    val savedImageUri by viewModel.profileManager.profileImageUri.collectAsState()
+    val savedAvailableDays by viewModel.profileManager.availableDays.collectAsState()
 
     // State local editabil
-    var dobMillis       by remember(savedDobMillis)     { mutableStateOf(savedDobMillis) }
-    var weight          by remember(savedWeight)        { mutableStateOf(savedWeight) }
-    var height          by remember(savedHeight)        { mutableStateOf(savedHeight) }
-    var gender          by remember(savedGender)        { mutableStateOf(savedGender) }
-    var rhr             by remember(savedRhr)           { mutableStateOf(savedRhr) }
-    var customHrMax     by remember(savedCustomHrMax)   { mutableStateOf(savedCustomHrMax) }
-    var profileImageUri by remember(savedImageUri)      { mutableStateOf(savedImageUri) }
-    var availableDays   by remember(savedAvailableDays) { mutableStateOf(savedAvailableDays) }
-    var userName        by remember { mutableStateOf("Nume Utilizator") }
+    var dobMillis by remember(savedDobMillis) { mutableStateOf(savedDobMillis) }
+    var weight by remember(savedWeight) { mutableStateOf(savedWeight) }
+    var height by remember(savedHeight) { mutableStateOf(savedHeight) }
+    var gender by remember(savedGender) { mutableStateOf(savedGender) }
+    var rhr by remember(savedRhr) { mutableStateOf(savedRhr) }
+    var customHrMax by remember(savedCustomHrMax) { mutableStateOf(savedCustomHrMax) }
+    var profileImageUri by remember(savedImageUri) { mutableStateOf(savedImageUri) }
+    var availableDays by remember(savedAvailableDays) { mutableStateOf(savedAvailableDays) }
+    var userName by remember { mutableStateOf("Nume Utilizator") }
 
     // DatePicker state
-    var showDatePicker  by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = dobMillis ?: System.currentTimeMillis()
     )
@@ -98,15 +96,16 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
         } ?: 24
     }
     val calculatedHrMax = (208 - 0.7 * age).roundToInt()
-    val displayHrMax    = customHrMax ?: calculatedHrMax
+    val displayHrMax = customHrMax ?: calculatedHrMax
 
     // Photo picker
     val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract  = ActivityResultContracts.PickVisualMedia(),
-        onResult  = { uri: Uri? ->
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri: Uri? ->
             if (uri != null) {
                 context.contentResolver.takePersistableUriPermission(
-                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
                 profileImageUri = uri.toString()
             }
@@ -139,10 +138,10 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
 
             // ── Header ──────────────────────────────────────────────────────
             ProfileHeader(
-                userName        = userName,
+                userName = userName,
                 profileImageUri = profileImageUri,
-                onNameChange    = { userName = it },
-                onAvatarClick   = {
+                onNameChange = { userName = it },
+                onAvatarClick = {
                     photoPickerLauncher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
@@ -158,22 +157,22 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
 // Data nașterii — singur pe rând
             DobCard(
                 dobMillis = dobMillis,
-                age       = age,
-                onClick   = { showDatePicker = true },
-                modifier  = Modifier.fillMaxWidth()
+                age = age,
+                onClick = { showDatePicker = true },
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
 // Greutate + Înălțime pe același rând
             Row(
-                modifier              = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 MetricInputCard(
-                    label    = "GREUTATE",
-                    value    = "${weight.toInt()}",
-                    unit     = "kg",
+                    label = "GREUTATE",
+                    value = "${weight.toInt()}",
+                    unit = "kg",
                     modifier = Modifier.weight(1f),
                     onValueChange = { input ->
                         input.toIntOrNull()?.let { v ->
@@ -182,9 +181,9 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
                     }
                 )
                 MetricInputCard(
-                    label    = "ÎNĂLȚIME",
-                    value    = "$height",
-                    unit     = "cm",
+                    label = "ÎNĂLȚIME",
+                    value = "$height",
+                    unit = "cm",
                     modifier = Modifier.weight(1f),
                     onValueChange = { input ->
                         input.toIntOrNull()?.let { v ->
@@ -198,7 +197,7 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
 
 // Sex — singur pe rând
             GenderCard(
-                gender   = gender,
+                gender = gender,
                 onChange = { gender = if (gender == "Masculin") "Feminin" else "Masculin" },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -208,10 +207,10 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
 
             // RHR
             CardioStepCard(
-                title    = "Resting Heart Rate",
+                title = "Resting Heart Rate",
                 subtitle = "Pulsul la repaus absolut",
-                value    = "$rhr bpm",
-                color    = AccentGreen,
+                value = "$rhr bpm",
+                color = AccentGreen,
                 onDecrease = { if (rhr > 30) rhr-- },
                 onIncrease = { if (rhr < 100) rhr++ }
             )
@@ -220,26 +219,28 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
 
             // HRmax
             CardioStepCard(
-                title    = "Max Heart Rate (HRmax)",
+                title = "Max Heart Rate (HRmax)",
                 subtitle = if (customHrMax == null) "Formula Tanaka · auto" else "Setat manual",
-                value    = "$displayHrMax bpm",
-                color    = AccentRed,
+                value = "$displayHrMax bpm",
+                color = AccentRed,
                 onDecrease = { customHrMax = displayHrMax - 1 },
                 onIncrease = { customHrMax = displayHrMax + 1 },
                 extraContent = if (customHrMax != null) {
                     {
                         TextButton(
-                            onClick  = { customHrMax = null },
+                            onClick = { customHrMax = null },
                             modifier = Modifier.align(Alignment.End)
                         ) {
                             Text(
                                 "Resetează la auto ($calculatedHrMax bpm)",
-                                color    = Color.White.copy(alpha = 0.3f),
+                                color = Color.White.copy(alpha = 0.3f),
                                 fontSize = 11.sp
                             )
                         }
                     }
-                } else null
+                } else {
+                    null
+                }
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -257,7 +258,7 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
 
             AvailableDaysCard(
                 availableDays = availableDays,
-                onChange      = { day, selected ->
+                onChange = { day, selected ->
                     val newSet = availableDays.toMutableSet()
                     if (selected) newSet.add(day) else newSet.remove(day)
                     // Minim 3 zile
@@ -271,15 +272,15 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
             Button(
                 onClick = {
                     viewModel.saveUserProfile(
-                        age             = age,
-                        weight          = weight,
-                        height          = height,
-                        gender          = gender,
-                        rhr             = rhr,
-                        customHrMax     = customHrMax,
+                        age = age,
+                        weight = weight,
+                        height = height,
+                        gender = gender,
+                        rhr = rhr,
+                        customHrMax = customHrMax,
                         profileImageUri = profileImageUri,
-                        dobMillis       = dobMillis,
-                        availableDays   = availableDays
+                        dobMillis = dobMillis,
+                        availableDays = availableDays
                     )
                 },
                 modifier = Modifier
@@ -289,15 +290,16 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
                     containerColor = Color.White.copy(alpha = 0.07f)
                 ),
                 border = androidx.compose.foundation.BorderStroke(
-                    1.dp, Color.White.copy(alpha = 0.15f)
+                    1.dp,
+                    Color.White.copy(alpha = 0.15f)
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {
                 Text(
-                    text          = "SALVEAZĂ PROFILUL",
-                    color         = Color.White,
-                    fontSize      = 14.sp,
-                    fontWeight    = FontWeight.Black,
+                    text = "SALVEAZĂ PROFILUL",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Black,
                     letterSpacing = 0.5.sp
                 )
             }
@@ -325,7 +327,7 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
             }
         ) {
             DatePicker(
-                state  = datePickerState,
+                state = datePickerState,
                 colors = DatePickerDefaults.colors(
                     containerColor = Color(0xFF111116)
                 )
@@ -346,7 +348,7 @@ private fun ProfileHeader(
     onAvatarClick: () -> Unit
 ) {
     Row(
-        modifier          = Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(GlassBg)
@@ -357,7 +359,7 @@ private fun ProfileHeader(
     ) {
         // Avatar
         Box(
-            modifier         = Modifier
+            modifier = Modifier
                 .size(72.dp)
                 .clip(RoundedCornerShape(18.dp))
                 .background(GlassSmBg)
@@ -367,16 +369,16 @@ private fun ProfileHeader(
         ) {
             if (profileImageUri != null) {
                 AsyncImage(
-                    model              = profileImageUri,
+                    model = profileImageUri,
                     contentDescription = "Poză de Profil",
-                    contentScale       = ContentScale.Crop,
-                    modifier           = Modifier.fillMaxSize()
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
                 )
             } else {
                 Icon(
                     Icons.Default.Face,
                     contentDescription = null,
-                    tint     = Color.White.copy(alpha = 0.3f),
+                    tint = Color.White.copy(alpha = 0.3f),
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -392,7 +394,7 @@ private fun ProfileHeader(
                 Icon(
                     Icons.Default.Add,
                     contentDescription = null,
-                    tint     = Color.White,
+                    tint = Color.White,
                     modifier = Modifier.size(12.dp)
                 )
             }
@@ -400,18 +402,18 @@ private fun ProfileHeader(
 
         Column {
             BasicTextField(
-                value       = userName,
+                value = userName,
                 onValueChange = onNameChange,
-                textStyle   = TextStyle(
-                    color      = Color.White,
-                    fontSize   = 20.sp,
+                textStyle = TextStyle(
+                    color = Color.White,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Black
                 ),
                 cursorBrush = SolidColor(AccentIndigo),
-                singleLine  = true
+                singleLine = true
             )
             Text(
-                text  = "Apasă pe poză pentru a edita",
+                text = "Apasă pe poză pentru a edita",
                 color = Color.White.copy(alpha = 0.25f),
                 fontSize = 11.sp
             )
@@ -430,7 +432,7 @@ private fun MetricInputCard(
     var localValue by remember(value) { mutableStateOf(value) }
 
     Column(
-        modifier            = modifier
+        modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .background(GlassSmBg)
             .border(1.dp, GlassSmBorder, RoundedCornerShape(14.dp))
@@ -438,19 +440,19 @@ private fun MetricInputCard(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text          = label,
-            color         = Color.White.copy(alpha = 0.25f),
-            fontSize      = 9.sp,
-            fontWeight    = FontWeight.Bold,
+            text = label,
+            color = Color.White.copy(alpha = 0.25f),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp
         )
         Spacer(modifier = Modifier.height(6.dp))
         Row(
-            verticalAlignment     = Alignment.Bottom,
+            verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.Center
         ) {
             BasicTextField(
-                value         = localValue,
+                value = localValue,
                 onValueChange = { input ->
                     // Permite doar cifre
                     if (input.all { it.isDigit() } && input.length <= 3) {
@@ -459,21 +461,21 @@ private fun MetricInputCard(
                     }
                 },
                 textStyle = TextStyle(
-                    color      = Color.White,
-                    fontSize   = 32.sp,
+                    color = Color.White,
+                    fontSize = 32.sp,
                     fontWeight = FontWeight.Black,
-                    textAlign  = androidx.compose.ui.text.style.TextAlign.Center
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 ),
-                cursorBrush   = SolidColor(AccentIndigo),
-                singleLine    = true,
+                cursorBrush = SolidColor(AccentIndigo),
+                singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                     keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
                 ),
                 modifier = Modifier.width(80.dp)
             )
             Text(
-                text     = unit,
-                color    = Color.White.copy(alpha = 0.3f),
+                text = unit,
+                color = Color.White.copy(alpha = 0.3f),
                 fontSize = 13.sp,
                 modifier = Modifier.padding(bottom = 5.dp, start = 3.dp)
             )
@@ -484,7 +486,7 @@ private fun MetricInputCard(
 @Composable
 private fun StepButton(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Box(
-        modifier         = modifier
+        modifier = modifier
             .height(26.dp)
             .clip(RoundedCornerShape(7.dp))
             .background(Color.White.copy(alpha = 0.05f))
@@ -493,9 +495,9 @@ private fun StepButton(label: String, modifier: Modifier = Modifier, onClick: ()
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text       = label,
-            color      = Color.White.copy(alpha = 0.5f),
-            fontSize   = 16.sp,
+            text = label,
+            color = Color.White.copy(alpha = 0.5f),
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold
         )
     }
@@ -509,20 +511,20 @@ private fun GenderCard(gender: String, onChange: () -> Unit, modifier: Modifier 
             .background(GlassSmBg)
             .border(1.dp, GlassSmBorder, RoundedCornerShape(14.dp))
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text          = "SEX",
-            color         = Color.White.copy(alpha = 0.25f),
-            fontSize      = 9.sp,
-            fontWeight    = FontWeight.Bold,
+            text = "SEX",
+            color = Color.White.copy(alpha = 0.25f),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
-            modifier      = Modifier.width(32.dp)
+            modifier = Modifier.width(32.dp)
         )
 
         Row(
-            modifier              = Modifier.weight(1f),
+            modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf("Masculin" to "Male", "Feminin" to "Female").forEach { (value, label) ->
@@ -533,23 +535,32 @@ private fun GenderCard(gender: String, onChange: () -> Unit, modifier: Modifier 
                         .height(38.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .background(
-                            if (isSelected) AccentIndigo.copy(alpha = 0.15f)
-                            else Color.White.copy(alpha = 0.03f)
+                            if (isSelected) {
+                                AccentIndigo.copy(alpha = 0.15f)
+                            } else {
+                                Color.White.copy(alpha = 0.03f)
+                            }
                         )
                         .border(
                             1.dp,
-                            if (isSelected) AccentIndigo.copy(alpha = 0.4f)
-                            else Color.White.copy(alpha = 0.06f),
+                            if (isSelected) {
+                                AccentIndigo.copy(alpha = 0.4f)
+                            } else {
+                                Color.White.copy(alpha = 0.06f)
+                            },
                             RoundedCornerShape(10.dp)
                         )
                         .clickable { if (!isSelected) onChange() },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text       = label,
-                        color      = if (isSelected) AccentIndigo
-                        else Color.White.copy(alpha = 0.25f),
-                        fontSize   = 13.sp,
+                        text = label,
+                        color = if (isSelected) {
+                            AccentIndigo
+                        } else {
+                            Color.White.copy(alpha = 0.25f)
+                        },
+                        fontSize = 13.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 }
@@ -578,26 +589,26 @@ private fun DobCard(
             .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
             Text(
-                text          = "DATA NAȘTERII",
-                color         = Color.White.copy(alpha = 0.25f),
-                fontSize      = 9.sp,
-                fontWeight    = FontWeight.Bold,
+                text = "DATA NAȘTERII",
+                color = Color.White.copy(alpha = 0.25f),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text       = dobText,
-                color      = if (dobMillis != null) Color.White else AccentIndigo,
-                fontSize   = 15.sp,
+                text = dobText,
+                color = if (dobMillis != null) Color.White else AccentIndigo,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold
             )
         }
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (dobMillis != null) {
@@ -609,18 +620,18 @@ private fun DobCard(
                         .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Text(
-                        text       = "$age ani",
-                        color      = AccentIndigo,
-                        fontSize   = 13.sp,
+                        text = "$age ani",
+                        color = AccentIndigo,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
             Icon(
-                imageVector        = Icons.Default.DateRange,
+                imageVector = Icons.Default.DateRange,
                 contentDescription = null,
-                tint               = AccentIndigo.copy(alpha = 0.5f),
-                modifier           = Modifier.size(20.dp)
+                tint = AccentIndigo.copy(alpha = 0.5f),
+                modifier = Modifier.size(20.dp)
             )
         }
     }
@@ -645,16 +656,16 @@ private fun CardioStepCard(
             .padding(14.dp)
     ) {
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Text(subtitle, color = color.copy(alpha = 0.6f), fontSize = 11.sp)
             }
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 StepButton("−", Modifier.width(28.dp)) { onDecrease() }
@@ -675,17 +686,17 @@ private fun AvailableDaysCard(
     val selectedCount = availableDays.size
 
     val hint = when {
-        selectedCount < 3  -> "Minimum 3 zile necesare"
+        selectedCount < 3 -> "Minimum 3 zile necesare"
         selectedCount == 3 -> "Plan minim Bompa"
         selectedCount == 4 -> "Plan optim Bompa"
         selectedCount == 5 -> "Plan avansat"
         selectedCount == 6 -> "Plan intensiv"
-        else               -> "Fără zi de odihnă — nerecomandat"
+        else -> "Fără zi de odihnă — nerecomandat"
     }
     val hintColor = when {
-        selectedCount < 3  -> AccentRed
+        selectedCount < 3 -> AccentRed
         selectedCount <= 5 -> AccentGreen
-        else               -> AccentRed.copy(alpha = 0.7f)
+        else -> AccentRed.copy(alpha = 0.7f)
     }
 
     Column(
@@ -697,20 +708,20 @@ private fun AvailableDaysCard(
             .padding(14.dp)
     ) {
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text       = "Zile disponibile / săptămână",
-                color      = Color.White,
-                fontSize   = 13.sp,
+                text = "Zile disponibile / săptămână",
+                color = Color.White,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text       = "$selectedCount zile",
-                color      = hintColor,
-                fontSize   = 12.sp,
+                text = "$selectedCount zile",
+                color = hintColor,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -718,34 +729,40 @@ private fun AvailableDaysCard(
         Spacer(modifier = Modifier.height(10.dp))
 
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             dayLabels.forEachIndexed { index, label ->
-                val dayNum   = index + 1
+                val dayNum = index + 1
                 val selected = dayNum in availableDays
                 Box(
-                    modifier         = Modifier
+                    modifier = Modifier
                         .weight(1f)
                         .height(36.dp)
                         .clip(RoundedCornerShape(9.dp))
                         .background(
-                            if (selected) AccentIndigo.copy(alpha = 0.2f)
-                            else Color.White.copy(alpha = 0.03f)
+                            if (selected) {
+                                AccentIndigo.copy(alpha = 0.2f)
+                            } else {
+                                Color.White.copy(alpha = 0.03f)
+                            }
                         )
                         .border(
                             1.dp,
-                            if (selected) AccentIndigo.copy(alpha = 0.5f)
-                            else Color.White.copy(alpha = 0.06f),
+                            if (selected) {
+                                AccentIndigo.copy(alpha = 0.5f)
+                            } else {
+                                Color.White.copy(alpha = 0.06f)
+                            },
                             RoundedCornerShape(9.dp)
                         )
                         .clickable { onChange(dayNum, !selected) },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text       = label,
-                        color      = if (selected) AccentIndigo else Color.White.copy(alpha = 0.2f),
-                        fontSize   = 11.sp,
+                        text = label,
+                        color = if (selected) AccentIndigo else Color.White.copy(alpha = 0.2f),
+                        fontSize = 11.sp,
                         fontWeight = if (selected) FontWeight.Black else FontWeight.Normal
                     )
                 }
@@ -755,8 +772,8 @@ private fun AvailableDaysCard(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text     = hint,
-            color    = hintColor.copy(alpha = 0.7f),
+            text = hint,
+            color = hintColor.copy(alpha = 0.7f),
             fontSize = 10.sp,
             fontWeight = FontWeight.Medium
         )
@@ -773,18 +790,18 @@ private fun BompaInfoBox(text: String) {
             .border(0.5.dp, AccentIndigo.copy(alpha = 0.15f), RoundedCornerShape(10.dp))
             .padding(10.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment     = Alignment.Top
+        verticalAlignment = Alignment.Top
     ) {
         Icon(
-            imageVector        = Icons.Default.Face,
+            imageVector = Icons.Default.Face,
             contentDescription = null,
-            tint               = AccentIndigo.copy(alpha = 0.6f),
-            modifier           = Modifier.size(14.dp).padding(top = 1.dp)
+            tint = AccentIndigo.copy(alpha = 0.6f),
+            modifier = Modifier.size(14.dp).padding(top = 1.dp)
         )
         Text(
-            text      = text,
-            color     = AccentIndigo.copy(alpha = 0.7f),
-            fontSize  = 11.sp,
+            text = text,
+            color = AccentIndigo.copy(alpha = 0.7f),
+            fontSize = 11.sp,
             lineHeight = 16.sp
         )
     }
@@ -793,10 +810,10 @@ private fun BompaInfoBox(text: String) {
 @Composable
 private fun SectionLabel(text: String) {
     Text(
-        text          = text.uppercase(),
-        color         = Color.White.copy(alpha = 0.25f),
-        fontSize      = 9.sp,
-        fontWeight    = FontWeight.Bold,
+        text = text.uppercase(),
+        color = Color.White.copy(alpha = 0.25f),
+        fontSize = 9.sp,
+        fontWeight = FontWeight.Bold,
         letterSpacing = 1.5.sp
     )
 }

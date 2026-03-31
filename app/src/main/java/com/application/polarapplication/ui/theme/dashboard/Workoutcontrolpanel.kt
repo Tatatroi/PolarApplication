@@ -46,8 +46,8 @@ fun WorkoutControlPanel(
                 val recommendation = when {
                     vitals.cnsScore >= 80 -> "Sistemul nervos e odihnit. Recomandăm: STRENGTH / SPEED."
                     vitals.cnsScore >= 50 -> "Stare optimă. Recomandăm: ENDURANCE."
-                    vitals.cnsScore > 0   -> "Sistem nervos obosit. Recomandăm: RECOVERY."
-                    else                  -> "Se analizează starea CNS..."
+                    vitals.cnsScore > 0 -> "Sistem nervos obosit. Recomandăm: RECOVERY."
+                    else -> "Se analizează starea CNS..."
                 }
 
                 Text(
@@ -93,7 +93,6 @@ fun WorkoutControlPanel(
                 ) {
                     Text("START ANTRENAMENT")
                 }
-
             } else {
                 Text(
                     text = "Tip: $selectedType",

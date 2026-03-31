@@ -14,9 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,84 +37,84 @@ import java.time.temporal.ChronoUnit
 // ─────────────────────────────────────────────
 // CULORI TEMĂ
 // ─────────────────────────────────────────────
-private val BgDark        = Color(0xFF0D0D12)
-private val CardDark      = Color(0xFF15151C)
-private val BorderDark    = Color(0xFF1E1E2E)
+private val BgDark = Color(0xFF0D0D12)
+private val CardDark = Color(0xFF15151C)
+private val BorderDark = Color(0xFF1E1E2E)
 
-private val ColorGeneral  = Color(0xFF4ADE80)   // verde
-private val ColorSpecific = Color(0xFFFBBF24)   // galben
-private val ColorPrecomp  = Color(0xFFA78BFA)   // violet deschis
-private val ColorComp     = Color(0xFFF87171)   // roșu
-private val ColorRecovery = Color(0xFF67E8F9)   // cyan
+private val ColorGeneral = Color(0xFF4ADE80) // verde
+private val ColorSpecific = Color(0xFFFBBF24) // galben
+private val ColorPrecomp = Color(0xFFA78BFA) // violet deschis
+private val ColorComp = Color(0xFFF87171) // roșu
+private val ColorRecovery = Color(0xFF67E8F9) // cyan
 
-private val ColorSTR      = Color(0xFF818CF8)
-private val ColorEND      = Color(0xFF4ADE80)
-private val ColorSPD      = Color(0xFFFBBF24)
-private val ColorREC      = Color(0xFF60A5FA)
-private val ColorREST     = Color(0xFF444444)
-private val ColorIndigo   = Color(0xFF6366F1)
+private val ColorSTR = Color(0xFF818CF8)
+private val ColorEND = Color(0xFF4ADE80)
+private val ColorSPD = Color(0xFFFBBF24)
+private val ColorREC = Color(0xFF60A5FA)
+private val ColorREST = Color(0xFF444444)
+private val ColorIndigo = Color(0xFF6366F1)
 
 // ─────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────
 
 private fun phaseColor(phaseName: String): Color = when (phaseName.lowercase()) {
-    "general"  -> ColorGeneral
+    "general" -> ColorGeneral
     "specific" -> ColorSpecific
-    "precomp"  -> ColorPrecomp
-    "comp"     -> ColorComp
+    "precomp" -> ColorPrecomp
+    "comp" -> ColorComp
     "recovery" -> ColorRecovery
-    else       -> Color.Gray
+    else -> Color.Gray
 }
 
 private fun phaseBg(phaseName: String): Color = when (phaseName.lowercase()) {
-    "general"  -> Color(0xFF1D3A2A)
+    "general" -> Color(0xFF1D3A2A)
     "specific" -> Color(0xFF2A1F00)
-    "precomp"  -> Color(0xFF1A0D2E)
-    "comp"     -> Color(0xFF1A0808)
+    "precomp" -> Color(0xFF1A0D2E)
+    "comp" -> Color(0xFF1A0808)
     "recovery" -> Color(0xFF0D1A1A)
-    else       -> Color(0xFF1A1A24)
+    else -> Color(0xFF1A1A24)
 }
 
 private fun workoutColor(type: WorkoutType): Color = when (type) {
-    WorkoutType.STRENGTH  -> ColorSTR
+    WorkoutType.STRENGTH -> ColorSTR
     WorkoutType.ENDURANCE -> ColorEND
-    WorkoutType.SPEED     -> ColorSPD
-    WorkoutType.RECOVERY  -> ColorREC
-    WorkoutType.REST      -> ColorREST
+    WorkoutType.SPEED -> ColorSPD
+    WorkoutType.RECOVERY -> ColorREC
+    WorkoutType.REST -> ColorREST
 }
 
 private fun workoutBg(type: WorkoutType): Color = when (type) {
-    WorkoutType.STRENGTH  -> Color(0xFF1A1A3E)
+    WorkoutType.STRENGTH -> Color(0xFF1A1A3E)
     WorkoutType.ENDURANCE -> Color(0xFF0F2A1A)
-    WorkoutType.SPEED     -> Color(0xFF2A1F00)
-    WorkoutType.RECOVERY  -> Color(0xFF0A1A2A)
-    WorkoutType.REST      -> Color(0xFF1A1A1A)
+    WorkoutType.SPEED -> Color(0xFF2A1F00)
+    WorkoutType.RECOVERY -> Color(0xFF0A1A2A)
+    WorkoutType.REST -> Color(0xFF1A1A1A)
 }
 
 private fun workoutLabel(type: WorkoutType): String = when (type) {
-    WorkoutType.STRENGTH  -> "STR"
+    WorkoutType.STRENGTH -> "STR"
     WorkoutType.ENDURANCE -> "END"
-    WorkoutType.SPEED     -> "SPD"
-    WorkoutType.RECOVERY  -> "REC"
-    WorkoutType.REST      -> "REST"
+    WorkoutType.SPEED -> "SPD"
+    WorkoutType.RECOVERY -> "REC"
+    WorkoutType.REST -> "REST"
 }
 
 private fun workoutDescription(type: WorkoutType): String = when (type) {
-    WorkoutType.STRENGTH  -> "Forță: 5×5 la 80–85% 1RM. Pauze 3 min între seturi."
+    WorkoutType.STRENGTH -> "Forță: 5×5 la 80–85% 1RM. Pauze 3 min între seturi."
     WorkoutType.ENDURANCE -> "Rezistență aerobă: 30–40 min la 65–75% HRmax. Ritm constant."
-    WorkoutType.SPEED     -> "Viteză: 10×20 sec sprint maximal, pauze 40 sec active."
-    WorkoutType.RECOVERY  -> "Recuperare activă: 20–25 min mers ușor + mobilitate."
-    WorkoutType.REST      -> "Zi de odihnă totală. Somn prioritar, hidratare optimă."
+    WorkoutType.SPEED -> "Viteză: 10×20 sec sprint maximal, pauze 40 sec active."
+    WorkoutType.RECOVERY -> "Recuperare activă: 20–25 min mers ușor + mobilitate."
+    WorkoutType.REST -> "Zi de odihnă totală. Somn prioritar, hidratare optimă."
 }
 
 private fun phaseDescription(phaseName: String): String = when (phaseName.lowercase()) {
-    "general"  -> "Construiește baza aerobă și forța generală. Volum ridicat, intensitate moderată."
+    "general" -> "Construiește baza aerobă și forța generală. Volum ridicat, intensitate moderată."
     "specific" -> "Transferă capacitățile spre cerințele sportului. Intensitate crescută."
-    "precomp"  -> "Simulare competițională. Volum scăzut, intensitate maximă."
-    "comp"     -> "Menținerea formei de vârf. Antrenamente scurte și explosive."
+    "precomp" -> "Simulare competițională. Volum scăzut, intensitate maximă."
+    "comp" -> "Menținerea formei de vârf. Antrenamente scurte și explosive."
     "recovery" -> "Regenerare completă neuromusculară. Pregătire pentru următorul macrociclu."
-    else       -> ""
+    else -> ""
 }
 
 data class SelectedDayInfo(
@@ -534,7 +531,7 @@ private fun MonthLabels(planStart: LocalDate, totalDays: Int) {
     }
     Box(modifier = Modifier.fillMaxWidth().height(14.dp)) {
         months.forEach { (date, frac) ->
-            val monthNames = listOf("Ian","Feb","Mar","Apr","Mai","Iun","Iul","Aug","Sep","Oct","Nov","Dec")
+            val monthNames = listOf("Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Nov", "Dec")
             Text(
                 text = monthNames[date.monthValue - 1],
                 color = Color(0xFF333344),
@@ -573,14 +570,21 @@ private fun MicroCycleSelector(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
                     .background(
-                        if (isSelected) phaseBg(mesoCycle.phase)
-                        else Color(0xFF15151C)
+                        if (isSelected) {
+                            phaseBg(mesoCycle.phase)
+                        } else {
+                            Color(0xFF15151C)
+                        }
                     )
                     .border(
                         width = if (isSelected) 1.5.dp else 0.5.dp,
-                        color = if (isSelected) phaseColor(mesoCycle.phase)
-                        else if (isCurrentWeek) ColorIndigo.copy(alpha = 0.5f)
-                        else BorderDark,
+                        color = if (isSelected) {
+                            phaseColor(mesoCycle.phase)
+                        } else if (isCurrentWeek) {
+                            ColorIndigo.copy(alpha = 0.5f)
+                        } else {
+                            BorderDark
+                        },
                         shape = RoundedCornerShape(10.dp)
                     )
                     .clickable { onMicroSelected(micro) }
@@ -710,8 +714,8 @@ private fun WeekDayGrid(
 @Composable
 private fun DayDetailPanel(info: SelectedDayInfo) {
     val formatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy")
-    val dayOfWeek = listOf("Luni","Marți","Miercuri","Joi","Vineri","Sâmbătă","Duminică")
-    val months = listOf("ian","feb","mar","apr","mai","iun","iul","aug","sep","oct","nov","dec")
+    val dayOfWeek = listOf("Luni", "Marți", "Miercuri", "Joi", "Vineri", "Sâmbătă", "Duminică")
+    val months = listOf("ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec")
     val dayName = dayOfWeek[(info.date.dayOfWeek.value - 1)]
     val dateStr = "$dayName, ${info.date.dayOfMonth} ${months[info.date.monthValue - 1]} ${info.date.year}"
 
