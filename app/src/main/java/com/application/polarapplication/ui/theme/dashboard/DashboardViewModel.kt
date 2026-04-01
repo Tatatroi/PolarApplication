@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.polarapplication.ai.analysis.AppDatabase
+import com.application.polarapplication.ai.chatbot.ChatMessage
+import com.application.polarapplication.ai.chatbot.SessionSetup
 import com.application.polarapplication.model.TrainingSessionEntity
 import com.application.polarapplication.polar.PolarManager
 import com.application.polarapplication.ui.theme.profile.ProfileManager
@@ -37,6 +39,25 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val _selectedWorkoutType = MutableStateFlow("STRENGTH")
     val selectedWorkoutType = _selectedWorkoutType.asStateFlow()
+
+    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
+    val chatMessages = _chatMessages.asStateFlow()
+
+    private val _chatSetup = MutableStateFlow<SessionSetup?>(null)
+    val chatSetup = _chatSetup.asStateFlow()
+
+    fun saveChatMessages(messages: List<ChatMessage>) {
+        _chatMessages.value = messages
+    }
+
+    fun saveChatSetup(setup: SessionSetup) {
+        _chatSetup.value = setup
+    }
+
+    fun clearChat() {
+        _chatMessages.value = emptyList()
+        _chatSetup.value = null
+    }
 
     // ── Polar ──────────────────────────────────────────────────────────────────
     val athleteVitals = polarManager.athleteVitals

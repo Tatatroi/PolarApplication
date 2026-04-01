@@ -5,6 +5,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -22,4 +23,6 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object TargetSetup : Screen("target_setup", "Setup", Icons.Default.DateRange)
 
     object ActivePlan : Screen("active_plan", "Plan", Icons.Default.DateRange)
+
+    object AiChat : Screen("ai_chat", "AI", Icons.Default.Psychology)
 }

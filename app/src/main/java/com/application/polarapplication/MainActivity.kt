@@ -4,15 +4,20 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -24,12 +29,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.application.polarapplication.ai.chatbot.ChatBotScreen
 import com.application.polarapplication.ai.planning.ActivePlanScreen
 import com.application.polarapplication.polar.PermissionHelper
 import com.application.polarapplication.ui.Screen
@@ -58,7 +65,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PolarApplicationTheme {
-                // Chemăm wrapper-ul de navigare în loc de un singur ecran
                 MainNavigationWrapper()
             }
         }
@@ -71,10 +77,8 @@ fun MainNavigationWrapper() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Ascundem bara de navigare jos dacă suntem în ecranul de antrenament activ
     val isBottomBarVisible = currentRoute != Screen.ActiveWorkout.route
 
-    // Scaffold este "scheletul" paginii care ne permite să punem bara de jos
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
@@ -83,17 +87,12 @@ fun MainNavigationWrapper() {
                     containerColor = Color.White,
                     tonalElevation = 8.dp
                 ) {
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentRoute = navBackStackEntry?.destination?.route
-
-                    // Buton Dashboard
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                         label = { Text("Home") },
                         selected = currentRoute == Screen.Dashboard.route,
                         onClick = {
                             navController.navigate(Screen.Dashboard.route) {
-                                // Evită acumularea de ecrane în spate
                                 popUpTo(navController.graph.startDestinationId)
                                 launchSingleTop = true
                             }
@@ -146,9 +145,32 @@ fun MainNavigationWrapper() {
                     )
                 }
             }
-        }
+        },
+        floatingActionButton = {
+            if (currentRoute != Screen.AiChat.route &&
+                currentRoute != Screen.ActiveWorkout.route
+            ) {
+                FloatingActionButton(
+                    onClick = {
+                        navController.navigate(Screen.AiChat.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    containerColor = Color(0xFF1A1A2E),
+                    contentColor = Color(0xFF818CF8),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.chatbotimage),
+                        contentDescription = "Asistent AI",
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        // Aici se face schimbul efectiv între ecrane
         val sharedViewModel: DashboardViewModel = viewModel()
         val currentMaxHr by sharedViewModel.userMaxHr.collectAsState()
         NavHost(
@@ -157,7 +179,6 @@ fun MainNavigationWrapper() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Dashboard.route) {
-                // Dashboard-ul rămâne la fel
                 DashboardScreen(viewModel = sharedViewModel, onMaximizeWorkout = {
                     navController.navigate(Screen.ActiveWorkout.route)
                 })
@@ -168,30 +189,23 @@ fun MainNavigationWrapper() {
             }
 
             composable(Screen.History.route) {
-                // Obținem ViewModel-ul pentru a accesa sesiunea selectată
                 val selectedSession by sharedViewModel.selectedSession.collectAsState()
 
                 if (selectedSession == null) {
-                    // 1. Afișăm lista de antrenamente
                     HistoryScreen(
                         viewModel = sharedViewModel,
                         onSessionClick = { session ->
-                            // Când dăm click, salvăm sesiunea în ViewModel
                             sharedViewModel.selectSession(session)
                         }
                     )
                 } else {
-                    // 2. Afișăm ecranul de detalii cu graficul
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // Buton de "Înapoi" pentru a reveni la listă
                         TextButton(
                             onClick = { sharedViewModel.selectSession(null) },
                             modifier = Modifier.padding(8.dp)
                         ) {
                             Text("< Înapoi la listă", color = Indigo)
                         }
-
-                        // Ecranul care conține graficul Vico
                         WorkoutDetailsScreen(session = selectedSession!!, maxHr = currentMaxHr)
                     }
                 }
@@ -240,6 +254,10 @@ fun MainNavigationWrapper() {
                         navController.navigate(Screen.TargetSetup.route)
                     }
                 )
+            }
+
+            composable(Screen.AiChat.route) {
+                ChatBotScreen(viewModel = sharedViewModel)
             }
         }
     }
