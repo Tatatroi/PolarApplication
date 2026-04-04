@@ -150,6 +150,14 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    init {
+        viewModelScope.launch {
+            userMaxHr.collect { maxHr ->
+                polarManager.userMaxHr = maxHr
+            }
+        }
+    }
+
     fun toggleConnection(deviceId: String) {
         if (uiState.value.device.isConnected) {
             polarManager.disconnectFromDevice(deviceId)
