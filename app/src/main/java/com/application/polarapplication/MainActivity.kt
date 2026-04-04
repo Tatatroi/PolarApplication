@@ -1,5 +1,7 @@
 package com.application.polarapplication
 
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -36,11 +38,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
 import com.application.polarapplication.ai.chatbot.ChatBotScreen
-import com.application.polarapplication.ai.planning.ActivePlanScreen
 import com.application.polarapplication.polar.PermissionHelper
 import com.application.polarapplication.ui.Screen
 import com.application.polarapplication.ui.history.HistoryScreen
+import com.application.polarapplication.ui.planning.ActivePlanScreen
 import com.application.polarapplication.ui.planning.TargetSetupScreen
 import com.application.polarapplication.ui.theme.Indigo
 import com.application.polarapplication.ui.theme.PolarApplicationTheme
@@ -56,6 +59,16 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    1002
+                )
+            }
+        }
 
         enableEdgeToEdge()
 
@@ -135,10 +148,10 @@ fun MainNavigationWrapper() {
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.DateRange, contentDescription = "Plan") },
                         label = { Text("Plan") },
-                        selected = currentRoute == Screen.ActivePlan.route ||
-                            currentRoute == Screen.TargetSetup.route,
+                        selected = currentRoute == Screen.Plan.route ||
+                                currentRoute == Screen.TargetSetup.route,
                         onClick = {
-                            navController.navigate(Screen.ActivePlan.route) {
+                            navController.navigate(Screen.Plan.route) {
                                 launchSingleTop = true
                             }
                         }
@@ -210,11 +223,16 @@ fun MainNavigationWrapper() {
                     }
                 }
             }
-            composable(Screen.ActiveWorkout.route) {
+            composable(
+                route = Screen.ActiveWorkout.route,
+                deepLinks = listOf(
+                    navDeepLink { uriPattern = "polar://active_workout" }
+                )
+            ) {
                 val userGender by sharedViewModel.profileManager.gender.collectAsState()
                 ActiveWorkoutScreen(
-                    viewModel = sharedViewModel,
-                    userGender = userGender,
+                    viewModel      = sharedViewModel,
+                    userGender     = userGender,
                     onMinimizeClick = {
                         navController.popBackStack(Screen.Dashboard.route, inclusive = false)
                     }
@@ -247,9 +265,9 @@ fun MainNavigationWrapper() {
                 )
             }
 
-            composable(Screen.ActivePlan.route) {
+            composable(Screen.Plan.route) {
                 ActivePlanScreen(
-                    viewModel = sharedViewModel,
+                    viewModel         = sharedViewModel,
                     onGenerateNewPlan = {
                         navController.navigate(Screen.TargetSetup.route)
                     }
