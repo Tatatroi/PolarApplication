@@ -1,79 +1,154 @@
 package com.application.polarapplication.ui.theme.dashboard
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.application.polarapplication.ai.analysis.AppDatabase
+import com.application.polarapplication.ai.chatbot.ChatMessage
+import com.application.polarapplication.ai.chatbot.SessionSetup
 import com.application.polarapplication.model.TrainingSessionEntity
 import com.application.polarapplication.polar.PolarManager
+import com.application.polarapplication.services.WorkoutForegroundService
 import com.application.polarapplication.ui.theme.profile.ProfileManager
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import com.google.gson.Gson
-import kotlinx.coroutines.flow.asStateFlow
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
     private val polarManager = PolarManager(application)
-
-    // Accesăm "secretara" (DAO) pentru a salva datele
     private val sessionDao = AppDatabase.getDatabase(application).sessionDao()
-
-    // Ținem minte dacă utilizatorul a apăsat START
-    private val _isWorkoutActive = MutableStateFlow(false)
-    private val _selectedSession = MutableStateFlow<TrainingSessionEntity?>(null)
-
-    // Expunem direct vitalele pentru ecranul de antrenament
-    val athleteVitals = polarManager.athleteVitals
-
-    // Statusul antrenamentului (pentru a-l putea accesa din afara UiState-ului combinat)
-    val isWorkoutActive = _isWorkoutActive.asStateFlow()
-    val availableDevices = polarManager.availableDevices
-    fun startScanning() = polarManager.startScan()
-    fun stopScanning() = polarManager.stopScan()
-
-    val selectedSession = _selectedSession.asStateFlow()
 
     val profileManager = ProfileManager(application)
 
+    // ── Workout activ ──────────────────────────────────────────────────────────
+    private val _isWorkoutActive = MutableStateFlow(false)
+    val isWorkoutActive = _isWorkoutActive.asStateFlow()
+
+    private val _selectedSession = MutableStateFlow<TrainingSessionEntity?>(null)
+    val selectedSession = _selectedSession.asStateFlow()
+
+    private val _selectedWorkoutType = MutableStateFlow("STRENGTH")
+    val selectedWorkoutType = _selectedWorkoutType.asStateFlow()
+
+    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
+    val chatMessages = _chatMessages.asStateFlow()
+
+    private val _lastConnectedDeviceId = MutableStateFlow(
+        // Citește din SharedPreferences
+        application.getSharedPreferences("polar_prefs", Context.MODE_PRIVATE)
+            .getString("last_device_id", null)
+    )
+    val lastConnectedDeviceId = _lastConnectedDeviceId.asStateFlow()
+
+    private val _lastConnectedDeviceName = MutableStateFlow(
+        application.getSharedPreferences("polar_prefs", Context.MODE_PRIVATE)
+            .getString("last_device_name", null)
+    )
+    val lastConnectedDeviceName = _lastConnectedDeviceName.asStateFlow()
+
+    private val _chatSetup = MutableStateFlow<SessionSetup?>(null)
+    val chatSetup = _chatSetup.asStateFlow()
+
+    fun saveChatMessages(messages: List<ChatMessage>) {
+        _chatMessages.value = messages
+    }
+
+    fun saveChatSetup(setup: SessionSetup) {
+        _chatSetup.value = setup
+    }
+
+    fun clearChat() {
+        _chatMessages.value = emptyList()
+        _chatSetup.value = null
+    }
+
+    fun saveLastConnectedDevice(deviceId: String, deviceName: String) {
+        _lastConnectedDeviceId.value = deviceId
+        _lastConnectedDeviceName.value = deviceName
+        application.getSharedPreferences("polar_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("last_device_id", deviceId)
+            .putString("last_device_name", deviceName)
+            .apply()
+    }
+
+    // ── Polar ──────────────────────────────────────────────────────────────────
+    val athleteVitals = polarManager.athleteVitals
+    val availableDevices = polarManager.availableDevices
+
+    // ── Profil ─────────────────────────────────────────────────────────────────
     val userMaxHr: StateFlow<Int> = combine(
         profileManager.age,
         profileManager.customHrMax
     ) { age, customMax ->
         customMax ?: (208 - (0.7 * age)).toInt()
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 190
-    )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 190)
 
+    // ── Data competitiei (din ProfileManager, persistata) ─────────────────────
+    val competitionDate: StateFlow<LocalDate?> = profileManager.competitionDateMillis
+        .map { millis ->
+            millis?.let {
+                Instant.ofEpochMilli(it)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // ── Data de start a planului (cand a fost generat) ────────────────────────
+    val planStartDate: StateFlow<LocalDate?> = profileManager.planStartDateMillis
+        .map { millis ->
+            millis?.let {
+                Instant.ofEpochMilli(it)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // ── Sesiuni ────────────────────────────────────────────────────────────────
     val allSessions: StateFlow<List<TrainingSessionEntity>> = sessionDao.getAllSessionsFlow()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // ── UI State combinat ──────────────────────────────────────────────────────
     val uiState: StateFlow<DashboardUiState> = combine(
         polarManager.deviceState,
         polarManager.athleteVitals,
         _isWorkoutActive
     ) { device, vitals, active ->
-        DashboardUiState(
-            device = device,
-            vitals = vitals,
-            isWorkoutActive = active
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = DashboardUiState()
-    )
+        DashboardUiState(device = device, vitals = vitals, isWorkoutActive = active)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
+
+    init {
+        viewModelScope.launch {
+            userMaxHr.collect { maxHr ->
+                polarManager.userMaxHr = maxHr
+            }
+        }
+    }
+
+    // ── Actiuni ────────────────────────────────────────────────────────────────
+
+    init {
+        viewModelScope.launch {
+            userMaxHr.collect { maxHr ->
+                polarManager.userMaxHr = maxHr
+            }
+        }
+    }
 
     init {
         viewModelScope.launch {
@@ -91,83 +166,120 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    // Funcția care pornește antrenamentul
+    fun startScanning() = polarManager.startScan()
+    fun stopScanning() = polarManager.stopScan()
+
+    fun connectToSelectedDevice(deviceId: String) = polarManager.connectToDevice(deviceId)
+
     fun startWorkout() {
         polarManager.prepareNewWorkout()
         _isWorkoutActive.value = true
-        // Aici am putea reseta TRIMP-ul din PolarManager dacă vrem o sesiune nouă curată
+
+        val intent = WorkoutForegroundService.startIntent(
+            getApplication(),
+            selectedWorkoutType.value
+        )
+        getApplication<Application>().startForegroundService(intent)
+
+        // Actualizează service-ul cu vitale live
+        viewModelScope.launch {
+            athleteVitals.collect { vitals ->
+                if (_isWorkoutActive.value) {
+                    val updateIntent = WorkoutForegroundService.updateIntent(
+                        getApplication(),
+                        vitals.heartRate,
+                        vitals.calories
+                    )
+                    getApplication<Application>().startForegroundService(updateIntent)
+                }
+            }
+        }
     }
 
-    // Funcția care oprește și SALVEAZĂ în baza de date
-    //TODO check new stopWorkoutFunction
-//    fun stopWorkout(workoutType: String) {
-//        val currentVitals = uiState.value.vitals
-//        val samplesList = polarManager.getHrSamples()
-//        val samplesJson = Gson().toJson(samplesList) // Transformăm [120, 125, 130] în "[120,125,130]"
-//        _isWorkoutActive.value = false
-//
-//        // Lansăm o corutină (un proces pe fundal) pentru a scrie în baza de date
-//        viewModelScope.launch(Dispatchers.IO) {
-//            val newSession = TrainingSessionEntity(
-//                type = workoutType,
-//                avgHeartRate = currentVitals.heartRate, // În viitor putem calcula media reală
-//                maxHeartRate = currentVitals.heartRate,
-//                finalTrimp = currentVitals.trimpScore,
-//                totalCalories = currentVitals.calories,
-//                cnsScoreAtStart = 0, // Vom implementa logica de captură la start
-//                cnsScoreAtEnd = currentVitals.cnsScore ,
-//                hrSamples = samplesJson,
-//                isCompleted = true
-//            )
-//            sessionDao.insertSession(newSession)
-//        }
-//    }
-
     fun stopWorkout(workoutType: String) {
+        val stopIntent = WorkoutForegroundService.stopIntent(getApplication())
+        getApplication<Application>().startService(stopIntent)
         val currentVitals = uiState.value.vitals
         val samplesList = polarManager.getHrSamples()
         val samplesJson = Gson().toJson(samplesList)
+
         _isWorkoutActive.value = false
 
-        // Calculăm avg și max din lista reală de eșantioane
         val avgHr = if (samplesList.isNotEmpty()) samplesList.average().toInt() else currentVitals.heartRate
         val maxHr = if (samplesList.isNotEmpty()) samplesList.max() else currentVitals.heartRate
 
         viewModelScope.launch(Dispatchers.IO) {
-            val newSession = TrainingSessionEntity(
-                type = workoutType,
-                avgHeartRate = avgHr,
-                maxHeartRate = maxHr,
-                finalTrimp = currentVitals.trimpScore,
-                totalCalories = currentVitals.calories,
-                cnsScoreAtStart = 0,
-                cnsScoreAtEnd = currentVitals.cnsScore,
-                hrSamples = samplesJson,
-                isCompleted = true
+            sessionDao.insertSession(
+                TrainingSessionEntity(
+                    type = workoutType,
+                    avgHeartRate = avgHr,
+                    maxHeartRate = maxHr,
+                    finalTrimp = currentVitals.trimpScore,
+                    totalCalories = currentVitals.calories,
+                    cnsScoreAtStart = 0,
+                    cnsScoreAtEnd = currentVitals.cnsScore,
+                    hrSamples = samplesJson,
+                    isCompleted = true
+                )
             )
-            sessionDao.insertSession(newSession)
         }
+    }
+
+    fun setWorkoutType(type: String) {
+        _selectedWorkoutType.value = type
     }
 
     fun selectSession(session: TrainingSessionEntity?) {
         _selectedSession.value = session
     }
 
-    fun connectToSelectedDevice(deviceId: String) {
-        polarManager.connectToDevice(deviceId)
-        // Aici putem salva ID-ul în "Istoric" (SharedPreferences)
-    }
-
-    // Adaugă asta în DashboardViewModel
     fun deleteSession(session: TrainingSessionEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            sessionDao.deleteSession(session)
-        }
+        viewModelScope.launch(Dispatchers.IO) { sessionDao.deleteSession(session) }
     }
 
-    fun saveUserProfile(age: Int, weight: Float, height: Int, gender: String, rhr: Int, customHrMax: Int?, profileImageUri: String?) {
+    fun saveUserProfile(
+        age: Int,
+        weight: Float,
+        height: Int,
+        gender: String,
+        rhr: Int,
+        customHrMax: Int?,
+        profileImageUri: String?,
+
+        dobMillis: Long?,
+        availableDays: Set<Int>
+    ) {
         profileManager.saveProfile(
-            age, weight, height, gender, rhr, customHrMax, profileImageUri
+            newAge = age,
+            newWeight = weight,
+            newHeight = height,
+            newGender = gender,
+            newRhr = rhr,
+            newCustomHrMax = customHrMax,
+            newProfileImageUri = profileImageUri,
+            newDobMillis = dobMillis,
+            newAvailableDays = availableDays
+        )
+    }
+
+    fun setCompetitionDate(date: LocalDate) {
+        val compMillis = date
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant().toEpochMilli()
+        val startMillis = LocalDate.now()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant().toEpochMilli()
+
+        profileManager.saveProfile(
+            newAge = profileManager.age.value,
+            newWeight = profileManager.weight.value,
+            newHeight = profileManager.height.value,
+            newGender = profileManager.gender.value,
+            newRhr = profileManager.rhr.value,
+            newCustomHrMax = profileManager.customHrMax.value,
+            newProfileImageUri = profileManager.profileImageUri.value,
+            newCompetitionDateMillis = compMillis,
+            newPlanStartDateMillis = startMillis
         )
     }
 }

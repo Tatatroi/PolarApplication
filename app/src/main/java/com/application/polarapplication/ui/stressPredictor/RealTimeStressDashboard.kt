@@ -112,5 +112,3 @@ fun StressIndicator(stressLevel: Int) {
         }
     }
 }
-
-

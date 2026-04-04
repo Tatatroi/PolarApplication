@@ -14,23 +14,26 @@ class TrainingPlanner {
         "recovery" to 0.05
     )
 
-    fun generatePlan(competitionDate: LocalDate): TrainingPlan {
-        val start = LocalDate.now()
+    fun generatePlan(
+        competitionDate: LocalDate,
+        startDate: LocalDate = LocalDate.now()
+    ): TrainingPlan {
+        val start = startDate
         val totalDays = ChronoUnit.DAYS.between(start, competitionDate).toInt()
+            .coerceAtLeast(7) // minim 1 saptamana ca sa nu crashuiasca
 
         var currentStart = start
-
         val mesoList = mutableListOf<MesoCycle>()
 
         for ((phase, percentage) in phases) {
-            val days = (totalDays * percentage).toInt()
+            val days = (totalDays * percentage).toInt().coerceAtLeast(7)
             val phaseEnd = currentStart.plusDays(days.toLong())
 
-            val weeks = days / 7
-            val microcycles = (0 until weeks).map {
+            val weeks = (days / 7).coerceAtLeast(1)
+            val microcycles = (0 until weeks).map { weekIndex ->
                 MicroCycle(
-                    startDate = currentStart.plusDays((it * 7).toLong()),
-                    endDate = currentStart.plusDays((it * 7 + 6).toLong()),
+                    startDate = currentStart.plusDays((weekIndex * 7).toLong()),
+                    endDate = currentStart.plusDays((weekIndex * 7 + 6).toLong()),
                     workouts = MicroCycleGenerator.generate(phase)
                 )
             }
@@ -46,8 +49,7 @@ class TrainingPlanner {
 
             currentStart = phaseEnd
         }
+
         return TrainingPlan(start, competitionDate, mesoList)
     }
-
-
 }
