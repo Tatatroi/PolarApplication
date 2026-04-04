@@ -1,11 +1,16 @@
 package com.application.polarapplication.ui.theme.dashboard
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.application.polarapplication.ai.analysis.AppDatabase
+import com.application.polarapplication.ai.chatbot.ChatMessage
+import com.application.polarapplication.ai.chatbot.SessionSetup
 import com.application.polarapplication.model.TrainingSessionEntity
 import com.application.polarapplication.polar.PolarManager
+import com.application.polarapplication.services.WorkoutForegroundService
 import com.application.polarapplication.ui.theme.profile.ProfileManager
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +42,48 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val _selectedWorkoutType = MutableStateFlow("STRENGTH")
     val selectedWorkoutType = _selectedWorkoutType.asStateFlow()
+
+    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
+    val chatMessages = _chatMessages.asStateFlow()
+
+    private val _lastConnectedDeviceId = MutableStateFlow(
+        // Citește din SharedPreferences
+        application.getSharedPreferences("polar_prefs", Context.MODE_PRIVATE)
+            .getString("last_device_id", null)
+    )
+    val lastConnectedDeviceId = _lastConnectedDeviceId.asStateFlow()
+
+    private val _lastConnectedDeviceName = MutableStateFlow(
+        application.getSharedPreferences("polar_prefs", Context.MODE_PRIVATE)
+            .getString("last_device_name", null)
+    )
+    val lastConnectedDeviceName = _lastConnectedDeviceName.asStateFlow()
+
+    private val _chatSetup = MutableStateFlow<SessionSetup?>(null)
+    val chatSetup = _chatSetup.asStateFlow()
+
+    fun saveChatMessages(messages: List<ChatMessage>) {
+        _chatMessages.value = messages
+    }
+
+    fun saveChatSetup(setup: SessionSetup) {
+        _chatSetup.value = setup
+    }
+
+    fun clearChat() {
+        _chatMessages.value = emptyList()
+        _chatSetup.value = null
+    }
+
+    fun saveLastConnectedDevice(deviceId: String, deviceName: String) {
+        _lastConnectedDeviceId.value = deviceId
+        _lastConnectedDeviceName.value = deviceName
+        application.getSharedPreferences("polar_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("last_device_id", deviceId)
+            .putString("last_device_name", deviceName)
+            .apply()
+    }
 
     // ── Polar ──────────────────────────────────────────────────────────────────
     val athleteVitals = polarManager.athleteVitals
@@ -119,9 +166,31 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     fun startWorkout() {
         polarManager.prepareNewWorkout()
         _isWorkoutActive.value = true
+
+        val intent = WorkoutForegroundService.startIntent(
+            getApplication(),
+            selectedWorkoutType.value
+        )
+        getApplication<Application>().startForegroundService(intent)
+
+        // Actualizează service-ul cu vitale live
+        viewModelScope.launch {
+            athleteVitals.collect { vitals ->
+                if (_isWorkoutActive.value) {
+                    val updateIntent = WorkoutForegroundService.updateIntent(
+                        getApplication(),
+                        vitals.heartRate,
+                        vitals.calories
+                    )
+                    getApplication<Application>().startForegroundService(updateIntent)
+                }
+            }
+        }
     }
 
     fun stopWorkout(workoutType: String) {
+        val stopIntent = WorkoutForegroundService.stopIntent(getApplication())
+        getApplication<Application>().startService(stopIntent)
         val currentVitals = uiState.value.vitals
         val samplesList = polarManager.getHrSamples()
         val samplesJson = Gson().toJson(samplesList)
