@@ -200,6 +200,20 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
             fontSize = 12.sp
         )
 
+    // Stop scanning when leaving
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.stopScanning()
+            isScanning = false
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BgDark)
+            .padding(horizontal = 16.dp)
+    ) {
         Spacer(modifier = Modifier.height(20.dp))
 
         // ── Stare permisiuni / bluetooth ────────────────────────────────────
