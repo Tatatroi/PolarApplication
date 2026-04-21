@@ -20,7 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.application.polarapplication.ui.info.InfoIconButton
+import com.application.polarapplication.ui.info.MetricInfoData
 import com.application.polarapplication.ui.stressPredictor.StressBodyVisualizer
 
 // ─────────────────────────────────────────────
@@ -241,6 +242,23 @@ fun ActiveWorkoutScreen(
                     letterSpacing = 0.5.sp
                 )
             }
+        }
+
+        // Badge scurt dreapta
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .background(aiColor.copy(alpha = 0.1f))
+                .border(1.dp, aiColor.copy(alpha = 0.25f), RoundedCornerShape(6.dp))
+                .padding(horizontal = 8.dp, vertical = 3.dp)
+        ) {
+            Text(
+                text = aiShort,
+                color = aiColor,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 0.5.sp
+            )
         }
     }
 
@@ -528,30 +546,6 @@ private fun AiStatusStrip(
             )
         }
     }
-
-    // --- DIALOG DE CONFIRMARE ---
-    if (showStopConfirmation) {
-        AlertDialog(
-            onDismissRequest = { showStopConfirmation = false },
-            containerColor = Color(0xFF1E1E24),
-            title = { Text("Finalizare sesiune", color = Color.White) },
-            text = { Text("Ești sigur că vrei să oprești monitorizarea acum?", color = Color.Gray) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.stopWorkout("BOMPA_SESSION")
-                    showStopConfirmation = false
-                    onMinimizeClick()
-                }) {
-                    Text("DA, OPREȘTE", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showStopConfirmation = false }) {
-                    Text("CONTINUĂ", color = Color.White)
-                }
-            }
-        )
-    }
 }
 
 // ─────────────────────────────────────────────
@@ -617,13 +611,26 @@ private fun MetricCard(
             .padding(vertical = 12.dp, horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = label,
-            color = Color.White.copy(alpha = 0.2f),
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = label,
+                color = Color.White.copy(alpha = 0.2f),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+            val metricInfo = when (label) {
+                "TRIMP" -> MetricInfoData.TRIMP
+                "CNS LIVE" -> MetricInfoData.CNS
+                else -> null
+            }
+            metricInfo?.let {
+                InfoIconButton(info = it, tint = Color.White.copy(alpha = 0.15f))
+            }
+        }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = value,

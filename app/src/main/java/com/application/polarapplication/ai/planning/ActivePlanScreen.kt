@@ -7,7 +7,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -17,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -37,120 +35,120 @@ import java.time.temporal.ChronoUnit
 // ─────────────────────────────────────────────
 // COLORS
 // ─────────────────────────────────────────────
-private val BgDark       = Color(0xFF080808)
-private val GlassBg      = Color(0x0AFFFFFF)
-private val GlassBorder  = Color(0x14FFFFFF)
-private val GlassSmBg    = Color(0x0DFFFFFF)
-private val GlassSmBorder= Color(0x17FFFFFF)
+private val BgDark = Color(0xFF080808)
+private val GlassBg = Color(0x0AFFFFFF)
+private val GlassBorder = Color(0x14FFFFFF)
+private val GlassSmBg = Color(0x0DFFFFFF)
+private val GlassSmBorder = Color(0x17FFFFFF)
 private val AccentIndigo = Color(0xFF818CF8)
-private val AccentGreen  = Color(0xFF4ADE80)
-private val AccentRed    = Color(0xFFF87171)
-private val AccentAmber  = Color(0xFFFBBF24)
-private val AccentBlue   = Color(0xFF60A5FA)
-private val AccentCyan   = Color(0xFF67E8F9)
+private val AccentGreen = Color(0xFF4ADE80)
+private val AccentRed = Color(0xFFF87171)
+private val AccentAmber = Color(0xFFFBBF24)
+private val AccentBlue = Color(0xFF60A5FA)
+private val AccentCyan = Color(0xFF67E8F9)
 private val AccentPurple = Color(0xFFA78BFA)
 
 // ─────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────
 private fun phaseColor(phase: String) = when (phase.lowercase()) {
-    "general"  -> AccentIndigo
+    "general" -> AccentIndigo
     "specific" -> AccentAmber
-    "precomp"  -> AccentPurple
-    "comp"     -> AccentRed
+    "precomp" -> AccentPurple
+    "comp" -> AccentRed
     "recovery" -> AccentCyan
-    else       -> Color.Gray
+    else -> Color.Gray
 }
 
 private fun phaseBg(phase: String) = when (phase.lowercase()) {
-    "general"  -> Color(0xFF1A1A3E)
+    "general" -> Color(0xFF1A1A3E)
     "specific" -> Color(0xFF2A1F00)
-    "precomp"  -> Color(0xFF1A0D2E)
-    "comp"     -> Color(0xFF1A0808)
+    "precomp" -> Color(0xFF1A0D2E)
+    "comp" -> Color(0xFF1A0808)
     "recovery" -> Color(0xFF0D1A1A)
-    else       -> GlassBg
+    else -> GlassBg
 }
 
 private fun blockName(phase: String) = when (phase.lowercase()) {
-    "general"  -> "Base Strength Block"
+    "general" -> "Base Strength Block"
     "specific" -> "Sport-Specific Block"
-    "precomp"  -> "Pre-Competition Block"
-    "comp"     -> "Competition Block"
+    "precomp" -> "Pre-Competition Block"
+    "comp" -> "Competition Block"
     "recovery" -> "Recovery Block"
-    else       -> phase
+    else -> phase
 }
 
 private fun blockDesc(phase: String) = when (phase.lowercase()) {
-    "general"  -> "Build your aerobic foundation and general strength. High volume, moderate intensity. This phase sets the base for everything that follows."
+    "general" -> "Build your aerobic foundation and general strength. High volume, moderate intensity. This phase sets the base for everything that follows."
     "specific" -> "Transfer general fitness to sport demands. Increased intensity, moderate volume. Focus on explosive power and sport-specific movements."
-    "precomp"  -> "Competition simulation. Low volume, maximum intensity. Peak performance preparation and fine-tuning."
-    "comp"     -> "Maintain peak form. Short, explosive sessions. Taper volume while keeping intensity high."
+    "precomp" -> "Competition simulation. Low volume, maximum intensity. Peak performance preparation and fine-tuning."
+    "comp" -> "Maintain peak form. Short, explosive sessions. Taper volume while keeping intensity high."
     "recovery" -> "Full neuromuscular recovery. Light activity, mobility work, sleep priority."
-    else       -> ""
+    else -> ""
 }
 
 private fun workoutColor(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH  -> AccentIndigo
+    WorkoutType.STRENGTH -> AccentIndigo
     WorkoutType.ENDURANCE -> AccentGreen
-    WorkoutType.SPEED     -> AccentAmber
-    WorkoutType.RECOVERY  -> AccentBlue
-    WorkoutType.REST      -> Color(0xFF444455)
+    WorkoutType.SPEED -> AccentAmber
+    WorkoutType.RECOVERY -> AccentBlue
+    WorkoutType.REST -> Color(0xFF444455)
 }
 
 private fun workoutBg(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH  -> Color(0xFF1A1A3E)
+    WorkoutType.STRENGTH -> Color(0xFF1A1A3E)
     WorkoutType.ENDURANCE -> Color(0xFF0F2A1A)
-    WorkoutType.SPEED     -> Color(0xFF2A1F00)
-    WorkoutType.RECOVERY  -> Color(0xFF0A1A2A)
-    WorkoutType.REST      -> Color(0xFF111118)
+    WorkoutType.SPEED -> Color(0xFF2A1F00)
+    WorkoutType.RECOVERY -> Color(0xFF0A1A2A)
+    WorkoutType.REST -> Color(0xFF111118)
 }
 
 private fun workoutLabel(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH  -> "STR"
+    WorkoutType.STRENGTH -> "STR"
     WorkoutType.ENDURANCE -> "END"
-    WorkoutType.SPEED     -> "SPD"
-    WorkoutType.RECOVERY  -> "REC"
-    WorkoutType.REST      -> "REST"
+    WorkoutType.SPEED -> "SPD"
+    WorkoutType.RECOVERY -> "REC"
+    WorkoutType.REST -> "REST"
 }
 
 private fun workoutName(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH  -> "Maximum Strength"
+    WorkoutType.STRENGTH -> "Maximum Strength"
     WorkoutType.ENDURANCE -> "Aerobic Endurance"
-    WorkoutType.SPEED     -> "Speed & Explosiveness"
-    WorkoutType.RECOVERY  -> "Active Recovery"
-    WorkoutType.REST      -> "Full Rest Day"
+    WorkoutType.SPEED -> "Speed & Explosiveness"
+    WorkoutType.RECOVERY -> "Active Recovery"
+    WorkoutType.REST -> "Full Rest Day"
 }
 
 private fun workoutDesc(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH  -> "Heavy compound lifts. Focus on progressive overload."
+    WorkoutType.STRENGTH -> "Heavy compound lifts. Focus on progressive overload."
     WorkoutType.ENDURANCE -> "Steady-state cardio at 65–75% HRmax. Build your aerobic engine."
-    WorkoutType.SPEED     -> "Short sprints and plyometrics. Maximum explosive output."
-    WorkoutType.RECOVERY  -> "Light movement, mobility work. Let your body repair."
-    WorkoutType.REST      -> "Complete rest. Sleep and nutrition are your training today."
+    WorkoutType.SPEED -> "Short sprints and plyometrics. Maximum explosive output."
+    WorkoutType.RECOVERY -> "Light movement, mobility work. Let your body repair."
+    WorkoutType.REST -> "Complete rest. Sleep and nutrition are your training today."
 }
 
 private fun workoutDuration(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH  -> "45–60 min"
+    WorkoutType.STRENGTH -> "45–60 min"
     WorkoutType.ENDURANCE -> "30–45 min"
-    WorkoutType.SPEED     -> "30–40 min"
-    WorkoutType.RECOVERY  -> "20–30 min"
-    WorkoutType.REST      -> "—"
+    WorkoutType.SPEED -> "30–40 min"
+    WorkoutType.RECOVERY -> "20–30 min"
+    WorkoutType.REST -> "—"
 }
 
 private fun workoutIntensity(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH  -> "80–85% 1RM · 5×5 sets"
+    WorkoutType.STRENGTH -> "80–85% 1RM · 5×5 sets"
     WorkoutType.ENDURANCE -> "65–75% HRmax"
-    WorkoutType.SPEED     -> "10×20 sec max sprint"
-    WorkoutType.RECOVERY  -> "Below 65% HRmax"
-    WorkoutType.REST      -> "Rest"
+    WorkoutType.SPEED -> "10×20 sec max sprint"
+    WorkoutType.RECOVERY -> "Below 65% HRmax"
+    WorkoutType.REST -> "Rest"
 }
 
 private fun workoutIcon(type: WorkoutType): ImageVector = when (type) {
-    WorkoutType.STRENGTH  -> Icons.Default.FitnessCenter
+    WorkoutType.STRENGTH -> Icons.Default.FitnessCenter
     WorkoutType.ENDURANCE -> Icons.Default.DirectionsRun
-    WorkoutType.SPEED     -> Icons.Default.Speed
-    WorkoutType.RECOVERY  -> Icons.Default.SelfImprovement
-    WorkoutType.REST      -> Icons.Default.Hotel
+    WorkoutType.SPEED -> Icons.Default.Speed
+    WorkoutType.RECOVERY -> Icons.Default.SelfImprovement
+    WorkoutType.REST -> Icons.Default.Hotel
 }
 
 // ─────────────────────────────────────────────
@@ -163,8 +161,8 @@ fun ActivePlanScreen(
     onGenerateNewPlan: () -> Unit
 ) {
     val competitionDate by viewModel.competitionDate.collectAsState()
-    val planStartDate   by viewModel.planStartDate.collectAsState()
-    val today           = remember { LocalDate.now() }
+    val planStartDate by viewModel.planStartDate.collectAsState()
+    val today = remember { LocalDate.now() }
 
     if (competitionDate == null || planStartDate == null) {
         NoPlanScreen(onGenerateNewPlan = onGenerateNewPlan)
@@ -172,19 +170,19 @@ fun ActivePlanScreen(
     }
 
     val effectiveStart = planStartDate!!
-    val effectiveComp  = competitionDate!!
+    val effectiveComp = competitionDate!!
 
     val planner = remember { TrainingPlanner() }
-    val plan    = remember(effectiveStart, effectiveComp) {
+    val plan = remember(effectiveStart, effectiveComp) {
         planner.generatePlan(effectiveComp, effectiveStart)
     }
 
-    val totalWeeks  = plan.mesoCycles.sumOf { it.microCycle.size }
-    val totalDays   = ChronoUnit.DAYS.between(effectiveStart, effectiveComp).toInt().coerceAtLeast(1)
+    val totalWeeks = plan.mesoCycles.sumOf { it.microCycle.size }
+    val totalDays = ChronoUnit.DAYS.between(effectiveStart, effectiveComp).toInt().coerceAtLeast(1)
     val elapsedDays = ChronoUnit.DAYS.between(effectiveStart, today).toInt().coerceIn(0, totalDays)
     val progressFraction = elapsedDays.toFloat() / totalDays.toFloat()
-    val currentWeekNum   = ((elapsedDays / 7) + 1).coerceIn(1, totalWeeks)
-    val daysToComp       = ChronoUnit.DAYS.between(today, effectiveComp).coerceAtLeast(0)
+    val currentWeekNum = ((elapsedDays / 7) + 1).coerceIn(1, totalWeeks)
+    val daysToComp = ChronoUnit.DAYS.between(today, effectiveComp).coerceAtLeast(0)
 
     val currentMeso = plan.mesoCycles.firstOrNull { meso ->
         meso.microCycle.any { !it.startDate.isAfter(today) && !it.endDate.isBefore(today) }
@@ -194,16 +192,16 @@ fun ActivePlanScreen(
         !it.startDate.isAfter(today) && !it.endDate.isBefore(today)
     } ?: currentMeso.microCycle.first()
 
-    val todayIndex        = (today.dayOfWeek.value - 1).coerceIn(0, 6)
-    val todayWorkoutType  = currentMicro.workouts.getOrNull(todayIndex) ?: WorkoutType.REST
-    val tomorrowType      = currentMicro.workouts.getOrNull((todayIndex + 1) % 7) ?: WorkoutType.REST
+    val todayIndex = (today.dayOfWeek.value - 1).coerceIn(0, 6)
+    val todayWorkoutType = currentMicro.workouts.getOrNull(todayIndex) ?: WorkoutType.REST
+    val tomorrowType = currentMicro.workouts.getOrNull((todayIndex + 1) % 7) ?: WorkoutType.REST
 
     val weeksInCurrentBlock = currentMeso.microCycle.size
-    val currentWeekInBlock  = currentMeso.microCycle
+    val currentWeekInBlock = currentMeso.microCycle
         .indexOfFirst { !it.startDate.isAfter(today) && !it.endDate.isBefore(today) }
         .plus(1).coerceAtLeast(1)
-    val weeksLeftInBlock    = (weeksInCurrentBlock - currentWeekInBlock).coerceAtLeast(0)
-    val blockProgress       = currentWeekInBlock.toFloat() / weeksInCurrentBlock.toFloat()
+    val weeksLeftInBlock = (weeksInCurrentBlock - currentWeekInBlock).coerceAtLeast(0)
+    val blockProgress = currentWeekInBlock.toFloat() / weeksInCurrentBlock.toFloat()
 
     var selectedTab by remember { mutableStateOf(0) }
 
@@ -214,10 +212,10 @@ fun ActivePlanScreen(
     ) {
         // ── Header ──────────────────────────────────────────────────────────
         PlanHeader(
-            daysToComp      = daysToComp,
-            totalWeeks      = totalWeeks,
+            daysToComp = daysToComp,
+            totalWeeks = totalWeeks,
             competitionDate = effectiveComp,
-            onNewPlan       = onGenerateNewPlan
+            onNewPlan = onGenerateNewPlan
         )
 
         // ── 3 Tabs ───────────────────────────────────────────────────────────
@@ -237,31 +235,31 @@ fun ActivePlanScreen(
 
             when (selectedTab) {
                 0 -> ThisWeekTab(
-                    micro           = currentMicro,
-                    today           = today,
-                    todayType       = todayWorkoutType,
-                    tomorrowType    = tomorrowType,
-                    currentWeekNum  = currentWeekNum,
-                    totalWeeks      = totalWeeks,
-                    phaseName       = currentMeso.phase
+                    micro = currentMicro,
+                    today = today,
+                    todayType = todayWorkoutType,
+                    tomorrowType = tomorrowType,
+                    currentWeekNum = currentWeekNum,
+                    totalWeeks = totalWeeks,
+                    phaseName = currentMeso.phase
                 )
                 1 -> CurrentBlockTab(
-                    meso              = currentMeso,
-                    today             = today,
+                    meso = currentMeso,
+                    today = today,
                     currentWeekInBlock = currentWeekInBlock,
-                    weeksLeftInBlock  = weeksLeftInBlock,
-                    blockProgress     = blockProgress
+                    weeksLeftInBlock = weeksLeftInBlock,
+                    blockProgress = blockProgress
                 )
                 2 -> FullPlanTab(
-                    plan              = plan,
-                    today             = today,
-                    progressFraction  = progressFraction,
-                    currentWeekNum    = currentWeekNum,
-                    totalWeeks        = totalWeeks,
-                    planStart         = effectiveStart,
-                    competitionDate   = effectiveComp,
+                    plan = plan,
+                    today = today,
+                    progressFraction = progressFraction,
+                    currentWeekNum = currentWeekNum,
+                    totalWeeks = totalWeeks,
+                    planStart = effectiveStart,
+                    competitionDate = effectiveComp,
                     onGenerateNewPlan = onGenerateNewPlan,
-                    viewModel         = viewModel
+                    viewModel = viewModel
                 )
             }
 
@@ -285,39 +283,39 @@ private fun NoPlanScreen(onGenerateNewPlan: () -> Unit) {
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector        = Icons.Default.EventNote,
+            imageVector = Icons.Default.EventNote,
             contentDescription = null,
-            tint               = Color.White.copy(alpha = 0.2f),
-            modifier           = Modifier.size(64.dp)
+            tint = Color.White.copy(alpha = 0.2f),
+            modifier = Modifier.size(64.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text       = "No Active Plan",
-            color      = Color.White,
-            fontSize   = 22.sp,
+            text = "No Active Plan",
+            color = Color.White,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Black,
-            textAlign  = TextAlign.Center
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text      = "Generate a Bompa periodization plan based on your competition date.",
-            color     = Color.White.copy(alpha = 0.3f),
-            fontSize  = 13.sp,
+            text = "Generate a Bompa periodization plan based on your competition date.",
+            color = Color.White.copy(alpha = 0.3f),
+            fontSize = 13.sp,
             textAlign = TextAlign.Center,
             lineHeight = 19.sp
         )
         Spacer(modifier = Modifier.height(28.dp))
         Button(
-            onClick  = onGenerateNewPlan,
+            onClick = onGenerateNewPlan,
             modifier = Modifier.fillMaxWidth().height(54.dp),
-            colors   = ButtonDefaults.buttonColors(containerColor = AccentIndigo.copy(alpha = 0.2f)),
-            shape    = RoundedCornerShape(14.dp),
-            border   = androidx.compose.foundation.BorderStroke(1.dp, AccentIndigo.copy(alpha = 0.4f))
+            colors = ButtonDefaults.buttonColors(containerColor = AccentIndigo.copy(alpha = 0.2f)),
+            shape = RoundedCornerShape(14.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AccentIndigo.copy(alpha = 0.4f))
         ) {
             Text(
                 "Generate Training Plan",
-                color      = AccentIndigo,
-                fontSize   = 15.sp,
+                color = AccentIndigo,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -341,17 +339,17 @@ private fun PlanHeader(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.Top
+        verticalAlignment = Alignment.Top
     ) {
         Column {
             Text(
-                text       = "Training Plan",
-                color      = Color.White,
-                fontSize   = 22.sp,
+                text = "Training Plan",
+                color = Color.White,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Black
             )
             Text(
-                text  = "Bompa Periodization · $totalWeeks weeks",
+                text = "Bompa Periodization · $totalWeeks weeks",
                 color = Color.White.copy(alpha = 0.3f),
                 fontSize = 12.sp
             )
@@ -369,14 +367,14 @@ private fun PlanHeader(
             ) {
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text       = "$daysToComp",
-                        color      = AccentRed,
-                        fontSize   = 22.sp,
+                        text = "$daysToComp",
+                        color = AccentRed,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Black,
                         lineHeight = 24.sp
                     )
                     Text(
-                        text  = "days left",
+                        text = "days left",
                         color = AccentRed.copy(alpha = 0.5f),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
@@ -426,20 +424,20 @@ private fun TabRow(selectedTab: Int, onTabSelected: (Int) -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector        = icon,
+                    imageVector = icon,
                     contentDescription = name,
-                    tint               = if (isSelected) Color.White else Color.White.copy(alpha = 0.3f),
-                    modifier           = Modifier.size(18.dp)
+                    tint = if (isSelected) Color.White else Color.White.copy(alpha = 0.3f),
+                    modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.height(3.dp))
                 Text(
-                    text       = name,
-                    color      = if (isSelected) Color.White else Color.White.copy(alpha = 0.3f),
-                    fontSize   = 11.sp,
+                    text = name,
+                    color = if (isSelected) Color.White else Color.White.copy(alpha = 0.3f),
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text  = sub,
+                    text = sub,
                     color = Color.White.copy(alpha = 0.2f),
                     fontSize = 9.sp
                 )
@@ -463,10 +461,10 @@ private fun ThisWeekTab(
     phaseName: String
 ) {
     val color = workoutColor(todayType)
-    val bg    = workoutBg(todayType)
-    val fmt   = DateTimeFormatter.ofPattern("EEEE")
-    val todayName     = today.format(fmt).uppercase()
-    val tomorrowName  = today.plusDays(1).format(fmt).uppercase()
+    val bg = workoutBg(todayType)
+    val fmt = DateTimeFormatter.ofPattern("EEEE")
+    val todayName = today.format(fmt).uppercase()
+    val tomorrowName = today.plusDays(1).format(fmt).uppercase()
 
     // TODAY card
     SectionLabel("TODAY")
@@ -480,22 +478,22 @@ private fun ThisWeekTab(
             .padding(16.dp)
     ) {
         Text(
-            text          = todayName,
-            color         = Color.White.copy(alpha = 0.3f),
-            fontSize      = 9.sp,
-            fontWeight    = FontWeight.Bold,
+            text = todayName,
+            color = Color.White.copy(alpha = 0.3f),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp
         )
         Spacer(modifier = Modifier.height(4.dp))
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Icon(workoutIcon(todayType), null, tint = color, modifier = Modifier.size(20.dp))
             Text(
-                text       = workoutLabel(todayType),
-                color      = color,
-                fontSize   = 11.sp,
+                text = workoutLabel(todayType),
+                color = color,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 0.5.sp,
-                modifier   = Modifier
+                modifier = Modifier
                     .clip(RoundedCornerShape(5.dp))
                     .background(color.copy(alpha = 0.15f))
                     .border(1.dp, color.copy(alpha = 0.3f), RoundedCornerShape(5.dp))
@@ -526,11 +524,11 @@ private fun ThisWeekTab(
             .border(1.dp, GlassSmBorder, RoundedCornerShape(14.dp))
             .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Box(
-                modifier         = Modifier.size(36.dp).clip(RoundedCornerShape(10.dp))
+                modifier = Modifier.size(36.dp).clip(RoundedCornerShape(10.dp))
                     .background(tColor.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -567,15 +565,15 @@ private fun ThisWeekTab(
     ) {
         val dayLabels = listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             micro.workouts.forEachIndexed { index, type ->
-                val date     = micro.startDate.plusDays(index.toLong())
-                val isToday  = date == today
-                val isPast   = date.isBefore(today)
-                val wColor   = workoutColor(type)
-                val wBg      = workoutBg(type)
+                val date = micro.startDate.plusDays(index.toLong())
+                val isToday = date == today
+                val isPast = date.isBefore(today)
+                val wColor = workoutColor(type)
+                val wBg = workoutBg(type)
 
                 Column(
                     modifier = Modifier
@@ -584,16 +582,16 @@ private fun ThisWeekTab(
                         .background(
                             when {
                                 isToday -> wColor.copy(alpha = 0.12f)
-                                isPast  -> AccentGreen.copy(alpha = 0.05f)
-                                else    -> Color.White.copy(alpha = 0.02f)
+                                isPast -> AccentGreen.copy(alpha = 0.05f)
+                                else -> Color.White.copy(alpha = 0.02f)
                             }
                         )
                         .border(
                             1.dp,
                             when {
                                 isToday -> wColor.copy(alpha = 0.4f)
-                                isPast  -> AccentGreen.copy(alpha = 0.15f)
-                                else    -> Color.White.copy(alpha = 0.05f)
+                                isPast -> AccentGreen.copy(alpha = 0.15f)
+                                else -> Color.White.copy(alpha = 0.05f)
                             },
                             RoundedCornerShape(10.dp)
                         )
@@ -601,21 +599,21 @@ private fun ThisWeekTab(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text      = dayLabels[index],
-                        color     = if (isToday) wColor else Color.White.copy(alpha = 0.2f),
-                        fontSize  = 7.sp,
+                        text = dayLabels[index],
+                        color = if (isToday) wColor else Color.White.copy(alpha = 0.2f),
+                        fontSize = 7.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Box(
-                        modifier         = Modifier
+                        modifier = Modifier
                             .size(20.dp)
                             .clip(RoundedCornerShape(5.dp))
                             .background(
                                 when {
-                                    isPast  -> AccentGreen.copy(alpha = 0.15f)
+                                    isPast -> AccentGreen.copy(alpha = 0.15f)
                                     isToday -> wColor.copy(alpha = 0.2f)
-                                    else    -> wBg
+                                    else -> wBg
                                 }
                             ),
                         contentAlignment = Alignment.Center
@@ -628,13 +626,13 @@ private fun ThisWeekTab(
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text      = workoutLabel(type),
-                        color     = when {
-                            isPast  -> AccentGreen.copy(alpha = 0.6f)
+                        text = workoutLabel(type),
+                        color = when {
+                            isPast -> AccentGreen.copy(alpha = 0.6f)
                             isToday -> wColor
-                            else    -> wColor.copy(alpha = 0.4f)
+                            else -> wColor.copy(alpha = 0.4f)
                         },
-                        fontSize  = 7.sp,
+                        fontSize = 7.sp,
                         fontWeight = FontWeight.Black
                     )
                 }
@@ -655,13 +653,13 @@ private fun CurrentBlockTab(
     weeksLeftInBlock: Int,
     blockProgress: Float
 ) {
-    val color   = phaseColor(meso.phase)
-    val bg      = phaseBg(meso.phase)
-    val fmt     = DateTimeFormatter.ofPattern("MMM dd")
+    val color = phaseColor(meso.phase)
+    val bg = phaseBg(meso.phase)
+    val fmt = DateTimeFormatter.ofPattern("MMM dd")
     val animatedProgress by animateFloatAsState(
-        targetValue   = blockProgress,
+        targetValue = blockProgress,
         animationSpec = tween(1000),
-        label         = "blockProgress"
+        label = "blockProgress"
     )
 
     // Block header
@@ -674,10 +672,10 @@ private fun CurrentBlockTab(
             .padding(16.dp)
     ) {
         Text(
-            text          = "CURRENT TRAINING BLOCK",
-            color         = Color.White.copy(alpha = 0.3f),
-            fontSize      = 9.sp,
-            fontWeight    = FontWeight.Bold,
+            text = "CURRENT TRAINING BLOCK",
+            color = Color.White.copy(alpha = 0.3f),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp
         )
         Spacer(modifier = Modifier.height(4.dp))
@@ -689,16 +687,16 @@ private fun CurrentBlockTab(
 
         // Stats grid
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf(
                 Triple("Week", "$currentWeekInBlock of ${meso.microCycle.size}", "in block"),
                 Triple("Remaining", "$weeksLeftInBlock", "weeks left"),
-                Triple("Ends", meso.endDate.format(fmt), ""),
+                Triple("Ends", meso.endDate.format(fmt), "")
             ).forEach { (label, value, sub) ->
                 Column(
-                    modifier            = Modifier
+                    modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(10.dp))
                         .background(Color.White.copy(alpha = 0.04f))
@@ -727,14 +725,14 @@ private fun CurrentBlockTab(
             .padding(12.dp)
     ) {
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(blockName(meso.phase), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Text(
                 "$currentWeekInBlock / ${meso.microCycle.size} weeks",
-                color      = color,
-                fontSize   = 12.sp,
+                color = color,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -771,8 +769,8 @@ private fun CurrentBlockTab(
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         meso.microCycle.forEachIndexed { index, micro ->
-            val weekNum     = index + 1
-            val weekIsPast  = micro.endDate.isBefore(today)
+            val weekNum = index + 1
+            val weekIsPast = micro.endDate.isBefore(today)
             val weekIsCurrent = !micro.startDate.isAfter(today) && !micro.endDate.isBefore(today)
 
             Row(
@@ -782,49 +780,52 @@ private fun CurrentBlockTab(
                     .background(
                         when {
                             weekIsCurrent -> color.copy(alpha = 0.1f)
-                            weekIsPast    -> AccentGreen.copy(alpha = 0.04f)
-                            else          -> Color.White.copy(alpha = 0.02f)
+                            weekIsPast -> AccentGreen.copy(alpha = 0.04f)
+                            else -> Color.White.copy(alpha = 0.02f)
                         }
                     )
                     .border(
                         1.dp,
                         when {
                             weekIsCurrent -> color.copy(alpha = 0.3f)
-                            weekIsPast    -> AccentGreen.copy(alpha = 0.1f)
-                            else          -> Color.White.copy(alpha = 0.04f)
+                            weekIsPast -> AccentGreen.copy(alpha = 0.1f)
+                            else -> Color.White.copy(alpha = 0.04f)
                         },
                         RoundedCornerShape(9.dp)
                     )
                     .padding(8.dp),
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text      = "W$weekNum",
-                    color     = when {
+                    text = "W$weekNum",
+                    color = when {
                         weekIsCurrent -> color
-                        weekIsPast    -> AccentGreen.copy(alpha = 0.6f)
-                        else          -> Color.White.copy(alpha = 0.2f)
+                        weekIsPast -> AccentGreen.copy(alpha = 0.6f)
+                        else -> Color.White.copy(alpha = 0.2f)
                     },
-                    fontSize  = 11.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier  = Modifier.width(24.dp)
+                    modifier = Modifier.width(24.dp)
                 )
 
                 // Day dots
                 Row(
-                    modifier              = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
                     micro.workouts.forEach { type ->
                         val wColor = workoutColor(type)
                         Box(
-                            modifier         = Modifier
+                            modifier = Modifier
                                 .size(18.dp)
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
-                                    if (weekIsPast) AccentGreen.copy(alpha = 0.12f)
-                                    else wColor.copy(alpha = if (weekIsCurrent) 0.15f else 0.06f)
+                                    if (weekIsPast) {
+                                        AccentGreen.copy(alpha = 0.12f)
+                                    } else {
+                                        wColor.copy(alpha = if (weekIsCurrent) 0.15f else 0.06f)
+                                    }
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
@@ -844,24 +845,24 @@ private fun CurrentBlockTab(
                         .background(
                             when {
                                 weekIsCurrent -> color.copy(alpha = 0.15f)
-                                weekIsPast    -> AccentGreen.copy(alpha = 0.1f)
-                                else          -> Color.Transparent
+                                weekIsPast -> AccentGreen.copy(alpha = 0.1f)
+                                else -> Color.Transparent
                             }
                         )
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
                     Text(
-                        text      = when {
+                        text = when {
                             weekIsCurrent -> "Active"
-                            weekIsPast    -> "Done"
-                            else          -> "upcoming"
+                            weekIsPast -> "Done"
+                            else -> "upcoming"
                         },
-                        color     = when {
+                        color = when {
                             weekIsCurrent -> color
-                            weekIsPast    -> AccentGreen
-                            else          -> Color.White.copy(alpha = 0.15f)
+                            weekIsPast -> AccentGreen
+                            else -> Color.White.copy(alpha = 0.15f)
                         },
-                        fontSize  = 10.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -887,11 +888,11 @@ private fun FullPlanTab(
     viewModel: DashboardViewModel
 ) {
     val animatedProgress by animateFloatAsState(
-        targetValue   = progressFraction,
+        targetValue = progressFraction,
         animationSpec = tween(1000),
-        label         = "macroProgress"
+        label = "macroProgress"
     )
-    val fmt     = DateTimeFormatter.ofPattern("MMM dd")
+    val fmt = DateTimeFormatter.ofPattern("MMM dd")
     val fmtFull = DateTimeFormatter.ofPattern("MMM dd, yyyy")
 
     var expandedBlock by remember { mutableStateOf<Int?>(null) }
@@ -908,14 +909,14 @@ private fun FullPlanTab(
             .padding(14.dp)
     ) {
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text("24-Week Plan", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             Text(
                 "Week $currentWeekNum · ${(progressFraction * 100).toInt()}%",
-                color      = AccentIndigo,
-                fontSize   = 13.sp,
+                color = AccentIndigo,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -931,7 +932,7 @@ private fun FullPlanTab(
             horizontalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             plan.mesoCycles.forEach { meso ->
-                val days     = ChronoUnit.DAYS.between(meso.startDate, meso.endDate).toFloat()
+                val days = ChronoUnit.DAYS.between(meso.startDate, meso.endDate).toFloat()
                 val fraction = (days / totalDays)
                 Box(
                     modifier = Modifier
@@ -962,12 +963,12 @@ private fun FullPlanTab(
 
         Spacer(modifier = Modifier.height(6.dp))
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(planStart.format(fmt), color = Color.White.copy(alpha = 0.2f), fontSize = 9.sp)
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Icon(Icons.Default.EmojiEvents, null, tint = AccentRed.copy(alpha = 0.6f), modifier = Modifier.size(11.dp))
@@ -983,10 +984,10 @@ private fun FullPlanTab(
     Spacer(modifier = Modifier.height(6.dp))
 
     plan.mesoCycles.forEachIndexed { index, meso ->
-        val isActive   = !meso.startDate.isAfter(today) && meso.endDate.isAfter(today)
-        val isPast     = meso.endDate.isBefore(today)
+        val isActive = !meso.startDate.isAfter(today) && meso.endDate.isAfter(today)
+        val isPast = meso.endDate.isBefore(today)
         val isExpanded = expandedBlock == index
-        val color      = phaseColor(meso.phase)
+        val color = phaseColor(meso.phase)
         val weeksToStart = ChronoUnit.WEEKS.between(today, meso.startDate).coerceAtLeast(0)
 
         Column(
@@ -996,16 +997,16 @@ private fun FullPlanTab(
                 .background(
                     when {
                         isActive -> color.copy(alpha = 0.08f)
-                        isPast   -> Color(0xFF0D0D0D)
-                        else     -> Color(0xFF111118)
+                        isPast -> Color(0xFF0D0D0D)
+                        else -> Color(0xFF111118)
                     }
                 )
                 .border(
                     if (isActive) 1.5.dp else 0.5.dp,
                     when {
                         isActive -> color.copy(alpha = 0.3f)
-                        isPast   -> Color.White.copy(alpha = 0.05f)
-                        else     -> Color.White.copy(alpha = 0.08f)
+                        isPast -> Color.White.copy(alpha = 0.05f)
+                        else -> Color.White.copy(alpha = 0.08f)
                     },
                     RoundedCornerShape(14.dp)
                 )
@@ -1013,7 +1014,7 @@ private fun FullPlanTab(
                 .padding(12.dp)
         ) {
             Row(
-                modifier          = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -1027,13 +1028,13 @@ private fun FullPlanTab(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         blockName(meso.phase),
-                        color      = Color.White.copy(alpha = if (isPast) 0.4f else 1f),
-                        fontSize   = 13.sp,
+                        color = Color.White.copy(alpha = if (isPast) 0.4f else 1f),
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         "${meso.startDate.format(fmt)} → ${meso.endDate.format(fmt)} · ${meso.microCycle.size} weeks",
-                        color    = color.copy(alpha = if (isPast) 0.3f else 0.6f),
+                        color = color.copy(alpha = if (isPast) 0.3f else 0.6f),
                         fontSize = 10.sp
                     )
                 }
@@ -1048,16 +1049,16 @@ private fun FullPlanTab(
                         Text("ACTIVE", color = color, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
                     }
                     isPast -> Icon(Icons.Default.CheckCircle, null, tint = AccentGreen.copy(alpha = 0.5f), modifier = Modifier.size(18.dp))
-                    else   -> Text(
+                    else -> Text(
                         "in $weeksToStart wks",
-                        color    = Color.White.copy(alpha = 0.2f),
+                        color = Color.White.copy(alpha = 0.2f),
                         fontSize = 10.sp
                     )
                 }
                 Icon(
                     if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     null,
-                    tint     = Color.White.copy(alpha = 0.2f),
+                    tint = Color.White.copy(alpha = 0.2f),
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -1078,15 +1079,15 @@ private fun FullPlanTab(
 
     // Action buttons
     Row(
-        modifier              = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Button(
-            onClick  = onGenerateNewPlan,
+            onClick = onGenerateNewPlan,
             modifier = Modifier.weight(1f).height(46.dp),
-            colors   = ButtonDefaults.buttonColors(containerColor = AccentIndigo.copy(alpha = 0.1f)),
-            shape    = RoundedCornerShape(12.dp),
-            border   = androidx.compose.foundation.BorderStroke(1.dp, AccentIndigo.copy(alpha = 0.25f))
+            colors = ButtonDefaults.buttonColors(containerColor = AccentIndigo.copy(alpha = 0.1f)),
+            shape = RoundedCornerShape(12.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AccentIndigo.copy(alpha = 0.25f))
         ) {
             Icon(Icons.Default.EditCalendar, null, tint = AccentIndigo, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(6.dp))
@@ -1094,13 +1095,13 @@ private fun FullPlanTab(
         }
 
         Button(
-            onClick  = {
+            onClick = {
                 viewModel.setCompetitionDate(LocalDate.now().plusWeeks(24))
             },
             modifier = Modifier.weight(1f).height(46.dp),
-            colors   = ButtonDefaults.buttonColors(containerColor = AccentRed.copy(alpha = 0.06f)),
-            shape    = RoundedCornerShape(12.dp),
-            border   = androidx.compose.foundation.BorderStroke(1.dp, AccentRed.copy(alpha = 0.15f))
+            colors = ButtonDefaults.buttonColors(containerColor = AccentRed.copy(alpha = 0.06f)),
+            shape = RoundedCornerShape(12.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AccentRed.copy(alpha = 0.15f))
         ) {
             Icon(Icons.Default.DeleteOutline, null, tint = AccentRed, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(6.dp))
@@ -1121,7 +1122,7 @@ private fun InfoChip(icon: ImageVector, text: String, color: Color) {
             .background(color.copy(alpha = 0.1f))
             .border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(7.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Icon(icon, null, tint = color, modifier = Modifier.size(12.dp))
@@ -1132,10 +1133,10 @@ private fun InfoChip(icon: ImageVector, text: String, color: Color) {
 @Composable
 private fun SectionLabel(text: String) {
     Text(
-        text          = text,
-        color         = Color.White.copy(alpha = 0.25f),
-        fontSize      = 9.sp,
-        fontWeight    = FontWeight.Bold,
+        text = text,
+        color = Color.White.copy(alpha = 0.25f),
+        fontSize = 9.sp,
+        fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp
     )
 }
