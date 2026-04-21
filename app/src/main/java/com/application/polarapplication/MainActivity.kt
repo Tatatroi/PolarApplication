@@ -62,7 +62,8 @@ class MainActivity : ComponentActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED
+            ) {
                 requestPermissions(
                     arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
                     1002
@@ -149,7 +150,7 @@ fun MainNavigationWrapper() {
                         icon = { Icon(Icons.Default.DateRange, contentDescription = "Plan") },
                         label = { Text("Plan") },
                         selected = currentRoute == Screen.Plan.route ||
-                                currentRoute == Screen.TargetSetup.route,
+                            currentRoute == Screen.TargetSetup.route,
                         onClick = {
                             navController.navigate(Screen.Plan.route) {
                                 launchSingleTop = true
@@ -231,8 +232,8 @@ fun MainNavigationWrapper() {
             ) {
                 val userGender by sharedViewModel.profileManager.gender.collectAsState()
                 ActiveWorkoutScreen(
-                    viewModel      = sharedViewModel,
-                    userGender     = userGender,
+                    viewModel = sharedViewModel,
+                    userGender = userGender,
                     onMinimizeClick = {
                         navController.popBackStack(Screen.Dashboard.route, inclusive = false)
                     }
@@ -267,7 +268,7 @@ fun MainNavigationWrapper() {
 
             composable(Screen.Plan.route) {
                 ActivePlanScreen(
-                    viewModel         = sharedViewModel,
+                    viewModel = sharedViewModel,
                     onGenerateNewPlan = {
                         navController.navigate(Screen.TargetSetup.route)
                     }

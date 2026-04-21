@@ -10,7 +10,6 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.application.polarapplication.MainActivity
 import com.application.polarapplication.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,18 +25,18 @@ class WorkoutForegroundService : Service() {
     // CONSTANTS
     // ─────────────────────────────────────────────
     companion object {
-        const val CHANNEL_ID      = "workout_channel"
+        const val CHANNEL_ID = "workout_channel"
         const val NOTIFICATION_ID = 1001
 
         // Intent actions
-        const val ACTION_START    = "ACTION_START"
-        const val ACTION_STOP     = "ACTION_STOP"
-        const val ACTION_PAUSE    = "ACTION_PAUSE"
-        const val ACTION_RESUME   = "ACTION_RESUME"
+        const val ACTION_START = "ACTION_START"
+        const val ACTION_STOP = "ACTION_STOP"
+        const val ACTION_PAUSE = "ACTION_PAUSE"
+        const val ACTION_RESUME = "ACTION_RESUME"
 
         // Intent extras
         const val EXTRA_HEART_RATE = "EXTRA_HEART_RATE"
-        const val EXTRA_CALORIES   = "EXTRA_CALORIES"
+        const val EXTRA_CALORIES = "EXTRA_CALORIES"
         const val EXTRA_WORKOUT_TYPE = "EXTRA_WORKOUT_TYPE"
 
         fun startIntent(context: Context, workoutType: String): Intent =
@@ -68,8 +67,8 @@ class WorkoutForegroundService : Service() {
     private val _isPaused = MutableStateFlow(false)
     val isPaused: StateFlow<Boolean> = _isPaused
 
-    private var heartRate   = 0
-    private var calories    = 0
+    private var heartRate = 0
+    private var calories = 0
     private var workoutType = "WORKOUT"
 
     private var timerJob: Job? = null
@@ -95,8 +94,8 @@ class WorkoutForegroundService : Service() {
         when (intent?.action) {
             ACTION_START -> {
                 workoutType = intent.getStringExtra(EXTRA_WORKOUT_TYPE) ?: workoutType
-                heartRate   = intent.getIntExtra(EXTRA_HEART_RATE, heartRate)
-                calories    = intent.getIntExtra(EXTRA_CALORIES, calories)
+                heartRate = intent.getIntExtra(EXTRA_HEART_RATE, heartRate)
+                calories = intent.getIntExtra(EXTRA_CALORIES, calories)
 
                 if (timerJob == null) {
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
@@ -166,7 +165,7 @@ class WorkoutForegroundService : Service() {
     // ─────────────────────────────────────────────
     fun updateVitals(newHeartRate: Int, newCalories: Int) {
         heartRate = newHeartRate
-        calories  = newCalories
+        calories = newCalories
         updateNotification()
     }
 
@@ -177,9 +176,9 @@ class WorkoutForegroundService : Service() {
         val channel = NotificationChannel(
             CHANNEL_ID,
             "Active Workout",
-            NotificationManager.IMPORTANCE_LOW  // LOW = no sound, persistent
+            NotificationManager.IMPORTANCE_LOW // LOW = no sound, persistent
         ).apply {
-            description       = "Shows live workout data during an active session"
+            description = "Shows live workout data during an active session"
             setShowBadge(true)
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         }
@@ -188,16 +187,17 @@ class WorkoutForegroundService : Service() {
     }
 
     private fun buildNotification(): Notification {
-        val elapsed    = _elapsedSeconds.value
-        val hours      = elapsed / 3600
-        val minutes    = (elapsed % 3600) / 60
-        val seconds    = elapsed % 60
-        val timeString = if (hours > 0)
+        val elapsed = _elapsedSeconds.value
+        val hours = elapsed / 3600
+        val minutes = (elapsed % 3600) / 60
+        val seconds = elapsed % 60
+        val timeString = if (hours > 0) {
             String.format("%d:%02d:%02d", hours, minutes, seconds)
-        else
+        } else {
             String.format("%02d:%02d", minutes, seconds)
+        }
 
-        val hrText  = if (heartRate > 0) "$heartRate BPM" else "— BPM"
+        val hrText = if (heartRate > 0) "$heartRate BPM" else "— BPM"
         val calText = "$calories kcal"
 
         val isPausedNow = _isPaused.value
@@ -209,20 +209,24 @@ class WorkoutForegroundService : Service() {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         val openPendingIntent = PendingIntent.getActivity(
-            this, 0, openAppIntent,
+            this,
+            0,
+            openAppIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         // Stop action
         val stopIntent = PendingIntent.getService(
-            this, 1,
+            this,
+            1,
             Intent(this, WorkoutForegroundService::class.java).apply { action = ACTION_STOP },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         // Pause / Resume action
         val pauseResumeIntent = PendingIntent.getService(
-            this, 2,
+            this,
+            2,
             Intent(this, WorkoutForegroundService::class.java).apply {
                 action = if (isPausedNow) ACTION_RESUME else ACTION_PAUSE
             },
@@ -230,18 +234,21 @@ class WorkoutForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)   // ← adaugă ic_notification.xml în drawable
+            .setSmallIcon(R.drawable.ic_notification) // ← adaugă ic_notification.xml în drawable
             .setContentTitle("$workoutType · $timeString")
             .setContentText("❤ $hrText   🔥 $calText")
             .setContentIntent(openPendingIntent)
-            .setOngoing(true)           // nu poate fi ștearsă de user
-            .setOnlyAlertOnce(true)     // nu sună la fiecare update
+            .setOngoing(true) // nu poate fi ștearsă de user
+            .setOnlyAlertOnce(true) // nu sună la fiecare update
             .setSilent(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setCategory(NotificationCompat.CATEGORY_WORKOUT)
             .addAction(
-                if (isPausedNow) android.R.drawable.ic_media_play
-                else android.R.drawable.ic_media_pause,
+                if (isPausedNow) {
+                    android.R.drawable.ic_media_play
+                } else {
+                    android.R.drawable.ic_media_pause
+                },
                 if (isPausedNow) "Resume" else "Pause",
                 pauseResumeIntent
             )

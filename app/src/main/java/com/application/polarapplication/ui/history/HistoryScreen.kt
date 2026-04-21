@@ -40,6 +40,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.polarapplication.ai.daily.WorkoutType
 import com.application.polarapplication.ai.planning.BompaCalendarHelper
 import com.application.polarapplication.model.TrainingSessionEntity
+import com.application.polarapplication.ui.info.InfoIconButton
+import com.application.polarapplication.ui.info.MetricInfoData
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -291,7 +293,10 @@ fun PremiumHistoryCard(
                         }
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("TRIMP Score", color = Color.Gray, fontSize = 12.sp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("TRIMP Score", color = Color.Gray, fontSize = 12.sp)
+                            InfoIconButton(info = MetricInfoData.TRIMP, tint = Color.Gray.copy(alpha = 0.5f))
+                        }
                         Text(
                             text = "%.1f".format(session.finalTrimp),
                             color = Color.White,
@@ -332,7 +337,10 @@ fun CnsCircularRing(cnsValue: Int, color: Color) {
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = "$cnsValue%", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
-            Text(text = "CNS Final", color = Color.Gray, fontSize = 10.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "CNS Final", color = Color.Gray, fontSize = 10.sp)
+                InfoIconButton(info = MetricInfoData.CNS, tint = Color.Gray.copy(alpha = 0.5f))
+            }
         }
     }
 }
