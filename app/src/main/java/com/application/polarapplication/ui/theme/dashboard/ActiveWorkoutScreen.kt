@@ -243,40 +243,6 @@ fun ActiveWorkoutScreen(
                 )
             }
         }
-
-        // Badge scurt dreapta
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .background(aiColor.copy(alpha = 0.1f))
-                .border(1.dp, aiColor.copy(alpha = 0.25f), RoundedCornerShape(6.dp))
-                .padding(horizontal = 8.dp, vertical = 3.dp)
-        ) {
-            Text(
-                text = aiShort,
-                color = aiColor,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 0.5.sp
-            )
-        }
-
-        // Badge scurt dreapta
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .background(aiColor.copy(alpha = 0.1f))
-                .border(1.dp, aiColor.copy(alpha = 0.25f), RoundedCornerShape(6.dp))
-                .padding(horizontal = 8.dp, vertical = 3.dp)
-        ) {
-            Text(
-                text = aiShort,
-                color = aiColor,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 0.5.sp
-            )
-        }
     }
 
     // ── Dialog confirmare ────────────────────────────────────────────────────
@@ -330,8 +296,7 @@ private fun TopBar(
                     .size(32.dp)
                     .clip(CircleShape)
                     .background(GlassBg)
-                    .border(1.dp, GlassBorder, CircleShape)
-                    .clip(CircleShape),
+                    .border(1.dp, GlassBorder, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 IconButton(
@@ -354,7 +319,6 @@ private fun TopBar(
             )
         }
 
-        // Timer (folosim TRIMP ca proxy vizual pentru timp activ)
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
@@ -393,7 +357,6 @@ private fun HrVerticalBar(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Eticheta zonei sus
         Text(
             text = zoneConfig.shortLabel,
             color = zoneColor,
@@ -402,7 +365,6 @@ private fun HrVerticalBar(
             letterSpacing = 0.5.sp
         )
 
-        // Track-ul barei
         Box(
             modifier = Modifier
                 .width(28.dp)
@@ -428,7 +390,6 @@ private fun HrVerticalBar(
             )
         }
 
-        // BPM jos
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "$heartRate",
@@ -468,15 +429,11 @@ private fun BodyVisualizerPanel(
             .border(1.dp, GlassBorder, RoundedCornerShape(16.dp)),
         contentAlignment = Alignment.Center
     ) {
-        // Folosim direct StressBodyVisualizer cu stressScore bazat pe zona HR
-        // stressFraction 0.0 = Z1 (calm), 1.0 = Z5 (maxim)
         StressBodyVisualizer(
             stressScore = stressFraction,
             userGender = userGender
-
         )
 
-        // Badge tip antrenament — colț dreapta sus
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -521,7 +478,6 @@ private fun AiStatusStrip(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Dot animat
             Box(
                 modifier = Modifier
                     .size(8.dp)
@@ -543,10 +499,8 @@ private fun AiStatusStrip(
                     fontWeight = FontWeight.Black
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Badge scurt dreapta
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(6.dp))
@@ -678,36 +632,6 @@ private fun MetricCard(
                     .clip(RoundedCornerShape(1.dp))
                     .background(barColor)
             )
-        }
-    }
-}
-
-// ─────────────────────────────────────────────
-// METRIC SQUARE CARD (păstrat pentru compatibilitate)
-// ─────────────────────────────────────────────
-
-@Composable
-fun MetricSquareCard(
-    label: String,
-    value: String,
-    unit: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.aspectRatio(1f),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF15151C)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(8.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = label, style = MaterialTheme.typography.labelSmall, color = Color.Gray, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.Black, color = Color.White)
-            if (unit.isNotEmpty()) Text(text = unit, fontSize = 10.sp, color = Color.Gray)
         }
     }
 }

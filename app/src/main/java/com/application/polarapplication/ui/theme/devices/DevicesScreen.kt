@@ -39,11 +39,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.polarapplication.R
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.draw.alpha
-import com.application.polarapplication.R
 
 // ─────────────────────────────────────────────
 // COLORS
@@ -51,7 +46,6 @@ import com.application.polarapplication.R
 private val BgDark = Color(0xFF080808)
 private val GlassBg = Color(0xFF111118)
 private val GlassBorder = Color(0x17FFFFFF)
-private val GlassSmBg = Color(0xFF141420)
 private val AccentIndigo = Color(0xFF818CF8)
 private val AccentGreen = Color(0xFF4ADE80)
 private val AccentRed = Color(0xFFF87171)
@@ -97,7 +91,6 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
     var bluetoothEnabled by remember { mutableStateOf(isBluetoothEnabled()) }
     var isScanning by remember { mutableStateOf(false) }
 
-    // Permission launcher
     val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         arrayOf(
             Manifest.permission.BLUETOOTH_SCAN,
@@ -116,6 +109,7 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
             viewModel.startScanning()
         }
     }
+
     DisposableEffect(Unit) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: android.content.Context?, intent: Intent?) {
@@ -161,21 +155,12 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
         }
     }
 
-    // Auto-request permissions when entering screen
     LaunchedEffect(Unit) {
         if (!hasPermissions) {
             permissionLauncher.launch(permissionsToRequest)
-        } else if (bluetoothEnabled && !deviceState.device.isConnected) {
+        } else if (bluetoothEnabled && !isConnected) {
             isScanning = true
             viewModel.startScanning()
-        }
-    }
-
-    // Stop scanning when leaving
-    DisposableEffect(Unit) {
-        onDispose {
-            viewModel.stopScanning()
-            isScanning = false
         }
     }
 
@@ -200,20 +185,6 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
             fontSize = 12.sp
         )
 
-    // Stop scanning when leaving
-    DisposableEffect(Unit) {
-        onDispose {
-            viewModel.stopScanning()
-            isScanning = false
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BgDark)
-            .padding(horizontal = 16.dp)
-    ) {
         Spacer(modifier = Modifier.height(20.dp))
 
         // ── Stare permisiuni / bluetooth ────────────────────────────────────
@@ -242,7 +213,7 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
         }
 
         // ── Senzor conectat / ultimul conectat ──────────────────────────────
-        if (deviceState.device.isConnected) {
+        if (isConnected) {
             SectionLabel("CONNECTED SENSOR")
             Spacer(modifier = Modifier.height(8.dp))
             ConnectedSensorCard(
@@ -307,7 +278,6 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
         Spacer(modifier = Modifier.height(8.dp))
 
         if (!hasPermissions || !bluetoothEnabled) {
-            // Placeholder când nu avem permisiuni
             EmptyStateCard(
                 icon = Icons.Default.Bluetooth,
                 message = "Fix the issues above to scan for sensors"
@@ -327,7 +297,7 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(devices.toList()) { info ->
-                    val isAlreadyConnected = deviceState.device.isConnected &&
+                    val isAlreadyConnected = isConnected &&
                         deviceState.device.deviceId == info.deviceId
 
                     AvailableSensorCard(
@@ -337,7 +307,6 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
                         onClick = {
                             if (!isAlreadyConnected) {
                                 viewModel.connectToSelectedDevice(info.deviceId)
-                                // Salvează ultimul dispozitiv conectat
                                 viewModel.saveLastConnectedDevice(info.deviceId, info.name)
                             }
                         }
@@ -423,7 +392,7 @@ private fun ConnectedSensorCard(
     ) {
         Box(
             modifier = Modifier
-                .width(72.dp) // mai lat pentru că imaginea e landscape
+                .width(72.dp)
                 .height(44.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color.White.copy(alpha = 0.05f)),
@@ -459,13 +428,6 @@ private fun ConnectedSensorCard(
                     fontSize = 11.sp
                 )
             }
-        } else {
-            Icon(
-                Icons.Default.Add,
-                null,
-                tint     = Color.White.copy(alpha = 0.3f),
-                modifier = Modifier.size(20.dp)
-            )
         }
         Box(
             modifier = Modifier
@@ -511,7 +473,7 @@ private fun LastSensorCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(6.dp)
-                    .alpha(0.4f) // mai estompat când e deconectat
+                    .alpha(0.4f)
             )
         }
         Column(modifier = Modifier.weight(1f)) {
