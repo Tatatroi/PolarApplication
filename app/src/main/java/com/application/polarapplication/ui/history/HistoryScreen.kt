@@ -40,9 +40,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.polarapplication.ai.daily.WorkoutType
 import com.application.polarapplication.ai.planning.BompaCalendarHelper
 import com.application.polarapplication.model.TrainingSessionEntity
-import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 import com.application.polarapplication.ui.info.InfoIconButton
 import com.application.polarapplication.ui.info.MetricInfoData
+import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -394,7 +394,7 @@ fun WorkoutCalendar(
     val sessionsByDay: Map<Int, List<TrainingSessionEntity>> = sessions.filter { session ->
         val sessionCal = Calendar.getInstance().apply { timeInMillis = session.date }
         sessionCal.get(Calendar.YEAR) == currentViewYear &&
-                sessionCal.get(Calendar.MONTH) == currentViewMonth
+            sessionCal.get(Calendar.MONTH) == currentViewMonth
     }.groupBy { session ->
         Calendar.getInstance().apply { timeInMillis = session.date }.get(Calendar.DAY_OF_MONTH)
     }
@@ -402,7 +402,7 @@ fun WorkoutCalendar(
     val realTodayCalendar = Calendar.getInstance()
     val isViewingCurrentMonthAndYear =
         realTodayCalendar.get(Calendar.YEAR) == currentViewYear &&
-                realTodayCalendar.get(Calendar.MONTH) == currentViewMonth
+            realTodayCalendar.get(Calendar.MONTH) == currentViewMonth
     val realTodayDayOfMonth = realTodayCalendar.get(Calendar.DAY_OF_MONTH)
     val weekDays = listOf("L", "M", "M", "J", "V", "S", "D")
 

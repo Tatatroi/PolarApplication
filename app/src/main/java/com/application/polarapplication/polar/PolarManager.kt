@@ -45,8 +45,8 @@ class PolarManager(context: Context) {
     private val madWindowSize = 15
 
     // Constante fiziologice
-    private val MIN_RR_MS = 300.0              // 200 BPM maxim
-    private val MAX_RR_MS = 1500.0             // 40 BPM minim
+    private val MIN_RR_MS = 300.0 // 200 BPM maxim
+    private val MAX_RR_MS = 1500.0 // 40 BPM minim
     private val MAX_HR_CHANGE_BPM_PER_SEC = 25.0 // Limită fiziologică realistă
 
     // State HR
@@ -94,7 +94,7 @@ class PolarManager(context: Context) {
             override fun deviceConnected(info: PolarDeviceInfo) {
                 _deviceState.value = DeviceState(
                     isConnected = true,
-                    deviceId    = info.deviceId
+                    deviceId = info.deviceId
                 )
             }
 
@@ -127,10 +127,13 @@ class PolarManager(context: Context) {
         ppiDisposable = api.startOhrPPIStreaming(deviceId)
             .subscribe({ data ->
 
-                val now       = System.currentTimeMillis()
+                val now = System.currentTimeMillis()
                 val batchSize = data.samples.size
-                val dt        = if (lastTimestamp == null) 1.0
-                else ((now - lastTimestamp!!) / 1000.0).coerceIn(0.1, 2.0)
+                val dt = if (lastTimestamp == null) {
+                    1.0
+                } else {
+                    ((now - lastTimestamp!!) / 1000.0).coerceIn(0.1, 2.0)
+                }
                 lastTimestamp = now
 
                 // Procesăm fiecare mostră cu timestamp interpolat
@@ -146,8 +149,10 @@ class PolarManager(context: Context) {
 
                     // 2. Timestamp estimat pentru această bătaie
                     // Distribuim timpul batch-ului uniform între mostre
-                    val sampleTime = now - ((batchSize - 1 - index) *
-                            (dt * 1000.0 / batchSize)).toLong()
+                    val sampleTime = now - (
+                        (batchSize - 1 - index) *
+                            (dt * 1000.0 / batchSize)
+                        ).toLong()
 
                     // 3. HRV buffer pentru RMSSD
                     rrBuffer.add(rr)
@@ -176,7 +181,6 @@ class PolarManager(context: Context) {
                     bvp = rrTimestampBuffer.lastOrNull()?.second ?: rr2bvpProxy(),
                     acc = latestAccMagnitude
                 )
-
             }, { err ->
                 Log.e("POLAR", "PPI stream error: ${err.message}")
             })
@@ -194,9 +198,9 @@ class PolarManager(context: Context) {
             return false
         }
 
-        val sorted   = rrMadBuffer.sorted()
-        val median   = sorted[sorted.size / 2]
-        val mad      = rrMadBuffer.map { abs(it - median) }.sorted().let {
+        val sorted = rrMadBuffer.sorted()
+        val median = sorted[sorted.size / 2]
+        val mad = rrMadBuffer.map { abs(it - median) }.sorted().let {
             it[it.size / 2]
         }.coerceAtLeast(10.0) // Min 10ms pentru a evita threshold 0
 
@@ -230,7 +234,7 @@ class PolarManager(context: Context) {
         if (rrTimestampBuffer.size < 2) return null
 
         val validRrs = rrTimestampBuffer.map { it.second }
-        val meanRr   = validRrs.average()
+        val meanRr = validRrs.average()
 
         return 60000.0 / meanRr
     }
@@ -263,7 +267,7 @@ class PolarManager(context: Context) {
      * Mai consistent temporal — nu depinde de frecvența cardiacă.
      */
     private fun calculateTemporalRMSSD(): Double {
-        val cutoff    = System.currentTimeMillis() - 30_000L
+        val cutoff = System.currentTimeMillis() - 30_000L
         val recentRrs = rrTimestampBuffer
             .filter { it.first > cutoff }
             .map { it.second }
@@ -277,17 +281,19 @@ class PolarManager(context: Context) {
     /* ================== UPDATE METRICI ================== */
 
     private fun updateMetrics(hr: Int, rmssd: Double, dt: Double) {
-        val zone            = calcZone(hr, userMaxHr)
+        val zone = calcZone(hr, userMaxHr)
         val timePerSampleMin = dt / 60.0
 
         // CNS Score bazat pe RMSSD
-        val cnsRaw   = if (rmssd > 5.0 && rmssd < 150.0)
+        val cnsRaw = if (rmssd > 5.0 && rmssd < 150.0) {
             (kotlin.math.ln(rmssd) * 20.0).coerceIn(0.0, 100.0)
-        else 0.0
+        } else {
+            0.0
+        }
         val cnsScore = cnsRaw.toInt()
 
         // TRIMP și Calorii
-        accumulatedTrimp    += zone * timePerSampleMin
+        accumulatedTrimp += zone * timePerSampleMin
         accumulatedCalories += hr * timePerSampleMin * 0.12
 
         // Salvare sample pentru graficul HR (la fiecare 2 secunde)
@@ -302,14 +308,14 @@ class PolarManager(context: Context) {
         val currentStressLevel = stressDataStream.currentStressLevel
 
         _athleteVitals.value = AthleteVitals(
-            heartRate    = hr,
-            rmssd        = rmssd,
+            heartRate = hr,
+            rmssd = rmssd,
             trainingZone = zone,
-            cnsScore     = cnsScore,
-            trimpScore   = accumulatedTrimp,
-            calories     = accumulatedCalories.toInt(),
-            stressScore  = currentStressScore,
-            stressLevel  = currentStressLevel
+            cnsScore = cnsScore,
+            trimpScore = accumulatedTrimp,
+            calories = accumulatedCalories.toInt(),
+            stressScore = currentStressScore,
+            stressLevel = currentStressLevel
         )
     }
 
@@ -334,9 +340,9 @@ class PolarManager(context: Context) {
             .subscribe(
                 { polarAccData ->
                     for (sample in polarAccData.samples) {
-                        val x         = sample.x.toDouble()
-                        val y         = sample.y.toDouble()
-                        val z         = sample.z.toDouble()
+                        val x = sample.x.toDouble()
+                        val y = sample.y.toDouble()
+                        val z = sample.z.toDouble()
                         latestAccMagnitude = sqrt(x * x + y * y + z * z)
                     }
                 },
@@ -369,13 +375,13 @@ class PolarManager(context: Context) {
         scanDisposable = null
     }
 
-    fun connectToDevice(id: String)       { api.connectToDevice(id) }
-    fun disconnectFromDevice(id: String)  { api.disconnectFromDevice(id); reset() }
-    fun getHrSamples(): List<Int>         = workoutHeartRateSamples.toList()
+    fun connectToDevice(id: String) { api.connectToDevice(id) }
+    fun disconnectFromDevice(id: String) { api.disconnectFromDevice(id); reset() }
+    fun getHrSamples(): List<Int> = workoutHeartRateSamples.toList()
 
     fun prepareNewWorkout() {
         // Reset complet la începutul unui antrenament nou
-        accumulatedTrimp    = 0.0
+        accumulatedTrimp = 0.0
         accumulatedCalories = 0.0
         workoutHeartRateSamples.clear()
         lastSampleTimestamp = 0L
@@ -390,7 +396,7 @@ class PolarManager(context: Context) {
     }
 
     private fun reset() {
-        lastHr        = null
+        lastHr = null
         lastTimestamp = null
 
         rrBuffer.clear()
@@ -402,13 +408,13 @@ class PolarManager(context: Context) {
         ppiDisposable = null
         accDisposable = null
 
-        _deviceState.value      = DeviceState(false)
-        _athleteVitals.value    = AthleteVitals()
-        accumulatedTrimp        = 0.0
-        accumulatedCalories     = 0.0
-        lastCalculationTime     = 0L
+        _deviceState.value = DeviceState(false)
+        _athleteVitals.value = AthleteVitals()
+        accumulatedTrimp = 0.0
+        accumulatedCalories = 0.0
+        lastCalculationTime = 0L
         workoutHeartRateSamples.clear()
-        lastSampleTimestamp     = 0L
+        lastSampleTimestamp = 0L
     }
 
     /* ================== UTILS ================== */
@@ -420,7 +426,7 @@ class PolarManager(context: Context) {
             p < 70 -> 2
             p < 80 -> 3
             p < 90 -> 4
-            else   -> 5
+            else -> 5
         }
     }
 }

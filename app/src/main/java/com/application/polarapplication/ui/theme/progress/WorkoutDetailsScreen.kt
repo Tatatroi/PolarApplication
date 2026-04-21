@@ -122,7 +122,7 @@ private fun hrToLactate(hr: Int, maxHr: Int): String {
         pct >= 0.90f -> "> 6 mmol/L"
         pct >= 0.85f -> "4–6 mmol/L"
         pct >= 0.70f -> "2–4 mmol/L"
-        else         -> "< 2 mmol/L"
+        else -> "< 2 mmol/L"
     }
 }
 
@@ -132,7 +132,7 @@ private fun hrToLactateColor(hr: Int, maxHr: Int): Color {
         pct >= 0.90f -> Color(0xFFEF4444)
         pct >= 0.85f -> Color(0xFFF97316)
         pct >= 0.70f -> Color(0xFFFBBF24)
-        else         -> Color(0xFF60A5FA)
+        else -> Color(0xFF60A5FA)
     }
 }
 
@@ -408,7 +408,9 @@ private fun HrLineChart(
                 val seconds = (frac * totalSeconds).toInt()
                 val label = "%02d:%02d".format(seconds / 60, seconds % 60)
                 drawContext.canvas.nativeCanvas.drawText(
-                    label, x, size.height,
+                    label,
+                    x,
+                    size.height,
                     android.graphics.Paint().apply {
                         color = android.graphics.Color.argb(100, 255, 255, 255)
                         textSize = 9.dp.toPx()
@@ -521,14 +523,14 @@ private fun HrLineChart(
                     pct >= 0.90f -> android.graphics.Color.argb(255, 239, 68, 68)
                     pct >= 0.85f -> android.graphics.Color.argb(255, 249, 115, 22)
                     pct >= 0.70f -> android.graphics.Color.argb(255, 251, 191, 36)
-                    else         -> android.graphics.Color.argb(255, 96, 165, 250)
+                    else -> android.graphics.Color.argb(255, 96, 165, 250)
                 }
 
                 val lactateZone = when {
                     pct >= 0.90f -> "> 6 mmol/L"
                     pct >= 0.85f -> "~4–6 mmol/L · LT2"
                     pct >= 0.70f -> "~2–4 mmol/L · LT1"
-                    else         -> "< 2 mmol/L · Recovery"
+                    else -> "< 2 mmol/L · Recovery"
                 }
 
                 val seconds = idx * secondsPerSample

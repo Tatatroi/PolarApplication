@@ -606,9 +606,9 @@ private fun MetricCard(
                 letterSpacing = 1.sp
             )
             val metricInfo = when (label) {
-                "TRIMP"    -> MetricInfoData.TRIMP
+                "TRIMP" -> MetricInfoData.TRIMP
                 "CNS LIVE" -> MetricInfoData.CNS
-                else       -> null
+                else -> null
             }
             metricInfo?.let {
                 InfoIconButton(info = it, tint = Color.White.copy(alpha = 0.15f))

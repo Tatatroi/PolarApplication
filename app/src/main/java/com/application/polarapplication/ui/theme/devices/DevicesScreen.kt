@@ -10,6 +10,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,33 +25,32 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.draw.alpha
 import com.application.polarapplication.R
+import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 
 // ─────────────────────────────────────────────
 // COLORS
 // ─────────────────────────────────────────────
-private val BgDark        = Color(0xFF080808)
-private val GlassBg       = Color(0xFF111118)
-private val GlassBorder   = Color(0x17FFFFFF)
-private val GlassSmBg     = Color(0xFF141420)
-private val AccentIndigo  = Color(0xFF818CF8)
-private val AccentGreen   = Color(0xFF4ADE80)
-private val AccentRed     = Color(0xFFF87171)
-private val AccentAmber   = Color(0xFFFBBF24)
+private val BgDark = Color(0xFF080808)
+private val GlassBg = Color(0xFF111118)
+private val GlassBorder = Color(0x17FFFFFF)
+private val GlassSmBg = Color(0xFF141420)
+private val AccentIndigo = Color(0xFF818CF8)
+private val AccentGreen = Color(0xFF4ADE80)
+private val AccentRed = Color(0xFFF87171)
+private val AccentAmber = Color(0xFFFBBF24)
 
 // ─────────────────────────────────────────────
 // HELPERS
@@ -58,14 +58,17 @@ private val AccentAmber   = Color(0xFFFBBF24)
 private fun hasBluetoothPermissions(context: android.content.Context): Boolean {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         ContextCompat.checkSelfPermission(
-            context, Manifest.permission.BLUETOOTH_SCAN
+            context,
+            Manifest.permission.BLUETOOTH_SCAN
         ) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(
-                    context, Manifest.permission.BLUETOOTH_CONNECT
-                ) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.BLUETOOTH_CONNECT
+        ) == PackageManager.PERMISSION_GRANTED
     } else {
         ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
     }
 }
@@ -79,15 +82,15 @@ private fun isBluetoothEnabled(): Boolean {
 // ─────────────────────────────────────────────
 @Composable
 fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
-    val context     = LocalContext.current
-    val devices     by viewModel.availableDevices.collectAsState()
+    val context = LocalContext.current
+    val devices by viewModel.availableDevices.collectAsState()
     val deviceState by viewModel.uiState.collectAsState()
     val lastDeviceId by viewModel.lastConnectedDeviceId.collectAsState()
     val lastDeviceName by viewModel.lastConnectedDeviceName.collectAsState()
 
-    var hasPermissions   by remember { mutableStateOf(hasBluetoothPermissions(context)) }
+    var hasPermissions by remember { mutableStateOf(hasBluetoothPermissions(context)) }
     var bluetoothEnabled by remember { mutableStateOf(isBluetoothEnabled()) }
-    var isScanning      by remember { mutableStateOf(false) }
+    var isScanning by remember { mutableStateOf(false) }
 
     // Permission launcher
     val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -181,13 +184,13 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
 
         // Header
         Text(
-            text       = "Sensor Setup",
-            color      = Color.White,
-            fontSize   = 22.sp,
+            text = "Sensor Setup",
+            color = Color.White,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Black
         )
         Text(
-            text  = "Connect your Polar heart rate sensor",
+            text = "Connect your Polar heart rate sensor",
             color = Color.White.copy(alpha = 0.3f),
             fontSize = 12.sp
         )
@@ -197,8 +200,8 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
         // ── Stare permisiuni / bluetooth ────────────────────────────────────
         if (!hasPermissions) {
             WarningCard(
-                icon    = Icons.Default.BluetoothDisabled,
-                title   = "Bluetooth permissions required",
+                icon = Icons.Default.BluetoothDisabled,
+                title = "Bluetooth permissions required",
                 message = "The app needs Bluetooth permissions to find and connect to your Polar sensor.",
                 actionLabel = "Grant Permissions",
                 actionColor = AccentIndigo,
@@ -207,8 +210,8 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
             Spacer(modifier = Modifier.height(12.dp))
         } else if (!bluetoothEnabled) {
             WarningCard(
-                icon    = Icons.Default.BluetoothDisabled,
-                title   = "Bluetooth is off",
+                icon = Icons.Default.BluetoothDisabled,
+                title = "Bluetooth is off",
                 message = "Turn on Bluetooth to scan for nearby Polar sensors.",
                 actionLabel = "Open Settings",
                 actionColor = AccentAmber,
@@ -234,7 +237,7 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
             Spacer(modifier = Modifier.height(8.dp))
             LastSensorCard(
                 deviceName = lastDeviceName ?: "Polar Sensor",
-                deviceId   = lastDeviceId!!,
+                deviceId = lastDeviceId!!,
                 onReconnect = {
                     if (hasPermissions && bluetoothEnabled) {
                         viewModel.connectToSelectedDevice(lastDeviceId!!)
@@ -248,20 +251,22 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
 
         // ── Scanare dispozitive ─────────────────────────────────────────────
         Row(
-            modifier          = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             SectionLabel(
-                if (isScanning && hasPermissions && bluetoothEnabled)
+                if (isScanning && hasPermissions && bluetoothEnabled) {
                     "SCANNING NEARBY..."
-                else "AVAILABLE SENSORS"
+                } else {
+                    "AVAILABLE SENSORS"
+                }
             )
             if (isScanning && hasPermissions && bluetoothEnabled) {
                 CircularProgressIndicator(
-                    modifier    = Modifier.size(14.dp),
+                    modifier = Modifier.size(14.dp),
                     strokeWidth = 2.dp,
-                    color       = AccentIndigo
+                    color = AccentIndigo
                 )
             } else if (hasPermissions && bluetoothEnabled) {
                 Box(
@@ -285,17 +290,17 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
         if (!hasPermissions || !bluetoothEnabled) {
             // Placeholder când nu avem permisiuni
             EmptyStateCard(
-                icon    = Icons.Default.Bluetooth,
+                icon = Icons.Default.Bluetooth,
                 message = "Fix the issues above to scan for sensors"
             )
         } else if (devices.isEmpty() && isScanning) {
             EmptyStateCard(
-                icon    = Icons.Default.Search,
+                icon = Icons.Default.Search,
                 message = "Looking for nearby Polar sensors...\nMake sure your sensor is powered on and close."
             )
         } else if (devices.isEmpty()) {
             EmptyStateCard(
-                icon    = Icons.Default.BluetoothSearching,
+                icon = Icons.Default.BluetoothSearching,
                 message = "No sensors found. Tap 'Scan' to search again."
             )
         } else {
@@ -304,13 +309,13 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
             ) {
                 items(devices.toList()) { info ->
                     val isAlreadyConnected = deviceState.device.isConnected &&
-                            deviceState.device.deviceId == info.deviceId
+                        deviceState.device.deviceId == info.deviceId
 
                     AvailableSensorCard(
-                        name      = info.name,
-                        deviceId  = info.deviceId,
+                        name = info.name,
+                        deviceId = info.deviceId,
                         isConnected = isAlreadyConnected,
-                        onClick   = {
+                        onClick = {
                             if (!isAlreadyConnected) {
                                 viewModel.connectToSelectedDevice(info.deviceId)
                                 // Salvează ultimul dispozitiv conectat
@@ -332,10 +337,10 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
 @Composable
 private fun SectionLabel(text: String) {
     Text(
-        text          = text,
-        color         = Color.White.copy(alpha = 0.25f),
-        fontSize      = 9.sp,
-        fontWeight    = FontWeight.Bold,
+        text = text,
+        color = Color.White.copy(alpha = 0.25f),
+        fontSize = 9.sp,
+        fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp
     )
 }
@@ -358,7 +363,7 @@ private fun WarningCard(
             .padding(14.dp)
     ) {
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Icon(icon, null, tint = actionColor, modifier = Modifier.size(20.dp))
@@ -394,29 +399,29 @@ private fun ConnectedSensorCard(
             .background(AccentGreen.copy(alpha = 0.07f))
             .border(1.dp, AccentGreen.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
             .padding(14.dp),
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
             modifier = Modifier
-                .width(72.dp)   // mai lat pentru că imaginea e landscape
+                .width(72.dp) // mai lat pentru că imaginea e landscape
                 .height(44.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color.White.copy(alpha = 0.05f)),
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter            = painterResource(id = R.drawable.polarsenzor),
+                painter = painterResource(id = R.drawable.polarsenzor),
                 contentDescription = "Polar Sensor",
-                contentScale       = ContentScale.Fit,
-                modifier           = Modifier
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(6.dp)
             )
         }
         Column(modifier = Modifier.weight(1f)) {
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Box(
@@ -431,7 +436,7 @@ private fun ConnectedSensorCard(
             if (batteryLevel > 0) {
                 Text(
                     "Battery: $batteryLevel%",
-                    color    = Color.White.copy(alpha = 0.4f),
+                    color = Color.White.copy(alpha = 0.4f),
                     fontSize = 11.sp
                 )
             }
@@ -462,7 +467,7 @@ private fun LastSensorCard(
             .background(GlassBg)
             .border(1.dp, GlassBorder, RoundedCornerShape(16.dp))
             .padding(14.dp),
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
@@ -474,13 +479,13 @@ private fun LastSensorCard(
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter            = painterResource(id = R.drawable.polarsenzor),
+                painter = painterResource(id = R.drawable.polarsenzor),
                 contentDescription = "Polar Sensor",
-                contentScale       = ContentScale.Fit,
-                modifier           = Modifier
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(6.dp)
-                    .alpha(0.4f)  // mai estompat când e deconectat
+                    .alpha(0.4f) // mai estompat când e deconectat
             )
         }
         Column(modifier = Modifier.weight(1f)) {
@@ -522,11 +527,11 @@ private fun AvailableSensorCard(
             )
             .clickable(enabled = !isConnected) { onClick() }
             .padding(12.dp),
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
-            modifier         = Modifier
+            modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(accentColor.copy(alpha = 0.1f)),
@@ -535,20 +540,20 @@ private fun AvailableSensorCard(
             Icon(
                 if (isConnected) Icons.Default.Bluetooth else Icons.Default.BluetoothSearching,
                 null,
-                tint     = accentColor,
+                tint = accentColor,
                 modifier = Modifier.size(20.dp)
             )
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 name.ifBlank { "Unknown Sensor" },
-                color      = Color.White,
-                fontSize   = 13.sp,
+                color = Color.White,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 "ID: $deviceId",
-                color    = Color.White.copy(alpha = 0.3f),
+                color = Color.White.copy(alpha = 0.3f),
                 fontSize = 11.sp
             )
         }
@@ -566,7 +571,7 @@ private fun AvailableSensorCard(
             Icon(
                 Icons.Default.Add,
                 null,
-                tint     = Color.White.copy(alpha = 0.3f),
+                tint = Color.White.copy(alpha = 0.3f),
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -579,7 +584,7 @@ private fun EmptyStateCard(
     message: String
 ) {
     Column(
-        modifier            = Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(GlassBg)
@@ -590,14 +595,14 @@ private fun EmptyStateCard(
         Icon(
             icon,
             null,
-            tint     = Color.White.copy(alpha = 0.15f),
+            tint = Color.White.copy(alpha = 0.15f),
             modifier = Modifier.size(40.dp)
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text      = message,
-            color     = Color.White.copy(alpha = 0.3f),
-            fontSize  = 12.sp,
+            text = message,
+            color = Color.White.copy(alpha = 0.3f),
+            fontSize = 12.sp,
             textAlign = TextAlign.Center,
             lineHeight = 18.sp
         )

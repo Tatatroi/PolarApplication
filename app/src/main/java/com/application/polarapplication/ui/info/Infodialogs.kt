@@ -34,13 +34,13 @@ object MetricInfoData {
         title = "TRIMP Score",
         subtitle = "Training Impulse",
         description = "TRIMP quantifies the total load of a training session by combining " +
-                "both its intensity (heart rate zones) and its duration. " +
-                "The higher the heart rate and the longer you train, the higher the TRIMP score.",
+            "both its intensity (heart rate zones) and its duration. " +
+            "The higher the heart rate and the longer you train, the higher the TRIMP score.",
         ranges = listOf(
-            "< 50"    to "Light session — warm-up or recovery",
-            "50–100"  to "Moderate session — standard training",
+            "< 50" to "Light session — warm-up or recovery",
+            "50–100" to "Moderate session — standard training",
             "100–150" to "Hard session — high volume or intensity",
-            "> 150"   to "Very hard session — race simulation or peak load"
+            "> 150" to "Very hard session — race simulation or peak load"
         ),
         accentColor = Color(0xFF818CF8)
     )
@@ -49,14 +49,14 @@ object MetricInfoData {
         title = "CNS Readiness",
         subtitle = "Central Nervous System Score",
         description = "CNS Readiness reflects how recovered your nervous system is. " +
-                "It is calculated from your Heart Rate Variability (HRV / RMSSD) measured live. " +
-                "A high CNS score means you are ready for intense effort. " +
-                "A low score suggests your body needs recovery.",
+            "It is calculated from your Heart Rate Variability (HRV / RMSSD) measured live. " +
+            "A high CNS score means you are ready for intense effort. " +
+            "A low score suggests your body needs recovery.",
         ranges = listOf(
             "70–100" to "Rested — high-intensity training recommended",
-            "50–69"  to "Normal — standard training is fine",
-            "1–49"   to "Fatigued — prioritise recovery or light work",
-            "0"      to "No data — connect the sensor first"
+            "50–69" to "Normal — standard training is fine",
+            "1–49" to "Fatigued — prioritise recovery or light work",
+            "0" to "No data — connect the sensor first"
         ),
         accentColor = Color(0xFF4ADE80)
     )
@@ -65,8 +65,8 @@ object MetricInfoData {
         title = "Zone 5 · Maximum",
         subtitle = "Above 90% of HRmax",
         description = "Maximum effort zone. Anaerobic work at near-maximal heart rate. " +
-                "Used for very short sprint intervals. Cannot be sustained for more than 1–2 minutes. " +
-                "Builds top-end speed and power.",
+            "Used for very short sprint intervals. Cannot be sustained for more than 1–2 minutes. " +
+            "Builds top-end speed and power.",
         accentColor = Color(0xFFEF4444)
     )
 
@@ -74,8 +74,8 @@ object MetricInfoData {
         title = "Zone 4 · Anaerobic",
         subtitle = "80–90% of HRmax",
         description = "High-intensity anaerobic zone, also known as the lactate threshold zone. " +
-                "Your body produces lactic acid faster than it can clear it. " +
-                "Improves lactate tolerance and race pace. Sustainable for 10–20 minutes.",
+            "Your body produces lactic acid faster than it can clear it. " +
+            "Improves lactate tolerance and race pace. Sustainable for 10–20 minutes.",
         accentColor = Color(0xFFF97316)
     )
 
@@ -83,8 +83,8 @@ object MetricInfoData {
         title = "Zone 3 · Aerobic",
         subtitle = "70–80% of HRmax",
         description = "Aerobic endurance zone. Moderate-to-hard effort where the body primarily " +
-                "uses oxygen to burn carbohydrates. Improves aerobic capacity (VO2max). " +
-                "Typical zone for tempo runs and continuous steady-state training.",
+            "uses oxygen to burn carbohydrates. Improves aerobic capacity (VO2max). " +
+            "Typical zone for tempo runs and continuous steady-state training.",
         accentColor = Color(0xFF4ADE80)
     )
 
@@ -92,8 +92,8 @@ object MetricInfoData {
         title = "Zone 2 · Weight Control",
         subtitle = "60–70% of HRmax",
         description = "Fat-burning and base-building zone. Your body primarily uses fat as fuel. " +
-                "Essential for building aerobic base and improving fat oxidation. " +
-                "Easy conversational pace — you should be able to speak in full sentences.",
+            "Essential for building aerobic base and improving fat oxidation. " +
+            "Easy conversational pace — you should be able to speak in full sentences.",
         accentColor = Color(0xFF60A5FA)
     )
 
@@ -101,8 +101,8 @@ object MetricInfoData {
         title = "Zone 1 · Low Intensity",
         subtitle = "Below 60% of HRmax",
         description = "Very light activity — active recovery and warm-up zone. " +
-                "Promotes blood flow and helps flush metabolic waste after hard sessions. " +
-                "Walking, gentle cycling, or easy movement.",
+            "Promotes blood flow and helps flush metabolic waste after hard sessions. " +
+            "Walking, gentle cycling, or easy movement.",
         accentColor = Color(0xFF9CA3AF)
     )
 
@@ -110,9 +110,9 @@ object MetricInfoData {
         title = "Heart Rate Zones",
         subtitle = "5-zone training model",
         description = "Heart rate zones divide your effort into 5 levels based on your maximum " +
-                "heart rate (HRmax). Each zone targets different energy systems and produces " +
-                "different training adaptations. Spending the right time in each zone is the " +
-                "foundation of structured training (Bompa periodisation).",
+            "heart rate (HRmax). Each zone targets different energy systems and produces " +
+            "different training adaptations. Spending the right time in each zone is the " +
+            "foundation of structured training (Bompa periodisation).",
         accentColor = Color(0xFF818CF8)
     )
 
@@ -120,14 +120,14 @@ object MetricInfoData {
         title = "LT1 · Aerobic Threshold",
         subtitle = "First lactate threshold · ~2 mmol/L",
         description = "LT1 is the point where your body starts producing more lactate than at rest, " +
-                "but can still clear it efficiently. Below LT1 you are in a fully aerobic state — " +
-                "fat is the primary fuel, breathing is comfortable, and you could sustain the effort " +
-                "for hours. Training below LT1 builds aerobic base and fat-burning efficiency.\n\n" +
-                "On this chart, LT1 is estimated at 70% of your maximum heart rate.",
+            "but can still clear it efficiently. Below LT1 you are in a fully aerobic state — " +
+            "fat is the primary fuel, breathing is comfortable, and you could sustain the effort " +
+            "for hours. Training below LT1 builds aerobic base and fat-burning efficiency.\n\n" +
+            "On this chart, LT1 is estimated at 70% of your maximum heart rate.",
         ranges = listOf(
-            "< LT1"     to "Aerobic recovery — fat burning, very sustainable",
-            "At LT1"    to "~2 mmol/L — transition to aerobic endurance zone",
-            "LT1–LT2"   to "Aerobic endurance — carbs + fat, still controlled"
+            "< LT1" to "Aerobic recovery — fat burning, very sustainable",
+            "At LT1" to "~2 mmol/L — transition to aerobic endurance zone",
+            "LT1–LT2" to "Aerobic endurance — carbs + fat, still controlled"
         ),
         accentColor = Color(0xFFFBBF24)
     )
@@ -136,15 +136,15 @@ object MetricInfoData {
         title = "LT2 · Anaerobic Threshold",
         subtitle = "Second lactate threshold · ~4 mmol/L",
         description = "LT2 is the critical point where lactate accumulates faster than your body " +
-                "can clear it. Above LT2 you are in the anaerobic zone — muscles begin to " +
-                "acidify, fatigue accelerates, and the effort becomes unsustainable within minutes. " +
-                "Crossing LT2 is normal during intervals or race efforts, but sustained time " +
-                "above it leads to rapid exhaustion.\n\n" +
-                "On this chart, LT2 is estimated at 85% of your maximum heart rate.",
+            "can clear it. Above LT2 you are in the anaerobic zone — muscles begin to " +
+            "acidify, fatigue accelerates, and the effort becomes unsustainable within minutes. " +
+            "Crossing LT2 is normal during intervals or race efforts, but sustained time " +
+            "above it leads to rapid exhaustion.\n\n" +
+            "On this chart, LT2 is estimated at 85% of your maximum heart rate.",
         ranges = listOf(
-            "At LT2"   to "~4 mmol/L — rapid lactate accumulation begins",
-            "85–90%"   to ">4 mmol/L — anaerobic, sustainable for 10–20 min",
-            "> 90%"    to ">6 mmol/L — maximum effort, 1–3 min only"
+            "At LT2" to "~4 mmol/L — rapid lactate accumulation begins",
+            "85–90%" to ">4 mmol/L — anaerobic, sustainable for 10–20 min",
+            "> 90%" to ">6 mmol/L — maximum effort, 1–3 min only"
         ),
         accentColor = Color(0xFFF97316)
     )
@@ -181,7 +181,6 @@ fun MetricInfoDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-
                 // Divider
                 Box(
                     modifier = Modifier
