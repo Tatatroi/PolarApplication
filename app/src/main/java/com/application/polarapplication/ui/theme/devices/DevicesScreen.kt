@@ -39,6 +39,11 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.polarapplication.R
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.alpha
+import com.application.polarapplication.R
 
 // ─────────────────────────────────────────────
 // COLORS
@@ -440,6 +445,13 @@ private fun ConnectedSensorCard(
                     fontSize = 11.sp
                 )
             }
+        } else {
+            Icon(
+                Icons.Default.Add,
+                null,
+                tint     = Color.White.copy(alpha = 0.3f),
+                modifier = Modifier.size(20.dp)
+            )
         }
         Box(
             modifier = Modifier

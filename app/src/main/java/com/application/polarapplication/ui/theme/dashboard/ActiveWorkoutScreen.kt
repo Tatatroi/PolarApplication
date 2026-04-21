@@ -243,6 +243,23 @@ fun ActiveWorkoutScreen(
                 )
             }
         }
+
+        // Badge scurt dreapta
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .background(aiColor.copy(alpha = 0.1f))
+                .border(1.dp, aiColor.copy(alpha = 0.25f), RoundedCornerShape(6.dp))
+                .padding(horizontal = 8.dp, vertical = 3.dp)
+        ) {
+            Text(
+                text = aiShort,
+                color = aiColor,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 0.5.sp
+            )
+        }
     }
 
     // ── Dialog confirmare ────────────────────────────────────────────────────

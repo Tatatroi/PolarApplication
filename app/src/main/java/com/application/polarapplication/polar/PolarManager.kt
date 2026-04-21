@@ -408,6 +408,9 @@ class PolarManager(context: Context) {
         ppiDisposable = null
         accDisposable = null
 
+        ppiDisposable = null
+        accDisposable = null
+
         _deviceState.value = DeviceState(false)
         _athleteVitals.value = AthleteVitals()
         accumulatedTrimp = 0.0
