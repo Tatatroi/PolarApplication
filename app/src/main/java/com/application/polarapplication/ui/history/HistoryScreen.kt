@@ -41,6 +41,8 @@ import com.application.polarapplication.ai.daily.WorkoutType
 import com.application.polarapplication.ai.planning.BompaCalendarHelper
 import com.application.polarapplication.model.TrainingSessionEntity
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
+import com.application.polarapplication.ui.info.InfoIconButton
+import com.application.polarapplication.ui.info.MetricInfoData
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -291,7 +293,10 @@ fun PremiumHistoryCard(
                         }
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("TRIMP Score", color = Color.Gray, fontSize = 12.sp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("TRIMP Score", color = Color.Gray, fontSize = 12.sp)
+                            InfoIconButton(info = MetricInfoData.TRIMP, tint = Color.Gray.copy(alpha = 0.5f))
+                        }
                         Text(
                             text = "%.1f".format(session.finalTrimp),
                             color = Color.White,
@@ -332,7 +337,10 @@ fun CnsCircularRing(cnsValue: Int, color: Color) {
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = "$cnsValue%", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
-            Text(text = "CNS Final", color = Color.Gray, fontSize = 10.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "CNS Final", color = Color.Gray, fontSize = 10.sp)
+                InfoIconButton(info = MetricInfoData.CNS, tint = Color.Gray.copy(alpha = 0.5f))
+            }
         }
     }
 }
@@ -386,7 +394,7 @@ fun WorkoutCalendar(
     val sessionsByDay: Map<Int, List<TrainingSessionEntity>> = sessions.filter { session ->
         val sessionCal = Calendar.getInstance().apply { timeInMillis = session.date }
         sessionCal.get(Calendar.YEAR) == currentViewYear &&
-            sessionCal.get(Calendar.MONTH) == currentViewMonth
+                sessionCal.get(Calendar.MONTH) == currentViewMonth
     }.groupBy { session ->
         Calendar.getInstance().apply { timeInMillis = session.date }.get(Calendar.DAY_OF_MONTH)
     }
@@ -394,7 +402,7 @@ fun WorkoutCalendar(
     val realTodayCalendar = Calendar.getInstance()
     val isViewingCurrentMonthAndYear =
         realTodayCalendar.get(Calendar.YEAR) == currentViewYear &&
-            realTodayCalendar.get(Calendar.MONTH) == currentViewMonth
+                realTodayCalendar.get(Calendar.MONTH) == currentViewMonth
     val realTodayDayOfMonth = realTodayCalendar.get(Calendar.DAY_OF_MONTH)
     val weekDays = listOf("L", "M", "M", "J", "V", "S", "D")
 

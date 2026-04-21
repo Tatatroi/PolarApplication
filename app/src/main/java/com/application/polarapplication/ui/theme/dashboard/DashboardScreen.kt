@@ -32,6 +32,8 @@ import com.application.polarapplication.ai.daily.WorkoutType
 import com.application.polarapplication.ai.model.AthleteVitals
 import com.application.polarapplication.ai.model.DeviceState
 import com.application.polarapplication.ai.planning.TrainingPlanner
+import com.application.polarapplication.ui.info.InfoIconButton
+import com.application.polarapplication.ui.info.MetricInfoData
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -478,8 +480,11 @@ private fun CnsCard(vitals: AthleteVitals) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text("CNS READINESS", color = Color.White.copy(alpha = 0.25f), fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                Text("bazat pe RMSSD live", color = Color.White.copy(alpha = 0.18f), fontSize = 10.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("CNS READINESS", color = Color.White.copy(alpha = 0.25f), fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    InfoIconButton(info = MetricInfoData.CNS, tint = Color.White.copy(alpha = 0.15f))
+                }
+                Text("based on live RMSSD", color = Color.White.copy(alpha = 0.18f), fontSize = 10.sp)
             }
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(if (cns > 0) "$cns" else "—", color = cnsColor, fontSize = 28.sp, fontWeight = FontWeight.Black, lineHeight = 30.sp)

@@ -22,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.application.polarapplication.model.TrainingSessionEntity
+import com.application.polarapplication.ui.info.InfoIconButton
+import com.application.polarapplication.ui.info.MetricInfoData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -85,13 +87,16 @@ fun WorkoutDetailsScreen(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = "Heart rate zones",
-            color = Color.White,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 20.dp, top = 8.dp)
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Heart rate zones",
+                color = Color.White,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 20.dp, top = 8.dp)
+            )
+            InfoIconButton(info = MetricInfoData.HR_ZONES_OVERVIEW, tint = Color.White.copy(alpha = 0.25f))
+        }
 
         // ── Grafic HR ──────────────────────────────────────────────────────
         HrChartCard(hrList = hrList, maxHr = maxHr)
@@ -108,13 +113,40 @@ fun WorkoutDetailsScreen(
 }
 
 // ─────────────────────────────────────────────
+// HELPERS LACTAT
+// ─────────────────────────────────────────────
+
+private fun hrToLactate(hr: Int, maxHr: Int): String {
+    val pct = hr.toFloat() / maxHr
+    return when {
+        pct >= 0.90f -> "> 6 mmol/L"
+        pct >= 0.85f -> "4–6 mmol/L"
+        pct >= 0.70f -> "2–4 mmol/L"
+        else         -> "< 2 mmol/L"
+    }
+}
+
+private fun hrToLactateColor(hr: Int, maxHr: Int): Color {
+    val pct = hr.toFloat() / maxHr
+    return when {
+        pct >= 0.90f -> Color(0xFFEF4444)
+        pct >= 0.85f -> Color(0xFFF97316)
+        pct >= 0.70f -> Color(0xFFFBBF24)
+        else         -> Color(0xFF60A5FA)
+    }
+}
+
+// ─────────────────────────────────────────────
 // GRAFIC HR CARD
 // ─────────────────────────────────────────────
 
 @Composable
 private fun HrChartCard(hrList: List<Int>, maxHr: Int) {
-    // Stare pentru tooltip (tap pe grafic)
     var tooltipIndex by remember { mutableStateOf<Int?>(null) }
+
+    val peakHr = if (hrList.isNotEmpty()) hrList.max() else 0
+    val peakLactate = hrToLactate(peakHr, maxHr)
+    val peakLactateColor = hrToLactateColor(peakHr, maxHr)
 
     Column(
         modifier = Modifier
@@ -124,7 +156,6 @@ private fun HrChartCard(hrList: List<Int>, maxHr: Int) {
             .padding(16.dp)
     ) {
         if (hrList.isNotEmpty()) {
-            // Graficul propriu-zis
             HrLineChart(
                 hrList = hrList,
                 maxHr = maxHr,
@@ -139,16 +170,17 @@ private fun HrChartCard(hrList: List<Int>, maxHr: Int) {
                 modifier = Modifier.fillMaxWidth().height(200.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Nu există date de puls salvate", color = Color.Gray, fontSize = 14.sp)
+                Text("No heart rate data saved", color = Color.Gray, fontSize = 14.sp)
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Avg / Max HR
+        // ── Avg / Max / Peak Lactate ───────────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Avg. heart rate", color = Color.Gray, fontSize = 12.sp)
@@ -159,27 +191,111 @@ private fun HrChartCard(hrList: List<Int>, maxHr: Int) {
                     fontWeight = FontWeight.Bold
                 )
             }
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(48.dp)
-                    .background(Color.DarkGray)
-            )
+            Box(modifier = Modifier.width(1.dp).height(48.dp).background(Color.DarkGray))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Max. heart rate", color = Color.Gray, fontSize = 12.sp)
                 Text(
-                    "${if (hrList.isNotEmpty()) hrList.max() else 0} bpm",
+                    "$peakHr bpm",
                     color = Color.White,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
+            Box(modifier = Modifier.width(1.dp).height(48.dp).background(Color.DarkGray))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Peak lactate", color = Color.Gray, fontSize = 12.sp)
+                Text(
+                    peakLactate,
+                    color = peakLactateColor,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // ── Rândul LT1 / LT2 cu info ──────────────────────────────────────
+        LactateThresholdRow(maxHr = maxHr)
+    }
+}
+
+// ─────────────────────────────────────────────
+// LACTATE THRESHOLD ROW
+// ─────────────────────────────────────────────
+
+@Composable
+private fun LactateThresholdRow(maxHr: Int) {
+    val lt1Bpm = (maxHr * 0.70).toInt()
+    val lt2Bpm = (maxHr * 0.85).toInt()
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // LT1
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFFFBBF24).copy(alpha = 0.07f))
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = "LT1 · $lt1Bpm bpm",
+                    color = Color(0xFFFBBF24),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "~2 mmol/L",
+                    color = Color(0xFFFBBF24).copy(alpha = 0.55f),
+                    fontSize = 11.sp
+                )
+            }
+            InfoIconButton(
+                info = MetricInfoData.LT1,
+                tint = Color(0xFFFBBF24).copy(alpha = 0.5f)
+            )
+        }
+
+        // LT2
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFFF97316).copy(alpha = 0.07f))
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = "LT2 · $lt2Bpm bpm",
+                    color = Color(0xFFF97316),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "~4 mmol/L",
+                    color = Color(0xFFF97316).copy(alpha = 0.55f),
+                    fontSize = 11.sp
+                )
+            }
+            InfoIconButton(
+                info = MetricInfoData.LT2,
+                tint = Color(0xFFF97316).copy(alpha = 0.5f)
+            )
         }
     }
 }
 
 // ─────────────────────────────────────────────
-// GRAFIC LINIE CUSTOM — ca Samsung Health
+// GRAFIC LINIE CUSTOM — Option C
+// spiky raw data + colored gradient fill + LT lines
 // ─────────────────────────────────────────────
 
 @Composable
@@ -192,7 +308,9 @@ private fun HrLineChart(
 ) {
     if (hrList.isEmpty()) return
 
-    // Calculăm min/max cu padding ca să nu fie flat
+    val lt1Hr = (maxHr * 0.70).toInt()
+    val lt2Hr = (maxHr * 0.85).toInt()
+
     val dataMin = hrList.min()
     val dataMax = hrList.max()
     val padding = ((dataMax - dataMin) * 0.15f).toInt().coerceAtLeast(5)
@@ -200,20 +318,15 @@ private fun HrLineChart(
     val yMax = dataMax + padding
     val yRange = (yMax - yMin).toFloat()
 
-    // Calculăm culoarea dominantă (zona cea mai frecventă)
-    val dominantZone = hrList.groupBy { hrToZone(it, maxHr) }
-        .maxByOrNull { it.value.size }?.key ?: 3
-    val lineColor = zoneColor(dominantZone)
+    val yLabels = List(5) { i -> yMin + ((yRange / 4f) * (4 - i)).toInt() }
 
-    // Etichete axa Y — 5 linii grid
-    val yLabels = List(5) { i ->
-        yMin + ((yRange / 4f) * (4 - i)).toInt()
-    }
-
-    // Câte etichete pe X
     val totalSamples = hrList.size
     val secondsPerSample = 2
     val totalSeconds = totalSamples * secondsPerSample
+
+    // Colori LT
+    val lt1Color = Color(0xFFFBBF24)
+    val lt2Color = Color(0xFFF97316)
 
     Box(modifier = modifier) {
         Canvas(
@@ -237,19 +350,44 @@ private fun HrLineChart(
             val chartWidth = chartRight - chartLeft
             val chartHeight = chartBottom - chartTop
 
+            fun hrToY(hr: Int): Float =
+                chartBottom - ((hr - yMin).toFloat() / yRange) * chartHeight
+
+            fun indexToX(index: Int): Float =
+                chartLeft + (index.toFloat() / (hrList.size - 1)) * chartWidth
+
+            val lt1Y = hrToY(lt1Hr).coerceIn(chartTop, chartBottom)
+            val lt2Y = hrToY(lt2Hr).coerceIn(chartTop, chartBottom)
+
+            // ── Zone background bands (foarte subtile) ──────────────────────
+            // Recovery zone (sub LT1) — albastru
+            drawRect(
+                color = Color(0xFF60A5FA).copy(alpha = 0.04f),
+                topLeft = Offset(chartLeft, lt1Y),
+                size = Size(chartWidth, chartBottom - lt1Y)
+            )
+            // Aerobic zone (LT1 → LT2) — galben
+            drawRect(
+                color = Color(0xFFFBBF24).copy(alpha = 0.04f),
+                topLeft = Offset(chartLeft, lt2Y),
+                size = Size(chartWidth, lt1Y - lt2Y)
+            )
+            // Anaerobic zone (peste LT2) — roșu
+            drawRect(
+                color = Color(0xFFEF4444).copy(alpha = 0.05f),
+                topLeft = Offset(chartLeft, chartTop),
+                size = Size(chartWidth, lt2Y - chartTop)
+            )
+
             // ── Grid lines ──────────────────────────────────────────────────
             yLabels.forEachIndexed { i, label ->
                 val y = chartTop + (i.toFloat() / (yLabels.size - 1)) * chartHeight
-
-                // Linie grid
                 drawLine(
                     color = Color.White.copy(alpha = 0.05f),
                     start = Offset(chartLeft, y),
                     end = Offset(chartRight, y),
                     strokeWidth = 1f
                 )
-
-                // Eticheta Y
                 drawContext.canvas.nativeCanvas.drawText(
                     "$label",
                     chartLeft - 6.dp.toPx(),
@@ -262,20 +400,15 @@ private fun HrLineChart(
                 )
             }
 
-            // ── Etichete axa X (timp) ────────────────────────────────────────
+            // ── Etichete axa X ───────────────────────────────────────────────
             val xLabelCount = 4
             for (i in 0..xLabelCount) {
                 val frac = i.toFloat() / xLabelCount
                 val x = chartLeft + frac * chartWidth
                 val seconds = (frac * totalSeconds).toInt()
-                val mm = seconds / 60
-                val ss = seconds % 60
-                val label = "%02d:%02d".format(mm, ss)
-
+                val label = "%02d:%02d".format(seconds / 60, seconds % 60)
                 drawContext.canvas.nativeCanvas.drawText(
-                    label,
-                    x,
-                    size.height,
+                    label, x, size.height,
                     android.graphics.Paint().apply {
                         color = android.graphics.Color.argb(100, 255, 255, 255)
                         textSize = 9.dp.toPx()
@@ -284,61 +417,94 @@ private fun HrLineChart(
                 )
             }
 
-            // ── Path linie HR ─────────────────────────────────────────────────
-            fun hrToY(hr: Int): Float =
-                chartBottom - ((hr - yMin).toFloat() / yRange) * chartHeight
+            // ── Linii LT1 / LT2 punctate ────────────────────────────────────
+            val dashLength = 8.dp.toPx()
+            val gapLength = 5.dp.toPx()
 
-            fun indexToX(index: Int): Float =
-                chartLeft + (index.toFloat() / (hrList.size - 1)) * chartWidth
+            // LT1 — galben punctat
+            var xCursor = chartLeft
+            while (xCursor < chartRight) {
+                drawLine(
+                    color = lt1Color.copy(alpha = 0.45f),
+                    start = Offset(xCursor, lt1Y),
+                    end = Offset((xCursor + dashLength).coerceAtMost(chartRight), lt1Y),
+                    strokeWidth = 1.2.dp.toPx()
+                )
+                xCursor += dashLength + gapLength
+            }
 
-            // Path pentru fill (gradient sub linie)
+            // LT2 — portocaliu punctat
+            xCursor = chartLeft
+            while (xCursor < chartRight) {
+                drawLine(
+                    color = lt2Color.copy(alpha = 0.45f),
+                    start = Offset(xCursor, lt2Y),
+                    end = Offset((xCursor + dashLength).coerceAtMost(chartRight), lt2Y),
+                    strokeWidth = 1.2.dp.toPx()
+                )
+                xCursor += dashLength + gapLength
+            }
+
+            // Label LT1
+            drawContext.canvas.nativeCanvas.drawText(
+                "LT1",
+                chartLeft + 4.dp.toPx(),
+                lt1Y - 3.dp.toPx(),
+                android.graphics.Paint().apply {
+                    color = android.graphics.Color.argb(160, 251, 191, 36)
+                    textSize = 9.dp.toPx()
+                    isFakeBoldText = true
+                }
+            )
+            // Label LT2
+            drawContext.canvas.nativeCanvas.drawText(
+                "LT2",
+                chartLeft + 4.dp.toPx(),
+                lt2Y - 3.dp.toPx(),
+                android.graphics.Paint().apply {
+                    color = android.graphics.Color.argb(160, 249, 115, 22)
+                    textSize = 9.dp.toPx()
+                    isFakeBoldText = true
+                }
+            )
+
+            // ── Gradient fill colorat (Option C) ────────────────────────────
+            // Fill path — raw (tension = 0, spiky)
             val fillPath = Path()
             fillPath.moveTo(indexToX(0), chartBottom)
             fillPath.lineTo(indexToX(0), hrToY(hrList[0]))
-
             for (i in 1 until hrList.size) {
-                val x0 = indexToX(i - 1)
-                val y0 = hrToY(hrList[i - 1])
-                val x1 = indexToX(i)
-                val y1 = hrToY(hrList[i])
-                val cpX = (x0 + x1) / 2f
-                fillPath.cubicTo(cpX, y0, cpX, y1, x1, y1)
+                fillPath.lineTo(indexToX(i), hrToY(hrList[i]))
             }
-
             fillPath.lineTo(indexToX(hrList.size - 1), chartBottom)
             fillPath.close()
 
-            // Gradient fill sub linie
+            // Gradient: roșu sus → portocaliu → galben → albastru jos
             drawPath(
                 path = fillPath,
                 brush = Brush.verticalGradient(
-                    colors = listOf(
-                        lineColor.copy(alpha = 0.35f),
-                        lineColor.copy(alpha = 0.0f)
+                    colorStops = arrayOf(
+                        0.0f to Color(0xFFEF4444).copy(alpha = 0.30f),
+                        0.35f to Color(0xFFF97316).copy(alpha = 0.20f),
+                        0.65f to Color(0xFFFBBF24).copy(alpha = 0.12f),
+                        1.0f to Color(0xFF60A5FA).copy(alpha = 0.04f)
                     ),
                     startY = chartTop,
                     endY = chartBottom
                 )
             )
 
-            // Path pentru linia propriu-zisă
+            // ── Linia HR — raw spiky, albă ───────────────────────────────────
             val linePath = Path()
             linePath.moveTo(indexToX(0), hrToY(hrList[0]))
-
             for (i in 1 until hrList.size) {
-                val x0 = indexToX(i - 1)
-                val y0 = hrToY(hrList[i - 1])
-                val x1 = indexToX(i)
-                val y1 = hrToY(hrList[i])
-                val cpX = (x0 + x1) / 2f
-                linePath.cubicTo(cpX, y0, cpX, y1, x1, y1)
+                linePath.lineTo(indexToX(i), hrToY(hrList[i]))
             }
-
             drawPath(
                 path = linePath,
-                color = lineColor,
+                color = Color.White.copy(alpha = 0.65f),
                 style = Stroke(
-                    width = 2.dp.toPx(),
+                    width = 1.3.dp.toPx(),
                     cap = StrokeCap.Round,
                     join = StrokeJoin.Round
                 )
@@ -349,66 +515,92 @@ private fun HrLineChart(
                 val x = indexToX(idx)
                 val y = hrToY(hrList[idx])
                 val hr = hrList[idx]
+                val pct = hr.toFloat() / maxHr
 
-                // Linie verticală
-                drawLine(
-                    color = Color.White.copy(alpha = 0.3f),
-                    start = Offset(x, chartTop),
-                    end = Offset(x, chartBottom),
-                    strokeWidth = 1f
-                )
+                val tooltipZoneColor = when {
+                    pct >= 0.90f -> android.graphics.Color.argb(255, 239, 68, 68)
+                    pct >= 0.85f -> android.graphics.Color.argb(255, 249, 115, 22)
+                    pct >= 0.70f -> android.graphics.Color.argb(255, 251, 191, 36)
+                    else         -> android.graphics.Color.argb(255, 96, 165, 250)
+                }
 
-                // Punct pe linie
-                drawCircle(
-                    color = Color.White,
-                    radius = 5.dp.toPx(),
-                    center = Offset(x, y)
-                )
-                drawCircle(
-                    color = lineColor,
-                    radius = 3.dp.toPx(),
-                    center = Offset(x, y)
-                )
+                val lactateZone = when {
+                    pct >= 0.90f -> "> 6 mmol/L"
+                    pct >= 0.85f -> "~4–6 mmol/L · LT2"
+                    pct >= 0.70f -> "~2–4 mmol/L · LT1"
+                    else         -> "< 2 mmol/L · Recovery"
+                }
 
-                // Tooltip box
                 val seconds = idx * secondsPerSample
-                val mm = seconds / 60
-                val ss = seconds % 60
-                val tooltipText = "● $hr bpm  ${"%02d:%02d".format(mm, ss)}"
-                val paint = android.graphics.Paint().apply {
+                val line1 = "$hr bpm  ${"%02d:%02d".format(seconds / 60, seconds % 60)}"
+                val line2 = lactateZone
+
+                val paint1 = android.graphics.Paint().apply {
                     textSize = 11.dp.toPx()
                     color = android.graphics.Color.WHITE
                     isFakeBoldText = true
                 }
-                val textWidth = paint.measureText(tooltipText)
-                val boxPadH = 10.dp.toPx()
-                val boxPadV = 6.dp.toPx()
-                val boxW = textWidth + boxPadH * 2
-                val boxH = 11.dp.toPx() + boxPadV * 2
+                val paint2 = android.graphics.Paint().apply {
+                    textSize = 10.dp.toPx()
+                    color = tooltipZoneColor
+                }
+
+                val w1 = paint1.measureText(line1)
+                val w2 = paint2.measureText(line2)
+                val boxW = maxOf(w1, w2) + 20.dp.toPx()
+                val boxH = 11.dp.toPx() + 10.dp.toPx() + 12.dp.toPx() + 6.dp.toPx()
                 var boxLeft = x - boxW / 2f
                 boxLeft = boxLeft.coerceIn(chartLeft, chartRight - boxW)
                 val boxTop = (y - boxH - 12.dp.toPx()).coerceAtLeast(chartTop)
 
+                // Linie verticală
+                drawLine(
+                    color = Color.White.copy(alpha = 0.2f),
+                    start = Offset(x, chartTop),
+                    end = Offset(x, chartBottom),
+                    strokeWidth = 1f
+                )
+                // Punct pe linie
+                drawCircle(color = Color.White, radius = 5.dp.toPx(), center = Offset(x, y))
+                drawCircle(
+                    color = when {
+                        pct >= 0.90f -> Color(0xFFEF4444)
+                        pct >= 0.85f -> Color(0xFFF97316)
+                        pct >= 0.70f -> Color(0xFFFBBF24)
+                        else -> Color(0xFF60A5FA)
+                    },
+                    radius = 3.dp.toPx(),
+                    center = Offset(x, y)
+                )
+
                 // Fundal tooltip
                 drawRoundRect(
-                    color = Color(0xE6111116),
+                    color = Color(0xF0111116),
                     topLeft = Offset(boxLeft, boxTop),
                     size = Size(boxW, boxH),
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(6.dp.toPx())
                 )
                 drawRoundRect(
-                    color = lineColor.copy(alpha = 0.4f),
+                    color = Color.White.copy(alpha = 0.08f),
                     topLeft = Offset(boxLeft, boxTop),
                     size = Size(boxW, boxH),
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()),
                     style = Stroke(width = 1f)
                 )
 
+                // Text linia 1 — BPM + timp
                 drawContext.canvas.nativeCanvas.drawText(
-                    tooltipText,
-                    boxLeft + boxPadH,
-                    boxTop + boxPadV + 11.dp.toPx(),
-                    paint
+                    line1,
+                    boxLeft + 10.dp.toPx(),
+                    boxTop + 6.dp.toPx() + 11.dp.toPx(),
+                    paint1
+                )
+                // Text linia 2 — zona lactat
+                drawContext.canvas.nativeCanvas.drawText(
+                    line2,
+                    boxLeft + 10.dp.toPx(),
+                    boxTop + 6.dp.toPx() + 11.dp.toPx() + 12.dp.toPx(),
+                    paint2
                 )
             }
         }
@@ -437,7 +629,8 @@ fun ZoneBreakdownSection(hrList: List<Int>, maxHr: Int) {
             count = z5,
             totalCount = totalSamples,
             secondsPerSample = secondsPerSample,
-            color = Zone5Color
+            color = Zone5Color,
+            zoneNumber = 5
         )
         ZoneDivider()
         ZoneItem(
@@ -446,7 +639,8 @@ fun ZoneBreakdownSection(hrList: List<Int>, maxHr: Int) {
             count = z4,
             totalCount = totalSamples,
             secondsPerSample = secondsPerSample,
-            color = Zone4Color
+            color = Zone4Color,
+            zoneNumber = 4
         )
         ZoneDivider()
         ZoneItem(
@@ -455,7 +649,8 @@ fun ZoneBreakdownSection(hrList: List<Int>, maxHr: Int) {
             count = z3,
             totalCount = totalSamples,
             secondsPerSample = secondsPerSample,
-            color = Zone3Color
+            color = Zone3Color,
+            zoneNumber = 3
         )
         ZoneDivider()
         ZoneItem(
@@ -464,7 +659,8 @@ fun ZoneBreakdownSection(hrList: List<Int>, maxHr: Int) {
             count = z2,
             totalCount = totalSamples,
             secondsPerSample = secondsPerSample,
-            color = Zone2Color
+            color = Zone2Color,
+            zoneNumber = 2
         )
         ZoneDivider()
         ZoneItem(
@@ -473,7 +669,8 @@ fun ZoneBreakdownSection(hrList: List<Int>, maxHr: Int) {
             count = z1,
             totalCount = totalSamples,
             secondsPerSample = secondsPerSample,
-            color = Zone1Color
+            color = Zone1Color,
+            zoneNumber = 1
         )
     }
 }
@@ -495,13 +692,23 @@ private fun ZoneItem(
     count: Int,
     totalCount: Float,
     secondsPerSample: Int,
-    color: Color
+    color: Color,
+    zoneNumber: Int = 0
 ) {
     val percentage = if (totalCount > 0) count / totalCount else 0f
     val totalSeconds = count * secondsPerSample
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
     val timeString = String.format("%02d:%02d", minutes, seconds)
+
+    val zoneInfo = when (zoneNumber) {
+        5 -> MetricInfoData.ZONE_5
+        4 -> MetricInfoData.ZONE_4
+        3 -> MetricInfoData.ZONE_3
+        2 -> MetricInfoData.ZONE_2
+        1 -> MetricInfoData.ZONE_1
+        else -> null
+    }
 
     Column(
         modifier = Modifier
@@ -513,7 +720,12 @@ private fun ZoneItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                zoneInfo?.let {
+                    InfoIconButton(info = it, tint = Color.White.copy(alpha = 0.25f))
+                }
+            }
             Text(rangeText, color = Color.Gray, fontSize = 13.sp)
         }
 
