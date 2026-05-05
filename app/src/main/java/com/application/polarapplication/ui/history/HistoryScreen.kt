@@ -76,7 +76,8 @@ data class WorkoutTheme(val color: Color, val label: String)
 @Composable
 fun HistoryScreen(
     viewModel: DashboardViewModel = viewModel(),
-    onSessionClick: (TrainingSessionEntity) -> Unit
+    onSessionClick: (TrainingSessionEntity) -> Unit,
+    onNavigateToProgress: () -> Unit = {}
 ) {
     val sessions by viewModel.allSessions.collectAsState()
     val competitionDate by viewModel.competitionDate.collectAsState()
@@ -92,13 +93,35 @@ fun HistoryScreen(
     ) {
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "Istoric Antrenamente",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Black,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 12.dp, start = 8.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp, start = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Istoric Antrenamente",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Black,
+                color = Color.White
+            )
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color(0xFF818CF8).copy(alpha = 0.1f))
+                    .border(1.dp, Color(0xFF818CF8).copy(alpha = 0.25f), RoundedCornerShape(10.dp))
+                    .clickable { onNavigateToProgress() }
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    "Progress →",
+                    color = Color(0xFF818CF8),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
 
         // ── Countdown competiție ──────────────────────────────────────────────
         competitionDate?.let { compDate ->
@@ -229,6 +252,13 @@ fun PremiumHistoryCard(
 ) {
     val dateStr = SimpleDateFormat("dd MMM yyyy • HH:mm", Locale.getDefault()).format(Date(session.date))
     val theme = getThemeForWorkout(session.type)
+    val durationStr = if (session.durationSeconds > 0) {
+        val min = session.durationSeconds / 60
+        val sec = session.durationSeconds % 60
+        "%02d:%02d".format(min, sec)
+    } else {
+        "—"
+    }
 
     val cardBackgroundBrush = Brush.horizontalGradient(
         colors = listOf(
@@ -279,7 +309,11 @@ fun PremiumHistoryCard(
                         modifier = Modifier.padding(end = 32.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = dateStr, fontSize = 12.sp, color = Color.Gray)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = dateStr, fontSize = 12.sp, color = Color.Gray)
+                        Text("·", fontSize = 12.sp, color = Color.Gray)
+                        Text(durationStr, fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -304,6 +338,14 @@ fun PremiumHistoryCard(
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(top = 4.dp)
                         )
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Calories", color = Color.Gray, fontSize = 12.sp)
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text("${session.totalCalories}", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 4.dp))
+                            Text(" kcal", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(bottom = 2.dp, start = 2.dp))
+                        }
                     }
                 }
 

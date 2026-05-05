@@ -18,7 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-
+import android.os.PowerManager
 class WorkoutForegroundService : Service() {
 
     // ─────────────────────────────────────────────
@@ -82,15 +82,25 @@ class WorkoutForegroundService : Service() {
 
     override fun onBind(intent: Intent?): IBinder = binder
 
+    private var wakeLock: PowerManager.WakeLock? = null
+
     // ─────────────────────────────────────────────
     // LIFECYCLE
     // ─────────────────────────────────────────────
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK,
+            "PolarApp::WorkoutWakeLock"
+        )
+        wakeLock?.acquire(3 * 60 * 60 * 1000L)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        android.util.Log.d("SERVICE_ACTION", "Action received: ${intent?.action}")
         when (intent?.action) {
             ACTION_START -> {
                 workoutType = intent.getStringExtra(EXTRA_WORKOUT_TYPE) ?: workoutType
@@ -102,7 +112,7 @@ class WorkoutForegroundService : Service() {
                         startForeground(
                             NOTIFICATION_ID,
                             buildNotification(),
-                            android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                            android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
                         )
                     } else {
                         startForeground(NOTIFICATION_ID, buildNotification())
@@ -113,9 +123,21 @@ class WorkoutForegroundService : Service() {
                     updateNotification()
                 }
             }
+
             ACTION_STOP -> {
-                stopWorkout()
+                android.util.Log.d("BROADCAST_TEST", "ACTION_STOP received in service, sending broadcast...")
+                serviceScope.launch {
+                    val broadcastIntent = Intent("com.application.polarapplication.WORKOUT_STOP").apply {
+                        setPackage(packageName)  // ← targetează explicit pachetul aplicației
+                    }
+                    sendBroadcast(broadcastIntent)
+                    android.util.Log.d("BROADCAST_TEST", "Broadcast sent, waiting...")
+                    delay(800)
+                    android.util.Log.d("BROADCAST_TEST", "Stopping service now")
+                    stopWorkout()
+                }
             }
+
             ACTION_PAUSE -> {
                 _isPaused.value = true
                 timerJob?.cancel()
@@ -128,10 +150,11 @@ class WorkoutForegroundService : Service() {
                 updateNotification()
             }
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onDestroy() {
+        wakeLock?.release()
         timerJob?.cancel()
         super.onDestroy()
     }

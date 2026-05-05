@@ -12,9 +12,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
@@ -32,6 +35,7 @@ import com.application.polarapplication.ai.daily.WorkoutType
 import com.application.polarapplication.ai.model.AthleteVitals
 import com.application.polarapplication.ai.model.DeviceState
 import com.application.polarapplication.ai.planning.TrainingPlanner
+import com.application.polarapplication.athletic.AthleticProfileCardSmall
 import com.application.polarapplication.ui.info.InfoIconButton
 import com.application.polarapplication.ui.info.MetricInfoData
 import java.time.LocalDate
@@ -126,7 +130,8 @@ private fun phaseColor(phase: String) = when (phase.lowercase()) {
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel = viewModel(),
-    onMaximizeWorkout: () -> Unit
+    onMaximizeWorkout: () -> Unit,
+    onNavigateToTest: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val competitionDate by viewModel.competitionDate.collectAsState()
@@ -166,6 +171,7 @@ fun DashboardScreen(
 
     val daysToComp = ChronoUnit.DAYS.between(today, effectiveComp).coerceAtLeast(0)
 
+    val userName by viewModel.profileManager.userName.collectAsState()
     // Blob color reactioneaza la puls
     val hrPct = uiState.vitals.heartRate.toFloat() / 200f
     val blobColor by animateColorAsState(
@@ -208,6 +214,7 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             DashHeader(
+                userName = userName.ifBlank { "Athlete" },
                 daysToComp = daysToComp,
                 phaseName = currentMeso?.phase ?: "—",
                 currentWeekNum = currentWeekNum,
@@ -226,6 +233,53 @@ fun DashboardScreen(
                     }
                 }
             )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            val athleticScores by viewModel.athleticProfileManager.scores.collectAsState()
+            val hasTestDone by viewModel.athleticProfileManager.hasCompletedInitialTest.collectAsState()
+
+            if (hasTestDone) {
+                AthleticProfileCardSmall(scores = athleticScores)
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xFF111118))
+                        .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
+                        .clickable { onNavigateToTest() }
+                        .padding(14.dp),
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        Icons.Default.MonitorHeart,
+                        null,
+                        tint     = Color(0xFF818CF8),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Athletic Profile",
+                            color      = Color.White,
+                            fontSize   = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "Take the evaluation test to build your profile",
+                            color    = Color.White.copy(alpha = 0.3f),
+                            fontSize = 11.sp
+                        )
+                    }
+                    Icon(
+                        Icons.Default.ArrowForwardIos,
+                        null,
+                        tint     = Color.White.copy(alpha = 0.2f),
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -281,6 +335,7 @@ fun DashboardScreen(
 
 @Composable
 private fun DashHeader(
+    userName: String,
     daysToComp: Long,
     phaseName: String,
     currentWeekNum: Int,
@@ -294,8 +349,16 @@ private fun DashHeader(
         verticalAlignment = Alignment.Top
     ) {
         Column {
-            Text("Salut, Stefan", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
-            Text("stefanmitroi@gmail.com", color = Color.White.copy(alpha = 0.25f), fontSize = 12.sp)
+            val greeting = when (java.time.LocalTime.now().hour) {
+                in 5..11  -> "Good morning"
+                in 12..17 -> "Good afternoon"
+                in 18..21 -> "Good evening"
+                else      -> "Hey"
+            }
+            val todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, dd MMM"))
+
+            Text("$greeting, $userName", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+            Text(todayStr, color = Color.White.copy(alpha = 0.25f), fontSize = 12.sp)
             Spacer(modifier = Modifier.height(6.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,

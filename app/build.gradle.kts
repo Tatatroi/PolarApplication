@@ -21,7 +21,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.polarapplication"
+        applicationId = "com.application.polarapplication"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
@@ -81,6 +81,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.compose.foundation:foundation")
+    implementation(libs.androidx.foundation)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

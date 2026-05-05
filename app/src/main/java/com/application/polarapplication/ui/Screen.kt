@@ -2,12 +2,15 @@ package com.application.polarapplication.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
@@ -26,4 +29,8 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object AiChat : Screen("ai_chat", "AI", Icons.Default.Psychology)
 
     object Plan : Screen("plan", "Plan", Icons.Default.CalendarToday)
+
+    object InitialTest : Screen("initial_test", "Test", Icons.Default.MonitorHeart)
+
+    object Progress : Screen("progress", "Progress", Icons.Default.TrendingUp)
 }
