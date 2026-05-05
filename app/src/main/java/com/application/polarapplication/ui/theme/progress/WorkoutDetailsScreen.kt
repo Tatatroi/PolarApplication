@@ -77,16 +77,12 @@ fun WorkoutDetailsScreen(session: TrainingSessionEntity, maxHr: Int = 200) {
         } catch (e: Exception) { emptyList() }
     }
 
-    // Folosim durationSeconds din session (salvat din timer real)
-    // Dacă e 0 (sesiuni vechi), calculăm din samples cu 5 sec/sample
     val totalDurationSeconds = if (session.durationSeconds > 0) {
         session.durationSeconds
     } else {
         hrList.size * 5L
     }
 
-    // Câte secunde reprezintă un sample în grafic
-    // Distribuim samples uniform pe durata reală
     val secondsPerSample = if (hrList.isNotEmpty()) {
         (totalDurationSeconds.toFloat() / hrList.size).toLong().coerceAtLeast(1L)
     } else {
@@ -152,14 +148,6 @@ private fun HrChartCard(
     val peakLactate = hrToLactate(peakHr, maxHr)
     val peakLactateColor = hrToLactateColor(peakHr, maxHr)
 
-    val peakHr = if (hrList.isNotEmpty()) hrList.max() else 0
-    val peakLactate = hrToLactate(peakHr, maxHr)
-    val peakLactateColor = hrToLactateColor(peakHr, maxHr)
-
-    val peakHr = if (hrList.isNotEmpty()) hrList.max() else 0
-    val peakLactate = hrToLactate(peakHr, maxHr)
-    val peakLactateColor = hrToLactateColor(peakHr, maxHr)
-
     Column(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
             .background(CardDark).padding(16.dp)
@@ -185,50 +173,25 @@ private fun HrChartCard(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Avg. heart rate", color = Color.Gray, fontSize = 12.sp)
-                Text("${if (hrList.isNotEmpty()) hrList.average().toInt() else 0} bpm", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("${if (hrList.isNotEmpty()) hrList.average().toInt() else 0} bpm", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            Box(modifier = Modifier.width(1.dp).height(48.dp).background(Color.DarkGray))
+            Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.DarkGray))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Max. heart rate", color = Color.Gray, fontSize = 12.sp)
-                Text("$peakHr bpm", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("$peakHr bpm", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            Box(modifier = Modifier.width(1.dp).height(48.dp).background(Color.DarkGray))
+            Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.DarkGray))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Peak lactate", color = Color.Gray, fontSize = 12.sp)
-                Text(peakLactate, color = peakLactateColor, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            }
-            Box(modifier = Modifier.width(1.dp).height(48.dp).background(Color.DarkGray))
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Peak lactate", color = Color.Gray, fontSize = 12.sp)
-                Text(
-                    peakLactate,
-                    color = peakLactateColor,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Box(modifier = Modifier.width(1.dp).height(48.dp).background(Color.DarkGray))
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Peak lactate", color = Color.Gray, fontSize = 12.sp)
-                Text(
-                    peakLactate,
-                    color = peakLactateColor,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Text(peakLactate, color = peakLactateColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // ── Rândul LT1 / LT2 cu info ──────────────────────────────────────
         LactateThresholdRow(maxHr = maxHr)
     }
 }
-
-// ─────────────────────────────────────────────
-// LACTATE THRESHOLD ROW
-// ─────────────────────────────────────────────
 
 @Composable
 private fun LactateThresholdRow(maxHr: Int) {
@@ -239,7 +202,6 @@ private fun LactateThresholdRow(maxHr: Int) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // LT1
         Row(
             modifier = Modifier
                 .weight(1f)
@@ -250,162 +212,24 @@ private fun LactateThresholdRow(maxHr: Int) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(
-                    text = "LT1 · $lt1Bpm bpm",
-                    color = Color(0xFFFBBF24),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "~2 mmol/L",
-                    color = Color(0xFFFBBF24).copy(alpha = 0.55f),
-                    fontSize = 11.sp
-                )
-            }
-            InfoIconButton(
-                info = MetricInfoData.LT1,
-                tint = Color(0xFFFBBF24).copy(alpha = 0.5f)
-            )
-        }
-
-        // LT2
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFF97316).copy(alpha = 0.07f))
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(
-                    text = "LT2 · $lt2Bpm bpm",
-                    color = Color(0xFFF97316),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "~4 mmol/L",
-                    color = Color(0xFFF97316).copy(alpha = 0.55f),
-                    fontSize = 11.sp
-                )
-            }
-            InfoIconButton(
-                info = MetricInfoData.LT2,
-                tint = Color(0xFFF97316).copy(alpha = 0.5f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // ── Rândul LT1 / LT2 cu info ──────────────────────────────────────
-        LactateThresholdRow(maxHr = maxHr)
-    }
-}
-
-// ─────────────────────────────────────────────
-// LACTATE THRESHOLD ROW
-// ─────────────────────────────────────────────
-
-@Composable
-private fun LactateThresholdRow(maxHr: Int) {
-    val lt1Bpm = (maxHr * 0.70).toInt()
-    val lt2Bpm = (maxHr * 0.85).toInt()
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        // LT1
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFFBBF24).copy(alpha = 0.07f))
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(
-                    text = "LT1 · $lt1Bpm bpm",
-                    color = Color(0xFFFBBF24),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "~2 mmol/L",
-                    color = Color(0xFFFBBF24).copy(alpha = 0.55f),
-                    fontSize = 11.sp
-                )
-            }
-            InfoIconButton(
-                info = MetricInfoData.LT1,
-                tint = Color(0xFFFBBF24).copy(alpha = 0.5f)
-            )
-        }
-
-        // LT2
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFF97316).copy(alpha = 0.07f))
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(
-                    text = "LT2 · $lt2Bpm bpm",
-                    color = Color(0xFFF97316),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "~4 mmol/L",
-                    color = Color(0xFFF97316).copy(alpha = 0.55f),
-                    fontSize = 11.sp
-                )
-            }
-            InfoIconButton(
-                info = MetricInfoData.LT2,
-                tint = Color(0xFFF97316).copy(alpha = 0.5f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-        LactateThresholdRow(maxHr = maxHr)
-    }
-}
-
-@Composable
-private fun LactateThresholdRow(maxHr: Int) {
-    val lt1Bpm = (maxHr * 0.70).toInt()
-    val lt2Bpm = (maxHr * 0.85).toInt()
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFFBBF24).copy(alpha = 0.07f)).padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text("LT1 · $lt1Bpm bpm", color = Color(0xFFFBBF24), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Text("~2 mmol/L", color = Color(0xFFFBBF24).copy(alpha = 0.55f), fontSize = 11.sp)
+                Text(text = "LT1 · $lt1Bpm bpm", color = Color(0xFFFBBF24), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(text = "~2 mmol/L", color = Color(0xFFFBBF24).copy(alpha = 0.55f), fontSize = 11.sp)
             }
             InfoIconButton(info = MetricInfoData.LT1, tint = Color(0xFFFBBF24).copy(alpha = 0.5f))
         }
+
         Row(
-            modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFF97316).copy(alpha = 0.07f)).padding(horizontal = 10.dp, vertical = 8.dp),
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFFF97316).copy(alpha = 0.07f))
+                .padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text("LT2 · $lt2Bpm bpm", color = Color(0xFFF97316), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Text("~4 mmol/L", color = Color(0xFFF97316).copy(alpha = 0.55f), fontSize = 11.sp)
+                Text(text = "LT2 · $lt2Bpm bpm", color = Color(0xFFF97316), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(text = "~4 mmol/L", color = Color(0xFFF97316).copy(alpha = 0.55f), fontSize = 11.sp)
             }
             InfoIconButton(info = MetricInfoData.LT2, tint = Color(0xFFF97316).copy(alpha = 0.5f))
         }
@@ -437,14 +261,6 @@ private fun HrLineChart(
     val lt2Color = Color(0xFFF97316)
     val showLt1 = lt1Hr in yMin..yMax
     val showLt2 = lt2Hr in yMin..yMax
-
-    // Colori LT
-    val lt1Color = Color(0xFFFBBF24)
-    val lt2Color = Color(0xFFF97316)
-
-    // Colori LT
-    val lt1Color = Color(0xFFFBBF24)
-    val lt2Color = Color(0xFFF97316)
 
     Box(modifier = modifier) {
         Canvas(
@@ -482,7 +298,6 @@ private fun HrLineChart(
                 )
             }
 
-            // Axa X folosind durata reală
             val xLabelCount = 4
             for (i in 0..xLabelCount) {
                 val frac = i.toFloat() / xLabelCount
@@ -524,7 +339,6 @@ private fun HrLineChart(
                 val x = indexToX(idx); val y = hrToY(hrList[idx]); val hr = hrList[idx]; val pct = hr.toFloat() / maxHr
                 val tooltipZoneColor = when { pct >= 0.90f -> android.graphics.Color.argb(255, 239, 68, 68); pct >= 0.85f -> android.graphics.Color.argb(255, 249, 115, 22); pct >= 0.70f -> android.graphics.Color.argb(255, 251, 191, 36); else -> android.graphics.Color.argb(255, 96, 165, 250) }
                 val lactateZone = when { pct >= 0.90f -> "> 6 mmol/L"; pct >= 0.85f -> "~4–6 mmol/L · LT2"; pct >= 0.70f -> "~2–4 mmol/L · LT1"; else -> "< 2 mmol/L · Recovery" }
-                // Tooltip folosind secondsPerSample real
                 val seconds = idx * secondsPerSample
                 val line1 = "$hr bpm  ${"%02d:%02d".format(seconds / 60, seconds % 60)}"
                 val line2 = lactateZone
@@ -554,7 +368,7 @@ fun ZoneBreakdownSection(hrList: List<Int>, maxHr: Int, secondsPerSample: Long) 
     val z3 = hrList.count { hrToZone(it, maxHr) == 3 }
     val z2 = hrList.count { hrToZone(it, maxHr) == 2 }
     val z1 = hrList.count { hrToZone(it, maxHr) == 1 }
-    Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+    Column {
         ZoneItem("Zone 5: Maximum", "${(maxHr * 0.9).toInt()}–$maxHr bpm", z5, totalSamples, secondsPerSample, Zone5Color, 5)
         ZoneDivider()
         ZoneItem("Zone 4: Anaerobic", "${(maxHr * 0.8).toInt()}–${(maxHr * 0.9 - 1).toInt()} bpm", z4, totalSamples, secondsPerSample, Zone4Color, 4)
