@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.application.polarapplication.R
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +19,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import android.os.PowerManager
 class WorkoutForegroundService : Service() {
 
     // ─────────────────────────────────────────────
@@ -128,7 +128,7 @@ class WorkoutForegroundService : Service() {
                 android.util.Log.d("BROADCAST_TEST", "ACTION_STOP received in service, sending broadcast...")
                 serviceScope.launch {
                     val broadcastIntent = Intent("com.application.polarapplication.WORKOUT_STOP").apply {
-                        setPackage(packageName)  // ← targetează explicit pachetul aplicației
+                        setPackage(packageName) // ← targetează explicit pachetul aplicației
                     }
                     sendBroadcast(broadcastIntent)
                     android.util.Log.d("BROADCAST_TEST", "Broadcast sent, waiting...")

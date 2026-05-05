@@ -250,32 +250,32 @@ fun DashboardScreen(
                         .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
                         .clickable { onNavigateToTest() }
                         .padding(14.dp),
-                    verticalAlignment     = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Icon(
                         Icons.Default.MonitorHeart,
                         null,
-                        tint     = Color(0xFF818CF8),
+                        tint = Color(0xFF818CF8),
                         modifier = Modifier.size(20.dp)
                     )
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             "Athletic Profile",
-                            color      = Color.White,
-                            fontSize   = 13.sp,
+                            color = Color.White,
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             "Take the evaluation test to build your profile",
-                            color    = Color.White.copy(alpha = 0.3f),
+                            color = Color.White.copy(alpha = 0.3f),
                             fontSize = 11.sp
                         )
                     }
                     Icon(
                         Icons.Default.ArrowForwardIos,
                         null,
-                        tint     = Color.White.copy(alpha = 0.2f),
+                        tint = Color.White.copy(alpha = 0.2f),
                         modifier = Modifier.size(14.dp)
                     )
                 }
@@ -350,10 +350,10 @@ private fun DashHeader(
     ) {
         Column {
             val greeting = when (java.time.LocalTime.now().hour) {
-                in 5..11  -> "Good morning"
+                in 5..11 -> "Good morning"
                 in 12..17 -> "Good afternoon"
                 in 18..21 -> "Good evening"
-                else      -> "Hey"
+                else -> "Hey"
             }
             val todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, dd MMM"))
 

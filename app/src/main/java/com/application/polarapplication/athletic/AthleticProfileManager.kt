@@ -12,32 +12,32 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 data class AthleticScore(
-    val strength:    Float = 0f,
-    val speed:       Float = 0f,
-    val endurance:   Float = 0f,
-    val hrr:         Float = 0f,
+    val strength: Float = 0f,
+    val speed: Float = 0f,
+    val endurance: Float = 0f,
+    val hrr: Float = 0f,
     val loadBalance: Float = 50f
 )
 
 data class ScoreSnapshot(
-    val timestamp:   Long  = System.currentTimeMillis(),
-    val strength:    Float = 0f,
-    val speed:       Float = 0f,
-    val endurance:   Float = 0f,
-    val hrr:         Float = 0f,
+    val timestamp: Long = System.currentTimeMillis(),
+    val strength: Float = 0f,
+    val speed: Float = 0f,
+    val endurance: Float = 0f,
+    val hrr: Float = 0f,
     val loadBalance: Float = 50f
 )
 
 data class ScoreChange(
-    val axis:   String,
-    val delta:  Float,
+    val axis: String,
+    val delta: Float,
     val reason: String
 )
 
 class AthleticProfileManager(context: Context) {
 
     private val prefs = context.getSharedPreferences("athletic_profile", Context.MODE_PRIVATE)
-    private val gson  = Gson()
+    private val gson = Gson()
 
     private val _scores = MutableStateFlow(loadScores())
     val scores: StateFlow<AthleticScore> = _scores
@@ -57,30 +57,30 @@ class AthleticProfileManager(context: Context) {
     // PRAGURI MINIME DE VALIDITATE
     // Sub acestea, sesiunea nu contează deloc
     // ─────────────────────────────────────────────
-    private val MIN_DURATION_SECONDS = 300L  // 5 minute
-    private val MIN_TRIMP            = 5.0   // efort minim
-    private val MIN_AVG_HR           = 80    // puls mediu minim (altfel era inactiv)
+    private val MIN_DURATION_SECONDS = 300L // 5 minute
+    private val MIN_TRIMP = 5.0 // efort minim
+    private val MIN_AVG_HR = 80 // puls mediu minim (altfel era inactiv)
 
     // ─────────────────────────────────────────────
     // LOAD / SAVE
     // ─────────────────────────────────────────────
 
     private fun loadScores() = AthleticScore(
-        strength    = prefs.getFloat("score_strength",    0f),
-        speed       = prefs.getFloat("score_speed",       0f),
-        endurance   = prefs.getFloat("score_endurance",   0f),
-        hrr         = prefs.getFloat("score_hrr",         0f),
+        strength = prefs.getFloat("score_strength", 0f),
+        speed = prefs.getFloat("score_speed", 0f),
+        endurance = prefs.getFloat("score_endurance", 0f),
+        hrr = prefs.getFloat("score_hrr", 0f),
         loadBalance = prefs.getFloat("score_loadbalance", 50f)
     )
 
     private fun saveScores(s: AthleticScore) {
         prefs.edit()
-            .putFloat("score_strength",    s.strength)
-            .putFloat("score_speed",       s.speed)
-            .putFloat("score_endurance",   s.endurance)
-            .putFloat("score_hrr",         s.hrr)
+            .putFloat("score_strength", s.strength)
+            .putFloat("score_speed", s.speed)
+            .putFloat("score_endurance", s.endurance)
+            .putFloat("score_hrr", s.hrr)
             .putFloat("score_loadbalance", s.loadBalance)
-            .putLong("last_update",        System.currentTimeMillis())
+            .putLong("last_update", System.currentTimeMillis())
             .apply()
         _scores.value = s
     }
@@ -100,11 +100,11 @@ class AthleticProfileManager(context: Context) {
 
     private fun addSnapshot(score: AthleticScore) {
         val snapshot = ScoreSnapshot(
-            timestamp   = System.currentTimeMillis(),
-            strength    = score.strength,
-            speed       = score.speed,
-            endurance   = score.endurance,
-            hrr         = score.hrr,
+            timestamp = System.currentTimeMillis(),
+            strength = score.strength,
+            speed = score.speed,
+            endurance = score.endurance,
+            hrr = score.hrr,
             loadBalance = score.loadBalance
         )
         val history = (_scoreHistory.value + snapshot).takeLast(90)
@@ -116,14 +116,16 @@ class AthleticProfileManager(context: Context) {
     // ─────────────────────────────────────────────
 
     fun saveInitialTestResults(
-        strengthScore: Float, speedScore: Float,
-        enduranceScore: Float, hrrScore: Float
+        strengthScore: Float,
+        speedScore: Float,
+        enduranceScore: Float,
+        hrrScore: Float
     ) {
         val initial = AthleticScore(
-            strength    = strengthScore.coerceIn(0f, 100f),
-            speed       = speedScore.coerceIn(0f, 100f),
-            endurance   = enduranceScore.coerceIn(0f, 100f),
-            hrr         = hrrScore.coerceIn(0f, 100f),
+            strength = strengthScore.coerceIn(0f, 100f),
+            speed = speedScore.coerceIn(0f, 100f),
+            endurance = enduranceScore.coerceIn(0f, 100f),
+            hrr = hrrScore.coerceIn(0f, 100f),
             loadBalance = 50f
         )
         saveScores(initial)
@@ -204,9 +206,9 @@ class AthleticProfileManager(context: Context) {
     private fun isSessionValid(session: TrainingSessionEntity): Boolean {
         // Sesiunile vechi fără durationSeconds le acceptăm dacă au TRIMP și HR valid
         val durationOk = session.durationSeconds >= MIN_DURATION_SECONDS ||
-                (session.durationSeconds == 0L && session.finalTrimp >= MIN_TRIMP)
-        val trimpOk    = session.finalTrimp >= MIN_TRIMP
-        val hrOk       = session.avgHeartRate >= MIN_AVG_HR
+            (session.durationSeconds == 0L && session.finalTrimp >= MIN_TRIMP)
+        val trimpOk = session.finalTrimp >= MIN_TRIMP
+        val hrOk = session.avgHeartRate >= MIN_AVG_HR
 
         return durationOk && trimpOk && hrOk
     }
@@ -221,41 +223,41 @@ class AthleticProfileManager(context: Context) {
         // 1. TRIMP — volumul de muncă (0-4 pts)
         // TRIMP mic = sesiune ușoară, TRIMP mare = sesiune grea
         val trimpPts = when {
-            session.finalTrimp >= 150 -> 4.0f  // sesiune foarte grea (>2.5 ore intens)
-            session.finalTrimp >= 100 -> 3.0f  // sesiune grea
-            session.finalTrimp >= 60  -> 2.5f  // sesiune medie-grea
-            session.finalTrimp >= 30  -> 2.0f  // sesiune medie
-            session.finalTrimp >= 15  -> 1.5f  // sesiune ușoară-medie
-            session.finalTrimp >= 5   -> 1.0f  // sesiune ușoară
-            else                      -> 0f
+            session.finalTrimp >= 150 -> 4.0f // sesiune foarte grea (>2.5 ore intens)
+            session.finalTrimp >= 100 -> 3.0f // sesiune grea
+            session.finalTrimp >= 60 -> 2.5f // sesiune medie-grea
+            session.finalTrimp >= 30 -> 2.0f // sesiune medie
+            session.finalTrimp >= 15 -> 1.5f // sesiune ușoară-medie
+            session.finalTrimp >= 5 -> 1.0f // sesiune ușoară
+            else -> 0f
         }
 
         // 2. Intensitate (zona de puls atinsă) — (0-2 pts)
         // MaxHR mare față de userMaxHr înseamnă că ai atins zone înalte
-        val hrIntensityRatio = session.maxHeartRate.toFloat() / 200f  // aproximare userMaxHr
+        val hrIntensityRatio = session.maxHeartRate.toFloat() / 200f // aproximare userMaxHr
         val intensityPts = when {
-            hrIntensityRatio >= 0.90f -> 2.0f  // Zone 5
-            hrIntensityRatio >= 0.80f -> 1.5f  // Zone 4
-            hrIntensityRatio >= 0.70f -> 1.0f  // Zone 3
-            hrIntensityRatio >= 0.60f -> 0.5f  // Zone 2
-            else                      -> 0.2f  // Zone 1
+            hrIntensityRatio >= 0.90f -> 2.0f // Zone 5
+            hrIntensityRatio >= 0.80f -> 1.5f // Zone 4
+            hrIntensityRatio >= 0.70f -> 1.0f // Zone 3
+            hrIntensityRatio >= 0.60f -> 0.5f // Zone 2
+            else -> 0.2f // Zone 1
         }
 
         // 3. Durată bonus — sesiunile lungi adaugă un mic bonus (0-1 pt)
         val durationPts = when {
-            session.durationSeconds >= 3600 -> 1.0f  // > 1 oră
-            session.durationSeconds >= 1800 -> 0.7f  // > 30 min
-            session.durationSeconds >= 900  -> 0.4f  // > 15 min
-            session.durationSeconds >= 300  -> 0.2f  // > 5 min
-            else                            -> 0f
+            session.durationSeconds >= 3600 -> 1.0f // > 1 oră
+            session.durationSeconds >= 1800 -> 0.7f // > 30 min
+            session.durationSeconds >= 900 -> 0.4f // > 15 min
+            session.durationSeconds >= 300 -> 0.2f // > 5 min
+            else -> 0f
         }
 
         // 4. CNS penalizare — dacă CNS la final e foarte mic, efortul a fost prea mare
         // și corpul nu a putut absorbi bine antrenamentul
         val cnsPenalty = when {
-            session.cnsScoreAtEnd < 20 -> -0.5f  // over-trained
-            session.cnsScoreAtEnd < 35 -> -0.2f  // obosit
-            else                       -> 0f
+            session.cnsScoreAtEnd < 20 -> -0.5f // over-trained
+            session.cnsScoreAtEnd < 35 -> -0.2f // obosit
+            else -> 0f
         }
 
         val total = (trimpPts + intensityPts + durationPts + cnsPenalty).coerceAtLeast(0f)
@@ -276,11 +278,11 @@ class AthleticProfileManager(context: Context) {
         val hrDiff = session.maxHeartRate - session.avgHeartRate
 
         return when {
-            hrDiff >= 40 -> 1.5f   // recuperare cardiacă excelentă
-            hrDiff >= 30 -> 1.0f   // recuperare bună
-            hrDiff >= 20 -> 0.5f   // recuperare medie
-            hrDiff >= 10 -> 0.2f   // recuperare slabă
-            else         -> 0f     // fără recuperare detectabilă
+            hrDiff >= 40 -> 1.5f // recuperare cardiacă excelentă
+            hrDiff >= 30 -> 1.0f // recuperare bună
+            hrDiff >= 20 -> 0.5f // recuperare medie
+            hrDiff >= 10 -> 0.2f // recuperare slabă
+            else -> 0f // fără recuperare detectabilă
         }
     }
 
@@ -294,7 +296,7 @@ class AthleticProfileManager(context: Context) {
     // ─────────────────────────────────────────────
 
     fun updateLoadBalance(allSessions: List<TrainingSessionEntity>) {
-        val score   = acwrToScore(calculateAcwr(allSessions))
+        val score = acwrToScore(calculateAcwr(allSessions))
         val updated = _scores.value.copy(loadBalance = score)
         saveScores(updated)
     }
@@ -305,14 +307,14 @@ class AthleticProfileManager(context: Context) {
     // ─────────────────────────────────────────────
 
     fun applyDailyDecay(allSessions: List<TrainingSessionEntity>) {
-        val today   = LocalDate.now()
+        val today = LocalDate.now()
         val current = _scores.value
 
         val updated = current.copy(
-            strength  = applyDecayForType("STRENGTH",  current.strength,  allSessions, today),
-            speed     = applyDecayForType("SPEED",     current.speed,     allSessions, today),
+            strength = applyDecayForType("STRENGTH", current.strength, allSessions, today),
+            speed = applyDecayForType("SPEED", current.speed, allSessions, today),
             endurance = applyDecayForType("ENDURANCE", current.endurance, allSessions, today),
-            hrr       = applyHrrDecay(current.hrr, allSessions, today)
+            hrr = applyHrrDecay(current.hrr, allSessions, today)
         )
 
         if (updated != current) {
@@ -322,24 +324,31 @@ class AthleticProfileManager(context: Context) {
     }
 
     private fun applyDecayForType(
-        type: String, current: Float,
-        sessions: List<TrainingSessionEntity>, today: LocalDate
+        type: String,
+        current: Float,
+        sessions: List<TrainingSessionEntity>,
+        today: LocalDate
     ): Float {
         val last = sessions
             .filter { it.type.uppercase() == type }
             .maxByOrNull { it.date }
 
-        val daysSinceLast = if (last == null) 999L else ChronoUnit.DAYS.between(
-            Instant.ofEpochMilli(last.date).atZone(ZoneId.systemDefault()).toLocalDate(), today
-        )
+        val daysSinceLast = if (last == null) {
+            999L
+        } else {
+            ChronoUnit.DAYS.between(
+                Instant.ofEpochMilli(last.date).atZone(ZoneId.systemDefault()).toLocalDate(),
+                today
+            )
+        }
 
         // Degradare progresivă — cu cât e mai mult de când ai antrenat, cu atât pierzi mai mult
         val decay = when {
-            daysSinceLast <= 3  -> 0f    // 0-3 zile: fără degradare
-            daysSinceLast <= 7  -> 0.5f  // 4-7 zile: degradare ușoară
-            daysSinceLast <= 14 -> 1.5f  // 1-2 săptămâni: degradare medie
-            daysSinceLast <= 21 -> 2.5f  // 2-3 săptămâni: degradare semnificativă
-            else                -> 4.0f  // > 3 săptămâni: degradare mare
+            daysSinceLast <= 3 -> 0f // 0-3 zile: fără degradare
+            daysSinceLast <= 7 -> 0.5f // 4-7 zile: degradare ușoară
+            daysSinceLast <= 14 -> 1.5f // 1-2 săptămâni: degradare medie
+            daysSinceLast <= 21 -> 2.5f // 2-3 săptămâni: degradare semnificativă
+            else -> 4.0f // > 3 săptămâni: degradare mare
         }
 
         return (current - decay).coerceIn(0f, 100f)
@@ -351,16 +360,21 @@ class AthleticProfileManager(context: Context) {
         today: LocalDate
     ): Float {
         val last = sessions.maxByOrNull { it.date }
-        val daysSinceLast = if (last == null) 999L else ChronoUnit.DAYS.between(
-            Instant.ofEpochMilli(last.date).atZone(ZoneId.systemDefault()).toLocalDate(), today
-        )
+        val daysSinceLast = if (last == null) {
+            999L
+        } else {
+            ChronoUnit.DAYS.between(
+                Instant.ofEpochMilli(last.date).atZone(ZoneId.systemDefault()).toLocalDate(),
+                today
+            )
+        }
 
         // HRR se degradează mai lent decât forța/viteza
         val decay = when {
-            daysSinceLast <= 5  -> 0f
+            daysSinceLast <= 5 -> 0f
             daysSinceLast <= 14 -> 0.3f
             daysSinceLast <= 21 -> 0.8f
-            else                -> 1.5f
+            else -> 1.5f
         }
 
         return (current - decay).coerceIn(0f, 100f)
@@ -377,10 +391,10 @@ class AthleticProfileManager(context: Context) {
             .remove("score_loadbalance").remove("initial_test_done")
             .remove("test_date").remove("score_history")
             .apply()
-        _scores.value                  = AthleticScore()
+        _scores.value = AthleticScore()
         _hasCompletedInitialTest.value = false
-        _scoreHistory.value            = emptyList()
-        _lastScoreChange.value         = null
+        _scoreHistory.value = emptyList()
+        _lastScoreChange.value = null
     }
 
     // ─────────────────────────────────────────────
@@ -388,8 +402,8 @@ class AthleticProfileManager(context: Context) {
     // ─────────────────────────────────────────────
 
     private fun calculateAcwr(sessions: List<TrainingSessionEntity>): Float {
-        val now     = System.currentTimeMillis()
-        val acute   = sessions
+        val now = System.currentTimeMillis()
+        val acute = sessions
             .filter { now - it.date <= 7L * 86400000 }
             .sumOf { it.finalTrimp }
         val chronic = sessions
@@ -405,7 +419,7 @@ class AthleticProfileManager(context: Context) {
         acwr in 1.3f..1.5f -> 75f
         acwr in 0.5f..0.7f -> 45f
         acwr in 1.5f..1.8f -> 45f
-        else               -> 20f
+        else -> 20f
     }
 
     // ─────────────────────────────────────────────
@@ -414,28 +428,34 @@ class AthleticProfileManager(context: Context) {
 
     fun calculateEnduranceScore(hrSamplesInZ2: Int, totalSamples: Int, avgHrDrift: Float): Float {
         if (totalSamples == 0) return 10f
-        return ((hrSamplesInZ2.toFloat() / totalSamples * 100f) -
-                (avgHrDrift / 10f).coerceIn(0f, 30f)).coerceIn(5f, 100f)
+        return (
+            (hrSamplesInZ2.toFloat() / totalSamples * 100f) -
+                (avgHrDrift / 10f).coerceIn(0f, 30f)
+            ).coerceIn(5f, 100f)
     }
 
     fun calculateStrengthScore(avgHr: Int, hrAfter90: Int, maxHr: Int): Float {
         if (avgHr == 0) return 10f
-        return ((avgHr.toFloat() / maxHr * 50f) +
-                (1f - hrAfter90.toFloat() / avgHr) * 50f).coerceIn(5f, 100f)
+        return (
+            (avgHr.toFloat() / maxHr * 50f) +
+                (1f - hrAfter90.toFloat() / avgHr) * 50f
+            ).coerceIn(5f, 100f)
     }
 
     fun calculateSpeedScore(peakHr: Int, hrAfter60: Int, maxHr: Int): Float {
         if (peakHr == 0) return 10f
-        return ((peakHr.toFloat() / maxHr * 60f) +
-                (1f - hrAfter60.toFloat() / peakHr) * 40f).coerceIn(5f, 100f)
+        return (
+            (peakHr.toFloat() / maxHr * 60f) +
+                (1f - hrAfter60.toFloat() / peakHr) * 40f
+            ).coerceIn(5f, 100f)
     }
 
     fun calculateHrrScore(peakHr: Int, hrAfter60: Int): Float {
         val drop = (peakHr - hrAfter60).toFloat().coerceAtLeast(0f)
         return when {
             drop >= 30f -> 100f; drop >= 25f -> 85f; drop >= 20f -> 70f
-            drop >= 15f -> 50f;  drop >= 10f -> 35f; drop >= 5f  -> 20f
-            else        -> 10f
+            drop >= 15f -> 50f; drop >= 10f -> 35f; drop >= 5f -> 20f
+            else -> 10f
         }
     }
 }

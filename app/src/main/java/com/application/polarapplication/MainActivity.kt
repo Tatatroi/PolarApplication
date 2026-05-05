@@ -1,8 +1,12 @@
 package com.application.polarapplication
 
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -57,10 +61,6 @@ import com.application.polarapplication.ui.theme.dashboard.PeriodizationCalendar
 import com.application.polarapplication.ui.theme.devices.DevicesScreen
 import com.application.polarapplication.ui.theme.profile.ProfileScreen
 import com.application.polarapplication.ui.theme.progress.WorkoutDetailsScreen
-import android.provider.Settings
-import android.net.Uri
-import android.os.PowerManager
-import android.content.Intent
 
 class MainActivity : ComponentActivity() {
 
@@ -127,12 +127,12 @@ fun MainNavigationWrapper() {
                                 launchSingleTop = true
                             }
                         },
-                        colors   = NavigationBarItemDefaults.colors(
-                            selectedIconColor   = Color(0xFF818CF8),
-                            selectedTextColor   = Color(0xFF818CF8),
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF818CF8),
+                            selectedTextColor = Color(0xFF818CF8),
                             unselectedIconColor = Color(0xFF555566),
                             unselectedTextColor = Color(0xFF555566),
-                            indicatorColor      = Color(0xFF818CF8).copy(alpha = 0.12f)
+                            indicatorColor = Color(0xFF818CF8).copy(alpha = 0.12f)
                         )
 
                     )
@@ -146,12 +146,12 @@ fun MainNavigationWrapper() {
                                 launchSingleTop = true
                             }
                         },
-                        colors   = NavigationBarItemDefaults.colors(
-                            selectedIconColor   = Color(0xFF818CF8),
-                            selectedTextColor   = Color(0xFF818CF8),
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF818CF8),
+                            selectedTextColor = Color(0xFF818CF8),
                             unselectedIconColor = Color(0xFF555566),
                             unselectedTextColor = Color(0xFF555566),
-                            indicatorColor      = Color(0xFF818CF8).copy(alpha = 0.12f)
+                            indicatorColor = Color(0xFF818CF8).copy(alpha = 0.12f)
                         )
                     )
 
@@ -164,12 +164,12 @@ fun MainNavigationWrapper() {
                                 launchSingleTop = true
                             }
                         },
-                        colors   = NavigationBarItemDefaults.colors(
-                            selectedIconColor   = Color(0xFF818CF8),
-                            selectedTextColor   = Color(0xFF818CF8),
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF818CF8),
+                            selectedTextColor = Color(0xFF818CF8),
                             unselectedIconColor = Color(0xFF555566),
                             unselectedTextColor = Color(0xFF555566),
-                            indicatorColor      = Color(0xFF818CF8).copy(alpha = 0.12f)
+                            indicatorColor = Color(0xFF818CF8).copy(alpha = 0.12f)
                         )
                     )
 
@@ -182,12 +182,12 @@ fun MainNavigationWrapper() {
                                 launchSingleTop = true
                             }
                         },
-                        colors   = NavigationBarItemDefaults.colors(
-                            selectedIconColor   = Color(0xFF818CF8),
-                            selectedTextColor   = Color(0xFF818CF8),
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF818CF8),
+                            selectedTextColor = Color(0xFF818CF8),
                             unselectedIconColor = Color(0xFF555566),
                             unselectedTextColor = Color(0xFF555566),
-                            indicatorColor      = Color(0xFF818CF8).copy(alpha = 0.12f)
+                            indicatorColor = Color(0xFF818CF8).copy(alpha = 0.12f)
                         )
                     )
 
@@ -201,12 +201,12 @@ fun MainNavigationWrapper() {
                                 launchSingleTop = true
                             }
                         },
-                        colors   = NavigationBarItemDefaults.colors(
-                            selectedIconColor   = Color(0xFF818CF8),
-                            selectedTextColor   = Color(0xFF818CF8),
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF818CF8),
+                            selectedTextColor = Color(0xFF818CF8),
                             unselectedIconColor = Color(0xFF555566),
                             unselectedTextColor = Color(0xFF555566),
-                            indicatorColor      = Color(0xFF818CF8).copy(alpha = 0.12f)
+                            indicatorColor = Color(0xFF818CF8).copy(alpha = 0.12f)
                         )
                     )
                 }
@@ -246,9 +246,9 @@ fun MainNavigationWrapper() {
         ) {
             composable(Screen.Dashboard.route) {
                 DashboardScreen(
-                    viewModel         = sharedViewModel,
+                    viewModel = sharedViewModel,
                     onMaximizeWorkout = { navController.navigate(Screen.ActiveWorkout.route) },
-                    onNavigateToTest  = { navController.navigate(Screen.InitialTest.route) }
+                    onNavigateToTest = { navController.navigate(Screen.InitialTest.route) }
                 )
             }
 
@@ -261,8 +261,8 @@ fun MainNavigationWrapper() {
 
                 if (selectedSession == null) {
                     HistoryScreen(
-                        viewModel            = sharedViewModel,
-                        onSessionClick       = { session -> sharedViewModel.selectSession(session) },
+                        viewModel = sharedViewModel,
+                        onSessionClick = { session -> sharedViewModel.selectSession(session) },
                         onNavigateToProgress = { navController.navigate(Screen.Progress.route) }
                     )
                 } else {
@@ -295,7 +295,7 @@ fun MainNavigationWrapper() {
 
             composable(Screen.Profile.route) {
                 ProfileScreen(
-                    viewModel        = sharedViewModel,
+                    viewModel = sharedViewModel,
                     onNavigateToTest = { navController.navigate(Screen.InitialTest.route) }
                 )
             }
@@ -337,8 +337,8 @@ fun MainNavigationWrapper() {
 
             composable(Screen.InitialTest.route) {
                 InitialTestScreen(
-                    viewModel    = sharedViewModel,
-                    athleticMgr  = sharedViewModel.athleticProfileManager,
+                    viewModel = sharedViewModel,
+                    athleticMgr = sharedViewModel.athleticProfileManager,
                     onTestComplete = {
                         navController.popBackStack()
                     }
@@ -348,7 +348,7 @@ fun MainNavigationWrapper() {
             composable(Screen.Progress.route) {
                 ProgressScreen(
                     viewModel = sharedViewModel,
-                    onBack    = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() }
                 )
             }
         }

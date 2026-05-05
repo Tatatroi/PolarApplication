@@ -144,12 +144,16 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         val filter = android.content.IntentFilter("com.application.polarapplication.WORKOUT_STOP")
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             getApplication<Application>().registerReceiver(
-                workoutStopReceiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED
+                workoutStopReceiver,
+                filter,
+                android.content.Context.RECEIVER_NOT_EXPORTED
             )
         } else {
             ContextCompat.registerReceiver(
-                getApplication<Application>(), workoutStopReceiver,
-                filter, ContextCompat.RECEIVER_NOT_EXPORTED
+                getApplication<Application>(),
+                workoutStopReceiver,
+                filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
             )
         }
         viewModelScope.launch {
@@ -167,8 +171,11 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun toggleConnection(deviceId: String) {
-        if (uiState.value.device.isConnected) polarManager.disconnectFromDevice(deviceId)
-        else polarManager.connectToDevice(deviceId)
+        if (uiState.value.device.isConnected) {
+            polarManager.disconnectFromDevice(deviceId)
+        } else {
+            polarManager.connectToDevice(deviceId)
+        }
     }
 
     fun startScanning() = polarManager.startScan()
@@ -268,16 +275,16 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
         viewModelScope.launch(Dispatchers.IO) {
             val newSession = TrainingSessionEntity(
-                type              = workoutType,
-                avgHeartRate      = avgHr,
-                maxHeartRate      = maxHr,
-                finalTrimp        = currentVitals.trimpScore,
-                totalCalories     = currentVitals.calories,
-                cnsScoreAtStart   = 0,
-                cnsScoreAtEnd     = currentVitals.cnsScore,
-                hrSamples         = samplesJson,
-                isCompleted       = true,
-                durationSeconds   = durationToSave  // ← durata reală din timer
+                type = workoutType,
+                avgHeartRate = avgHr,
+                maxHeartRate = maxHr,
+                finalTrimp = currentVitals.trimpScore,
+                totalCalories = currentVitals.calories,
+                cnsScoreAtStart = 0,
+                cnsScoreAtEnd = currentVitals.cnsScore,
+                hrSamples = samplesJson,
+                isCompleted = true,
+                durationSeconds = durationToSave // ← durata reală din timer
             )
             sessionDao.insertSession(newSession)
             android.util.Log.d("WORKOUT_STOP", "Sesiune salvată în DB: ${durationToSave}s, ${samplesList.size} samples")
@@ -300,9 +307,16 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun saveUserProfile(
-        age: Int, weight: Float, height: Int, gender: String,
-        rhr: Int, customHrMax: Int?, profileImageUri: String?,
-        dobMillis: Long?, availableDays: Set<Int>, userName: String = ""
+        age: Int,
+        weight: Float,
+        height: Int,
+        gender: String,
+        rhr: Int,
+        customHrMax: Int?,
+        profileImageUri: String?,
+        dobMillis: Long?,
+        availableDays: Set<Int>,
+        userName: String = ""
     ) {
         profileManager.saveProfile(
             newAge = age, newWeight = weight, newHeight = height,
@@ -324,7 +338,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             newCustomHrMax = profileManager.customHrMax.value,
             newProfileImageUri = profileManager.profileImageUri.value,
             newCompetitionDateMillis = compMillis,
-            newPlanStartDateMillis = startMillis,
+            newPlanStartDateMillis = startMillis
         )
     }
 

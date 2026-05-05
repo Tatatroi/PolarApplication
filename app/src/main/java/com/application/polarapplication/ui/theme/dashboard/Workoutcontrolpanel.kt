@@ -18,18 +18,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.application.polarapplication.ai.model.AthleteVitals
 
-private val BgCard     = Color(0xFF111118)
+private val BgCard = Color(0xFF111118)
 private val AccentIndigo = Color(0xFF818CF8)
-private val AccentGreen  = Color(0xFF4ADE80)
-private val AccentRed    = Color(0xFFF87171)
-private val AccentAmber  = Color(0xFFFBBF24)
+private val AccentGreen = Color(0xFF4ADE80)
+private val AccentRed = Color(0xFFF87171)
+private val AccentAmber = Color(0xFFFBBF24)
 
 private fun typeColor(type: String) = when (type) {
-    "STRENGTH"  -> AccentIndigo
+    "STRENGTH" -> AccentIndigo
     "ENDURANCE" -> AccentGreen
-    "SPEED"     -> AccentAmber
-    "RECOVERY"  -> Color(0xFF60A5FA)
-    else        -> Color(0xFF666677)
+    "SPEED" -> AccentAmber
+    "RECOVERY" -> Color(0xFF60A5FA)
+    else -> Color(0xFF666677)
 }
 
 @Composable
@@ -51,8 +51,11 @@ fun WorkoutControlPanel(
             .background(BgCard)
             .border(
                 1.dp,
-                if (isActive) AccentAmber.copy(alpha = 0.2f)
-                else Color.White.copy(alpha = 0.08f),
+                if (isActive) {
+                    AccentAmber.copy(alpha = 0.2f)
+                } else {
+                    Color.White.copy(alpha = 0.08f)
+                },
                 RoundedCornerShape(16.dp)
             )
             .padding(16.dp)
@@ -72,8 +75,8 @@ fun WorkoutControlPanel(
             val (recText, recColor) = when {
                 vitals.cnsScore >= 80 -> "CNS rested — recommended: STRENGTH / SPEED" to AccentGreen
                 vitals.cnsScore >= 50 -> "CNS normal — recommended: ENDURANCE" to AccentAmber
-                vitals.cnsScore > 0   -> "CNS fatigued — recommended: RECOVERY" to AccentRed
-                else                  -> "Connect sensor for CNS analysis" to Color.White.copy(alpha = 0.3f)
+                vitals.cnsScore > 0 -> "CNS fatigued — recommended: RECOVERY" to AccentRed
+                else -> "Connect sensor for CNS analysis" to Color.White.copy(alpha = 0.3f)
             }
             Text(recText, color = recColor, fontSize = 12.sp, lineHeight = 17.sp)
 
@@ -81,7 +84,7 @@ fun WorkoutControlPanel(
 
             Text(
                 "Select session type:",
-                color    = Color.White.copy(alpha = 0.25f),
+                color = Color.White.copy(alpha = 0.25f),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp
@@ -98,18 +101,24 @@ fun WorkoutControlPanel(
             ) {
                 workoutTypes.forEach { type ->
                     val isSelected = selectedType == type
-                    val color      = typeColor(type)
+                    val color = typeColor(type)
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
                             .background(
-                                if (isSelected) color.copy(alpha = 0.15f)
-                                else Color.White.copy(alpha = 0.04f)
+                                if (isSelected) {
+                                    color.copy(alpha = 0.15f)
+                                } else {
+                                    Color.White.copy(alpha = 0.04f)
+                                }
                             )
                             .border(
                                 1.dp,
-                                if (isSelected) color.copy(alpha = 0.5f)
-                                else Color.White.copy(alpha = 0.08f),
+                                if (isSelected) {
+                                    color.copy(alpha = 0.5f)
+                                } else {
+                                    Color.White.copy(alpha = 0.08f)
+                                },
                                 RoundedCornerShape(20.dp)
                             )
                             .clickable {
@@ -120,9 +129,9 @@ fun WorkoutControlPanel(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text       = type,
-                            color      = if (isSelected) color else Color.White.copy(alpha = 0.35f),
-                            fontSize   = 11.sp,
+                            text = type,
+                            color = if (isSelected) color else Color.White.copy(alpha = 0.35f),
+                            fontSize = 11.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         )
                     }
@@ -144,26 +153,25 @@ fun WorkoutControlPanel(
             ) {
                 Text(
                     "START WORKOUT",
-                    color      = AccentIndigo,
-                    fontSize   = 14.sp,
+                    color = AccentIndigo,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 0.5.sp
                 )
             }
-
         } else {
             // ── Metrici live ─────────────────────────────────────────────────
             Text(
                 "$selectedType · Live",
-                color      = typeColor(selectedType),
-                fontSize   = 13.sp,
+                color = typeColor(selectedType),
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
-                modifier              = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 listOf(
@@ -172,7 +180,7 @@ fun WorkoutControlPanel(
                     Triple("CNS", "${vitals.cnsScore}", AccentGreen)
                 ).forEach { (label, value, color) ->
                     Column(
-                        modifier            = Modifier
+                        modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
                             .background(color.copy(alpha = 0.07f))
@@ -201,8 +209,8 @@ fun WorkoutControlPanel(
             ) {
                 Text(
                     "Live Details →",
-                    color      = AccentIndigo,
-                    fontSize   = 13.sp,
+                    color = AccentIndigo,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -222,8 +230,8 @@ fun WorkoutControlPanel(
             ) {
                 Text(
                     "STOP & SAVE",
-                    color      = AccentRed,
-                    fontSize   = 13.sp,
+                    color = AccentRed,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 0.5.sp
                 )

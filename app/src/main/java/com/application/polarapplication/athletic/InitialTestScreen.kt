@@ -31,14 +31,14 @@ import kotlinx.coroutines.delay
 // ─────────────────────────────────────────────
 // COLORS
 // ─────────────────────────────────────────────
-private val BgDark       = Color(0xFF080808)
-private val GlassBg      = Color(0xFF111118)
-private val GlassBorder  = Color(0x17FFFFFF)
+private val BgDark = Color(0xFF080808)
+private val GlassBg = Color(0xFF111118)
+private val GlassBorder = Color(0x17FFFFFF)
 private val AccentIndigo = Color(0xFF818CF8)
-private val AccentGreen  = Color(0xFF4ADE80)
-private val AccentRed    = Color(0xFFF87171)
-private val AccentAmber  = Color(0xFFFBBF24)
-private val AccentBlue   = Color(0xFF60A5FA)
+private val AccentGreen = Color(0xFF4ADE80)
+private val AccentRed = Color(0xFFF87171)
+private val AccentAmber = Color(0xFFFBBF24)
+private val AccentBlue = Color(0xFF60A5FA)
 private val AccentPurple = Color(0xFF818CF8)
 
 // ─────────────────────────────────────────────
@@ -46,66 +46,66 @@ private val AccentPurple = Color(0xFF818CF8)
 // ─────────────────────────────────────────────
 
 private data class TestStep(
-    val index:       Int,
-    val title:       String,
+    val index: Int,
+    val title: String,
     val instruction: String,
     val durationSec: Int,
-    val icon:        ImageVector,
-    val color:       Color,
-    val axisTag:     String,
-    val tip:         String
+    val icon: ImageVector,
+    val color: Color,
+    val axisTag: String,
+    val tip: String
 )
 
 private val TEST_STEPS = listOf(
     TestStep(
-        index       = 0,
-        title       = "Endurance Test",
+        index = 0,
+        title = "Endurance Test",
         instruction = "Walk briskly or jog lightly. Keep a pace you can maintain without stopping. Breathe through your nose if possible.",
         durationSec = 180,
-        icon        = Icons.Default.DirectionsRun,
-        color       = AccentGreen,
-        axisTag     = "ENDURANCE",
-        tip         = "Focus on steady breathing and pace."
+        icon = Icons.Default.DirectionsRun,
+        color = AccentGreen,
+        axisTag = "ENDURANCE",
+        tip = "Focus on steady breathing and pace."
     ),
     TestStep(
-        index       = 1,
-        title       = "Recovery Rest",
+        index = 1,
+        title = "Recovery Rest",
         instruction = "Stand still or sit. Breathe slowly and relax completely. This measures your resting recovery.",
         durationSec = 120,
-        icon        = Icons.Default.SelfImprovement,
-        color       = AccentBlue,
-        axisTag     = "RECOVERY",
-        tip         = "Relax your body and focus on slow breaths."
+        icon = Icons.Default.SelfImprovement,
+        color = AccentBlue,
+        axisTag = "RECOVERY",
+        tip = "Relax your body and focus on slow breaths."
     ),
     TestStep(
-        index       = 2,
-        title       = "Strength Test",
+        index = 2,
+        title = "Strength Test",
         instruction = "Perform continuous bodyweight squats at a steady pace — one squat every 2 seconds. Keep your back straight.",
         durationSec = 120,
-        icon        = Icons.Default.FitnessCenter,
-        color       = AccentPurple,
-        axisTag     = "STRENGTH",
-        tip         = "Focus on form and a consistent rhythm."
+        icon = Icons.Default.FitnessCenter,
+        color = AccentPurple,
+        axisTag = "STRENGTH",
+        tip = "Focus on form and a consistent rhythm."
     ),
     TestStep(
-        index       = 3,
-        title       = "Recovery Pause",
+        index = 3,
+        title = "Recovery Pause",
         instruction = "Stand still. Do not move. This measures how quickly your heart rate drops after strength exercise.",
         durationSec = 90,
-        icon        = Icons.Default.Favorite,
-        color       = AccentRed,
-        axisTag     = "HRR",
-        tip         = "Stay completely still for accurate results."
+        icon = Icons.Default.Favorite,
+        color = AccentRed,
+        axisTag = "HRR",
+        tip = "Stay completely still for accurate results."
     ),
     TestStep(
-        index       = 4,
-        title       = "Speed Test",
+        index = 4,
+        title = "Speed Test",
         instruction = "Perform 3 maximum-effort sprints of 20 seconds each, with 40 seconds of walking rest between them. Go as fast as you can.",
         durationSec = 180,
-        icon        = Icons.Default.Speed,
-        color       = AccentAmber,
-        axisTag     = "SPEED",
-        tip         = "Give maximum effort on each sprint."
+        icon = Icons.Default.Speed,
+        color = AccentAmber,
+        axisTag = "SPEED",
+        tip = "Give maximum effort on each sprint."
     )
 )
 
@@ -115,25 +115,27 @@ private val TEST_STEPS = listOf(
 
 @Composable
 fun InitialTestScreen(
-    viewModel:      DashboardViewModel = viewModel(),
-    athleticMgr:    AthleticProfileManager,
+    viewModel: DashboardViewModel = viewModel(),
+    athleticMgr: AthleticProfileManager,
     onTestComplete: () -> Unit
 ) {
     val vitals by viewModel.athleteVitals.collectAsState()
-    val maxHr  by viewModel.userMaxHr.collectAsState()
+    val maxHr by viewModel.userMaxHr.collectAsState()
 
     // -1 = intro, 0..4 = pași test, 5 = rezultate
     var currentStepIdx by remember { mutableStateOf(-1) }
-    var timerRunning   by remember { mutableStateOf(false) }
+    var timerRunning by remember { mutableStateOf(false) }
     var timerRemaining by remember { mutableStateOf(0) }
-    var stepComplete   by remember { mutableStateOf(false) }
+    var stepComplete by remember { mutableStateOf(false) }
 
-    val completedSteps = remember { mutableStateListOf<Boolean>().also { list ->
-        repeat(TEST_STEPS.size) { list.add(false) }
-    }}
+    val completedSteps = remember {
+        mutableStateListOf<Boolean>().also { list ->
+            repeat(TEST_STEPS.size) { list.add(false) }
+        } 
+    }
 
-    val stepHrData     = remember { mutableStateListOf<List<Int>>() }
-    val currentStepHr  = remember { mutableStateListOf<Int>() }
+    val stepHrData = remember { mutableStateListOf<List<Int>>() }
+    val currentStepHr = remember { mutableStateListOf<Int>() }
 
     // Timer LaunchedEffect
     LaunchedEffect(timerRunning, currentStepIdx) {
@@ -167,11 +169,11 @@ fun InitialTestScreen(
             currentStepIdx == -1 -> {
                 IntroScreen(
                     isDeviceConnected = viewModel.uiState.collectAsState().value.device.isConnected,
-                    completedSteps    = completedSteps,
+                    completedSteps = completedSteps,
                     onStart = {
                         currentStepIdx = 0
-                        timerRunning   = false
-                        stepComplete   = false
+                        timerRunning = false
+                        stepComplete = false
                     }
                 )
             }
@@ -179,13 +181,13 @@ fun InitialTestScreen(
             currentStepIdx < TEST_STEPS.size -> {
                 val step = TEST_STEPS[currentStepIdx]
                 TestStepScreen(
-                    step           = step,
-                    totalSteps     = TEST_STEPS.size,
+                    step = step,
+                    totalSteps = TEST_STEPS.size,
                     timerRemaining = timerRemaining,
-                    timerRunning   = timerRunning,
-                    stepComplete   = stepComplete,
-                    currentHr      = vitals.heartRate,
-                    maxHr          = maxHr,
+                    timerRunning = timerRunning,
+                    stepComplete = stepComplete,
+                    currentHr = vitals.heartRate,
+                    maxHr = maxHr,
                     onStart = {
                         timerRunning = true
                         stepComplete = false
@@ -193,8 +195,8 @@ fun InitialTestScreen(
                     onNext = {
                         if (currentStepIdx < TEST_STEPS.size - 1) {
                             currentStepIdx++
-                            timerRunning   = false
-                            stepComplete   = false
+                            timerRunning = false
+                            stepComplete = false
                             timerRemaining = TEST_STEPS[currentStepIdx].durationSec
                         } else {
                             currentStepIdx = TEST_STEPS.size
@@ -205,10 +207,10 @@ fun InitialTestScreen(
 
             else -> {
                 ResultsScreen(
-                    stepHrData  = stepHrData,
-                    maxHr       = maxHr,
+                    stepHrData = stepHrData,
+                    maxHr = maxHr,
                     athleticMgr = athleticMgr,
-                    onSave      = { onTestComplete() }
+                    onSave = { onTestComplete() }
                 )
             }
         }
@@ -222,8 +224,8 @@ fun InitialTestScreen(
 @Composable
 private fun IntroScreen(
     isDeviceConnected: Boolean,
-    completedSteps:    List<Boolean>,
-    onStart:           () -> Unit
+    completedSteps: List<Boolean>,
+    onStart: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -248,18 +250,18 @@ private fun IntroScreen(
 
         Text(
             "Athletic Profile Test",
-            color      = Color.White,
-            fontSize   = 22.sp,
+            color = Color.White,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Black,
-            textAlign  = TextAlign.Center
+            textAlign = TextAlign.Center
         )
         Text(
             "A 15-minute evaluation to build your initial athletic profile.",
-            color      = Color.White.copy(alpha = 0.35f),
-            fontSize   = 13.sp,
-            textAlign  = TextAlign.Center,
+            color = Color.White.copy(alpha = 0.35f),
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
             lineHeight = 19.sp,
-            modifier   = Modifier.padding(top = 6.dp, bottom = 28.dp, start = 16.dp, end = 16.dp)
+            modifier = Modifier.padding(top = 6.dp, bottom = 28.dp, start = 16.dp, end = 16.dp)
         )
 
         // ── TIMELINE ─────────────────────────────────────────────────────────
@@ -267,13 +269,13 @@ private fun IntroScreen(
             val isDone = completedSteps.getOrElse(index) { false }
 
             Row(
-                modifier  = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top
             ) {
                 // Coloana stângă: linie + cerc
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier            = Modifier.width(40.dp)
+                    modifier = Modifier.width(40.dp)
                 ) {
                     // Linie de sus (nu pentru primul element)
                     if (index > 0) {
@@ -282,10 +284,11 @@ private fun IntroScreen(
                                 .width(2.dp)
                                 .height(16.dp)
                                 .background(
-                                    if (completedSteps.getOrElse(index - 1) { false })
+                                    if (completedSteps.getOrElse(index - 1) { false }) {
                                         step.color.copy(alpha = 0.5f)
-                                    else
+                                    } else {
                                         Color.White.copy(alpha = 0.08f)
+                                    }
                                 )
                         )
                     } else {
@@ -300,14 +303,14 @@ private fun IntroScreen(
                             .background(
                                 when {
                                     isDone -> step.color.copy(alpha = 0.2f)
-                                    else   -> Color.White.copy(alpha = 0.04f)
+                                    else -> Color.White.copy(alpha = 0.04f)
                                 }
                             )
                             .border(
                                 width = 1.5.dp,
                                 color = when {
                                     isDone -> step.color
-                                    else   -> Color.White.copy(alpha = 0.12f)
+                                    else -> Color.White.copy(alpha = 0.12f)
                                 },
                                 shape = CircleShape
                             ),
@@ -317,7 +320,7 @@ private fun IntroScreen(
                             Icon(
                                 Icons.Default.Check,
                                 null,
-                                tint     = step.color,
+                                tint = step.color,
                                 modifier = Modifier.size(16.dp)
                             )
                         } else {
@@ -354,8 +357,11 @@ private fun IntroScreen(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
                             .background(
-                                if (isDone) step.color.copy(alpha = 0.08f)
-                                else GlassBg
+                                if (isDone) {
+                                    step.color.copy(alpha = 0.08f)
+                                } else {
+                                    GlassBg
+                                }
                             )
                             .border(
                                 1.dp,
@@ -363,7 +369,7 @@ private fun IntroScreen(
                                 RoundedCornerShape(14.dp)
                             )
                             .padding(12.dp),
-                        verticalAlignment     = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         // Icon cerc
@@ -382,14 +388,14 @@ private fun IntroScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 step.title,
-                                color      = if (isDone) step.color else Color.White,
-                                fontSize   = 14.sp,
+                                color = if (isDone) step.color else Color.White,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
                                 step.instruction.take(55) + "...",
-                                color      = Color.White.copy(alpha = 0.3f),
-                                fontSize   = 11.sp,
+                                color = Color.White.copy(alpha = 0.3f),
+                                fontSize = 11.sp,
                                 lineHeight = 15.sp
                             )
                         }
@@ -398,8 +404,8 @@ private fun IntroScreen(
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
                                 "%d:%02d".format(step.durationSec / 60, step.durationSec % 60),
-                                color      = step.color.copy(alpha = 0.7f),
-                                fontSize   = 12.sp,
+                                color = step.color.copy(alpha = 0.7f),
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(4.dp))
@@ -407,7 +413,7 @@ private fun IntroScreen(
                                 Icon(
                                     Icons.Default.CheckCircle,
                                     null,
-                                    tint     = step.color,
+                                    tint = step.color,
                                     modifier = Modifier.size(22.dp)
                                 )
                             } else {
@@ -423,7 +429,7 @@ private fun IntroScreen(
                                     Icon(
                                         Icons.Default.PlayArrow,
                                         null,
-                                        tint     = Color.White.copy(alpha = 0.2f),
+                                        tint = Color.White.copy(alpha = 0.2f),
                                         modifier = Modifier.size(14.dp)
                                     )
                                 }
@@ -445,23 +451,23 @@ private fun IntroScreen(
                 .border(1.dp, Color.White.copy(alpha = 0.06f), RoundedCornerShape(12.dp))
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(Icons.Default.Flag, null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(14.dp))
                 Text(
                     "Complete all tests to build your profile",
-                    color    = Color.White.copy(alpha = 0.3f),
+                    color = Color.White.copy(alpha = 0.3f),
                     fontSize = 11.sp
                 )
             }
             Text(
                 "Total duration: 14:30",
-                color      = Color.White.copy(alpha = 0.2f),
-                fontSize   = 10.sp,
+                color = Color.White.copy(alpha = 0.2f),
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -478,12 +484,12 @@ private fun IntroScreen(
                     .border(1.dp, AccentAmber.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
                     .padding(10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment     = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Default.Warning, null, tint = AccentAmber, modifier = Modifier.size(14.dp))
                 Text(
                     "Connect your Polar sensor for accurate results.",
-                    color    = AccentAmber.copy(alpha = 0.8f),
+                    color = AccentAmber.copy(alpha = 0.8f),
                     fontSize = 12.sp
                 )
             }
@@ -492,16 +498,16 @@ private fun IntroScreen(
 
         // Buton Start
         Button(
-            onClick  = onStart,
+            onClick = onStart,
             modifier = Modifier.fillMaxWidth().height(54.dp),
-            colors   = ButtonDefaults.buttonColors(containerColor = AccentIndigo.copy(alpha = 0.18f)),
-            shape    = RoundedCornerShape(14.dp),
-            border   = androidx.compose.foundation.BorderStroke(1.dp, AccentIndigo.copy(alpha = 0.4f))
+            colors = ButtonDefaults.buttonColors(containerColor = AccentIndigo.copy(alpha = 0.18f)),
+            shape = RoundedCornerShape(14.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AccentIndigo.copy(alpha = 0.4f))
         ) {
             Text(
                 "Start Evaluation",
-                color      = AccentIndigo,
-                fontSize   = 15.sp,
+                color = AccentIndigo,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Black
             )
         }
@@ -516,38 +522,42 @@ private fun IntroScreen(
 
 @Composable
 private fun TestStepScreen(
-    step:           TestStep,
-    totalSteps:     Int,
+    step: TestStep,
+    totalSteps: Int,
     timerRemaining: Int,
-    timerRunning:   Boolean,
-    stepComplete:   Boolean,
-    currentHr:      Int,
-    maxHr:          Int,
-    onStart:        () -> Unit,
-    onNext:         () -> Unit
+    timerRunning: Boolean,
+    stepComplete: Boolean,
+    currentHr: Int,
+    maxHr: Int,
+    onStart: () -> Unit,
+    onNext: () -> Unit
 ) {
-    val minutes  = timerRemaining / 60
-    val seconds  = timerRemaining % 60
-    val total    = TEST_STEPS[step.index].durationSec
-    val progress = if (!timerRunning && !stepComplete) 0f
-    else if (stepComplete) 1f
-    else 1f - (timerRemaining.toFloat() / total.toFloat())
+    val minutes = timerRemaining / 60
+    val seconds = timerRemaining % 60
+    val total = TEST_STEPS[step.index].durationSec
+    val progress = if (!timerRunning && !stepComplete) {
+        0f
+    } else if (stepComplete) {
+        1f
+    } else {
+        1f - (timerRemaining.toFloat() / total.toFloat())
+    }
 
     val animProgress by animateFloatAsState(
-        targetValue   = progress,
+        targetValue = progress,
         animationSpec = tween(500),
-        label         = "progress"
+        label = "progress"
     )
 
     val hrColor = when {
-        currentHr == 0                           -> Color.White.copy(alpha = 0.3f)
-        currentHr.toFloat() / maxHr >= 0.9f      -> AccentRed
-        currentHr.toFloat() / maxHr >= 0.7f      -> AccentAmber
-        else                                     -> AccentGreen
+        currentHr == 0 -> Color.White.copy(alpha = 0.3f)
+        currentHr.toFloat() / maxHr >= 0.9f -> AccentRed
+        currentHr.toFloat() / maxHr >= 0.7f -> AccentAmber
+        else -> AccentGreen
     }
 
     Column(
-        modifier            = Modifier
+        modifier = Modifier
             .fillMaxSize()
             .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -569,7 +579,7 @@ private fun TestStepScreen(
                             when {
                                 filled -> step.color
                                 active -> step.color.copy(alpha = animProgress)
-                                else   -> Color.White.copy(alpha = 0.08f)
+                                else -> Color.White.copy(alpha = 0.08f)
                             }
                         )
                 )
@@ -578,11 +588,11 @@ private fun TestStepScreen(
 
         Text(
             "Step ${step.index + 1} of $totalSteps",
-            color         = Color.White.copy(alpha = 0.25f),
-            fontSize      = 10.sp,
-            fontWeight    = FontWeight.Bold,
+            color = Color.White.copy(alpha = 0.25f),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
-            modifier      = Modifier.padding(top = 6.dp)
+            modifier = Modifier.padding(top = 6.dp)
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -607,11 +617,11 @@ private fun TestStepScreen(
 
         Text(
             step.instruction,
-            color      = Color.White.copy(alpha = 0.4f),
-            fontSize   = 13.sp,
-            textAlign  = TextAlign.Center,
+            color = Color.White.copy(alpha = 0.4f),
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
             lineHeight = 19.sp,
-            modifier   = Modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.padding(horizontal = 8.dp)
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -621,17 +631,19 @@ private fun TestStepScreen(
             Canvas(modifier = Modifier.size(150.dp)) {
                 val stroke = 8.dp.toPx()
                 drawArc(
-                    color      = Color.White.copy(alpha = 0.05f),
-                    startAngle = -90f, sweepAngle = 360f, useCenter = false,
-                    style      = Stroke(width = stroke, cap = StrokeCap.Round)
+                    color = Color.White.copy(alpha = 0.05f),
+                    startAngle = -90f,
+                    sweepAngle = 360f,
+                    useCenter = false,
+                    style = Stroke(width = stroke, cap = StrokeCap.Round)
                 )
                 if (timerRunning || stepComplete) {
                     drawArc(
-                        color      = if (stepComplete) AccentGreen else step.color,
+                        color = if (stepComplete) AccentGreen else step.color,
                         startAngle = -90f,
                         sweepAngle = 360f * animProgress,
-                        useCenter  = false,
-                        style      = Stroke(width = stroke, cap = StrokeCap.Round)
+                        useCenter = false,
+                        style = Stroke(width = stroke, cap = StrokeCap.Round)
                     )
                 }
             }
@@ -656,7 +668,7 @@ private fun TestStepScreen(
                 .background(step.color.copy(alpha = 0.07f))
                 .border(1.dp, step.color.copy(alpha = 0.15f), RoundedCornerShape(10.dp))
                 .padding(horizontal = 14.dp, vertical = 8.dp),
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(Icons.Default.Star, null, tint = step.color, modifier = Modifier.size(14.dp))
@@ -674,11 +686,11 @@ private fun TestStepScreen(
             !timerRunning && !stepComplete -> {
                 // START — activ, colorat
                 Button(
-                    onClick  = onStart,
+                    onClick = onStart,
                     modifier = Modifier.fillMaxWidth().height(54.dp),
-                    colors   = ButtonDefaults.buttonColors(containerColor = step.color.copy(alpha = 0.2f)),
-                    shape    = RoundedCornerShape(14.dp),
-                    border   = androidx.compose.foundation.BorderStroke(1.dp, step.color.copy(alpha = 0.5f))
+                    colors = ButtonDefaults.buttonColors(containerColor = step.color.copy(alpha = 0.2f)),
+                    shape = RoundedCornerShape(14.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, step.color.copy(alpha = 0.5f))
                 ) {
                     Icon(Icons.Default.PlayArrow, null, tint = step.color, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
@@ -690,16 +702,16 @@ private fun TestStepScreen(
                 // NEXT STEP — verde
                 val isLast = step.index == TEST_STEPS.size - 1
                 Button(
-                    onClick  = onNext,
+                    onClick = onNext,
                     modifier = Modifier.fillMaxWidth().height(54.dp),
-                    colors   = ButtonDefaults.buttonColors(containerColor = AccentGreen.copy(alpha = 0.2f)),
-                    shape    = RoundedCornerShape(14.dp),
-                    border   = androidx.compose.foundation.BorderStroke(1.dp, AccentGreen.copy(alpha = 0.4f))
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentGreen.copy(alpha = 0.2f)),
+                    shape = RoundedCornerShape(14.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentGreen.copy(alpha = 0.4f))
                 ) {
                     Text(
                         if (isLast) "See Results →" else "Next Step →",
-                        color      = AccentGreen,
-                        fontSize   = 15.sp,
+                        color = AccentGreen,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Black
                     )
                 }
@@ -717,16 +729,16 @@ private fun TestStepScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
-                        verticalAlignment     = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         // Punct animat
                         val infiniteTransition = rememberInfiniteTransition(label = "dot")
                         val dotAlpha by infiniteTransition.animateFloat(
-                            initialValue  = 0.3f,
-                            targetValue   = 1f,
+                            initialValue = 0.3f,
+                            targetValue = 1f,
                             animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
-                            label         = "dotAlpha"
+                            label = "dotAlpha"
                         )
                         Box(
                             modifier = Modifier
@@ -750,17 +762,17 @@ private fun TestStepScreen(
 
 @Composable
 private fun ResultsScreen(
-    stepHrData:  List<List<Int>>,
-    maxHr:       Int,
+    stepHrData: List<List<Int>>,
+    maxHr: Int,
     athleticMgr: AthleticProfileManager,
-    onSave:      () -> Unit
+    onSave: () -> Unit
 ) {
     val scores = remember(stepHrData) {
         calculateScoresFromTestData(stepHrData, maxHr, athleticMgr)
     }
 
     Column(
-        modifier            = Modifier
+        modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(vertical = 16.dp),
@@ -782,10 +794,10 @@ private fun ResultsScreen(
         Text("Test Complete!", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
         Text(
             "Your initial athletic profile has been calculated.",
-            color      = Color.White.copy(alpha = 0.35f),
-            fontSize   = 13.sp,
-            textAlign  = TextAlign.Center,
-            modifier   = Modifier.padding(top = 4.dp, bottom = 20.dp)
+            color = Color.White.copy(alpha = 0.35f),
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 4.dp, bottom = 20.dp)
         )
 
         AthleticProfileCardLarge(scores = scores, showScoreChips = true)
@@ -804,16 +816,16 @@ private fun ResultsScreen(
         ) {
             Text(
                 "HOW SCORES WORK",
-                color         = Color.White.copy(alpha = 0.25f),
-                fontSize      = 9.sp,
-                fontWeight    = FontWeight.Bold,
+                color = Color.White.copy(alpha = 0.25f),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
             )
             listOf(
-                Triple(AccentGreen,  "Endurance",  "How efficiently you maintain effort at low intensity"),
-                Triple(AccentPurple, "Strength",   "Muscular endurance and cardiovascular response to effort"),
-                Triple(AccentAmber,  "Speed",      "Explosive capacity and peak HR under maximum effort"),
-                Triple(AccentRed,    "HRR",        "How fast your heart recovers after intense exercise")
+                Triple(AccentGreen, "Endurance", "How efficiently you maintain effort at low intensity"),
+                Triple(AccentPurple, "Strength", "Muscular endurance and cardiovascular response to effort"),
+                Triple(AccentAmber, "Speed", "Explosive capacity and peak HR under maximum effort"),
+                Triple(AccentRed, "HRR", "How fast your heart recovers after intense exercise")
             ).forEach { (color, label, desc) ->
                 Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(color).padding(top = 4.dp))
@@ -830,27 +842,27 @@ private fun ResultsScreen(
 
         Text(
             "Scores update automatically after each training session.",
-            color      = Color.White.copy(alpha = 0.2f),
-            fontSize   = 11.sp,
-            textAlign  = TextAlign.Center,
+            color = Color.White.copy(alpha = 0.2f),
+            fontSize = 11.sp,
+            textAlign = TextAlign.Center,
             lineHeight = 16.sp,
-            modifier   = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
         Button(
-            onClick  = {
+            onClick = {
                 athleticMgr.saveInitialTestResults(
-                    strengthScore  = scores.strength,
-                    speedScore     = scores.speed,
+                    strengthScore = scores.strength,
+                    speedScore = scores.speed,
                     enduranceScore = scores.endurance,
-                    hrrScore       = scores.hrr
+                    hrrScore = scores.hrr
                 )
                 onSave()
             },
             modifier = Modifier.fillMaxWidth().height(54.dp),
-            colors   = ButtonDefaults.buttonColors(containerColor = AccentIndigo.copy(alpha = 0.18f)),
-            shape    = RoundedCornerShape(14.dp),
-            border   = androidx.compose.foundation.BorderStroke(1.dp, AccentIndigo.copy(alpha = 0.4f))
+            colors = ButtonDefaults.buttonColors(containerColor = AccentIndigo.copy(alpha = 0.18f)),
+            shape = RoundedCornerShape(14.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AccentIndigo.copy(alpha = 0.4f))
         ) {
             Text("Save My Profile", color = AccentIndigo, fontSize = 15.sp, fontWeight = FontWeight.Black)
         }
@@ -870,33 +882,36 @@ private fun ResultsScreen(
 // ─────────────────────────────────────────────
 
 private fun calculateScoresFromTestData(
-    stepHrData:  List<List<Int>>,
-    maxHr:       Int,
+    stepHrData: List<List<Int>>,
+    maxHr: Int,
     athleticMgr: AthleticProfileManager
 ): AthleticScore {
-
     val enduranceHr = stepHrData.getOrNull(0) ?: emptyList()
-    val recoveryHr  = stepHrData.getOrNull(1) ?: emptyList()
-    val strengthHr  = stepHrData.getOrNull(2) ?: emptyList()
-    val hrrHr       = stepHrData.getOrNull(3) ?: emptyList()
-    val speedHr     = stepHrData.getOrNull(4) ?: emptyList()
+    val recoveryHr = stepHrData.getOrNull(1) ?: emptyList()
+    val strengthHr = stepHrData.getOrNull(2) ?: emptyList()
+    val hrrHr = stepHrData.getOrNull(3) ?: emptyList()
+    val speedHr = stepHrData.getOrNull(4) ?: emptyList()
 
     // ── ENDURANCE ─────────────────────────────────────────────────────────────
     // Măsurăm cât timp ai menținut Z2 (60-70% maxHr) și stabilitatea HR
     // Avansații: HR stabil în Z2-Z3, fără drift mare
     // Începătorii: HR urcă mult în Z3-Z4, drift mai mare
-    val z2Low  = (maxHr * 0.60).toInt()
-    val z2High = (maxHr * 0.75).toInt()  // extindem puțin Z2 ca să fie fair
+    val z2Low = (maxHr * 0.60).toInt()
+    val z2High = (maxHr * 0.75).toInt() // extindem puțin Z2 ca să fie fair
     val z2Samples = enduranceHr.count { it in z2Low..z2High }
 
     val enduranceDrift = if (enduranceHr.size >= 10) {
         val firstThird = enduranceHr.take(enduranceHr.size / 3).average().toFloat()
-        val lastThird  = enduranceHr.takeLast(enduranceHr.size / 3).average().toFloat()
-        (lastThird - firstThird).coerceAtLeast(0f)  // cât a urcat HR în timp
-    } else 0f
+        val lastThird = enduranceHr.takeLast(enduranceHr.size / 3).average().toFloat()
+        (lastThird - firstThird).coerceAtLeast(0f) // cât a urcat HR în timp
+    } else {
+        0f
+    }
 
     val enduranceScore = athleticMgr.calculateEnduranceScore(
-        z2Samples, enduranceHr.size, enduranceDrift
+        z2Samples,
+        enduranceHr.size,
+        enduranceDrift
     )
 
     // ── STRENGTH ──────────────────────────────────────────────────────────────
@@ -915,7 +930,9 @@ private fun calculateScoresFromTestData(
 
     val strengthScore = if (avgStrengthHr > 0) {
         athleticMgr.calculateStrengthScore(avgStrengthHr, hrAfter90Rest, maxHr)
-    } else 20f
+    } else {
+        20f
+    }
 
     // ── SPEED ─────────────────────────────────────────────────────────────────
     // 3 sprinturi maxime
@@ -926,14 +943,16 @@ private fun calculateScoresFromTestData(
     // HR după 60 secunde de la finalul testului — luăm ultima valoare din speed test
     // ca proxy pentru recuperare între sprinturi
     val hrAfter60Speed = if (speedHr.size >= 40) {
-        speedHr.takeLast(20).average().toInt()  // media ultimelor 20s (recuperare după ultimul sprint)
+        speedHr.takeLast(20).average().toInt() // media ultimelor 20s (recuperare după ultimul sprint)
     } else {
         speedHr.lastOrNull() ?: peakSpeedHr
     }
 
     val speedScore = if (peakSpeedHr > 0) {
         athleticMgr.calculateSpeedScore(peakSpeedHr, hrAfter60Speed, maxHr)
-    } else 20f
+    } else {
+        20f
+    }
 
     // ── HRR (Heart Rate Recovery) ─────────────────────────────────────────────
     // Cât de repede scade HR după efort intens
@@ -943,20 +962,22 @@ private fun calculateScoresFromTestData(
 
     // HR la secunda 60 din faza de recuperare
     val hrAt60SecRest = if (hrrHr.size >= 60) {
-        hrrHr[59]  // secunda 60 exactă
+        hrrHr[59] // secunda 60 exactă
     } else {
         hrrHr.getOrNull(hrrHr.size - 1) ?: peakBeforeRest
     }
 
     val hrrScore = if (peakBeforeRest > 0) {
         athleticMgr.calculateHrrScore(peakBeforeRest, hrAt60SecRest)
-    } else 20f
+    } else {
+        20f
+    }
 
     return AthleticScore(
-        strength    = strengthScore,
-        speed       = speedScore,
-        endurance   = enduranceScore,
-        hrr         = hrrScore,
+        strength = strengthScore,
+        speed = speedScore,
+        endurance = enduranceScore,
+        hrr = hrrScore,
         loadBalance = 50f
     )
 }

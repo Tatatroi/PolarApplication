@@ -93,51 +93,52 @@ class PolarManager(context: Context) {
     @Suppress("DEPRECATION")
     private fun startPpiStreaming(deviceId: String) {
         ppiDisposable = api.startOhrPPIStreaming(deviceId)
-            .subscribe({ data ->
-                val now = System.currentTimeMillis()
-                val batchSize = data.samples.size
+            .subscribe(
+                { data ->
+                    val now = System.currentTimeMillis()
+                    val batchSize = data.samples.size
 
-                val dt = if (lastTimestamp == null) {
-                    1.0
-                } else {
-                    ((now - lastTimestamp!!) / 1000.0).coerceIn(0.1, 5.0)
-                }
-                lastTimestamp = now
+                    val dt = if (lastTimestamp == null) {
+                        1.0
+                    } else {
+                        ((now - lastTimestamp!!) / 1000.0).coerceIn(0.1, 5.0)
+                    }
+                    lastTimestamp = now
 
-                data.samples.forEachIndexed { index, sample ->
-                    if (sample.skinContactSupported && !sample.skinContactStatus) return@forEachIndexed
-                    val rr = sample.ppi.toDouble()
-                    if (rr < MIN_RR_MS || rr > MAX_RR_MS) return@forEachIndexed
+                    data.samples.forEachIndexed { index, sample ->
+                        if (sample.skinContactSupported && !sample.skinContactStatus) return@forEachIndexed
+                        val rr = sample.ppi.toDouble()
+                        if (rr < MIN_RR_MS || rr > MAX_RR_MS) return@forEachIndexed
 
-                    val sampleTime = now - (
+                        val sampleTime = now - (
                             (batchSize - 1 - index) * (dt * 1000.0 / batchSize)
                             ).toLong()
 
-                    rrBuffer.add(rr)
-                    if (rrBuffer.size > maxRrSize) rrBuffer.removeAt(0)
+                        rrBuffer.add(rr)
+                        if (rrBuffer.size > maxRrSize) rrBuffer.removeAt(0)
 
-                    if (!isOutlierMAD(rr)) {
-                        addRrToBuffer(sampleTime, rr)
+                        if (!isOutlierMAD(rr)) {
+                            addRrToBuffer(sampleTime, rr)
+                        }
                     }
-                }
 
-                val windowHr = calculateHrFromWindow()
-                val currentHr = when {
-                    windowHr != null -> windowHr
-                    lastHr != null -> lastHr!!
-                    else -> return@subscribe
-                }
+                    val windowHr = calculateHrFromWindow()
+                    val currentHr = when {
+                        windowHr != null -> windowHr
+                        lastHr != null -> lastHr!!
+                        else -> return@subscribe
+                    }
 
-                val displayHr = applyRateLimit(currentHr, dt)
-                val rmssd = calculateTemporalRMSSD()
+                    val displayHr = applyRateLimit(currentHr, dt)
+                    val rmssd = calculateTemporalRMSSD()
 
-                updateMetrics(displayHr, rmssd, dt)
+                    updateMetrics(displayHr, rmssd, dt)
 
-                stressDataStream.onNewDataReceived(
-                    bvp = rrTimestampBuffer.lastOrNull()?.second ?: rr2bvpProxy(),
-                    acc = latestAccMagnitude
-                )
-            },
+                    stressDataStream.onNewDataReceived(
+                        bvp = rrTimestampBuffer.lastOrNull()?.second ?: rr2bvpProxy(),
+                        acc = latestAccMagnitude
+                    )
+                },
                 { err -> android.util.Log.e("PPI_STREAM", "Stream ERROR: ${err.message}") },
                 { android.util.Log.d("PPI_STREAM", "Stream COMPLETED") }
             )
@@ -172,10 +173,10 @@ class PolarManager(context: Context) {
 
     private fun applyRateLimit(newHr: Double, dt: Double): Int {
         val motionFactor = when {
-            latestAccMagnitude > 3000 -> 0.2  // mișcare foarte bruscă (rotire mână, săritură)
-            latestAccMagnitude > 2000 -> 0.4  // mișcare mare
-            latestAccMagnitude > 1500 -> 0.7  // alergat/mișcare medie
-            else                      -> 1.0  // stând/mers liniștit (~1050)
+            latestAccMagnitude > 3000 -> 0.2 // mișcare foarte bruscă (rotire mână, săritură)
+            latestAccMagnitude > 2000 -> 0.4 // mișcare mare
+            latestAccMagnitude > 1500 -> 0.7 // alergat/mișcare medie
+            else -> 1.0 // stând/mers liniștit (~1050)
         }
 
         val maxChange = MAX_HR_CHANGE_BPM_PER_SEC * dt.coerceAtMost(2.0) * motionFactor
@@ -204,7 +205,9 @@ class PolarManager(context: Context) {
 
         val cnsRaw = if (rmssd > 5.0 && rmssd < 150.0) {
             (kotlin.math.ln(rmssd) * 20.0).coerceIn(0.0, 100.0)
-        } else 0.0
+        } else {
+            0.0
+        }
         val cnsScore = cnsRaw.toInt()
 
         accumulatedTrimp += zone * timePerSampleMin

@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -27,7 +28,6 @@ import com.application.polarapplication.ui.info.InfoIconButton
 import com.application.polarapplication.ui.info.MetricInfoData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import androidx.compose.foundation.shape.CircleShape
 
 private val BgDark = Color(0xFF080808)
 private val CardDark = Color(0xFF111116)
@@ -89,7 +89,9 @@ fun WorkoutDetailsScreen(session: TrainingSessionEntity, maxHr: Int = 200) {
     // Distribuim samples uniform pe durata reală
     val secondsPerSample = if (hrList.isNotEmpty()) {
         (totalDurationSeconds.toFloat() / hrList.size).toLong().coerceAtLeast(1L)
-    } else 5L
+    } else {
+        5L
+    }
 
     val durationStr = "%02d:%02d".format(totalDurationSeconds / 60, totalDurationSeconds % 60)
     val dateStr = remember(session.date) {
@@ -156,7 +158,8 @@ private fun HrChartCard(
     ) {
         if (hrList.isNotEmpty()) {
             HrLineChart(
-                hrList = hrList, maxHr = maxHr,
+                hrList = hrList,
+                maxHr = maxHr,
                 totalDurationSeconds = totalDurationSeconds,
                 secondsPerSample = secondsPerSample,
                 tooltipIndex = tooltipIndex,
@@ -198,18 +201,24 @@ private fun LactateThresholdRow(maxHr: Int) {
     val lt1Bpm = (maxHr * 0.70).toInt()
     val lt2Bpm = (maxHr * 0.85).toInt()
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFFFBBF24).copy(alpha = 0.07f)).padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(
+            modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFFFBBF24).copy(alpha = 0.07f)).padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Column {
                 Text("LT1 · $lt1Bpm bpm", color = Color(0xFFFBBF24), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Text("~2 mmol/L", color = Color(0xFFFBBF24).copy(alpha = 0.55f), fontSize = 11.sp)
             }
             InfoIconButton(info = MetricInfoData.LT1, tint = Color(0xFFFBBF24).copy(alpha = 0.5f))
         }
-        Row(modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFFF97316).copy(alpha = 0.07f)).padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(
+            modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFFF97316).copy(alpha = 0.07f)).padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Column {
                 Text("LT2 · $lt2Bpm bpm", color = Color(0xFFF97316), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Text("~4 mmol/L", color = Color(0xFFF97316).copy(alpha = 0.55f), fontSize = 11.sp)
@@ -221,9 +230,13 @@ private fun LactateThresholdRow(maxHr: Int) {
 
 @Composable
 private fun HrLineChart(
-    hrList: List<Int>, maxHr: Int,
-    totalDurationSeconds: Long, secondsPerSample: Long,
-    tooltipIndex: Int?, onTap: (Int) -> Unit, modifier: Modifier = Modifier
+    hrList: List<Int>,
+    maxHr: Int,
+    totalDurationSeconds: Long,
+    secondsPerSample: Long,
+    tooltipIndex: Int?,
+    onTap: (Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     if (hrList.isEmpty()) return
 
@@ -242,14 +255,16 @@ private fun HrLineChart(
     val showLt2 = lt2Hr in yMin..yMax
 
     Box(modifier = modifier) {
-        Canvas(modifier = Modifier.fillMaxSize().pointerInput(hrList) {
-            detectTapGestures { offset ->
-                val chartLeft = 48.dp.toPx()
-                val chartWidth = size.width - chartLeft - 8.dp.toPx()
-                val index = ((offset.x - chartLeft) / chartWidth * hrList.size).toInt().coerceIn(0, hrList.size - 1)
-                onTap(index)
+        Canvas(
+            modifier = Modifier.fillMaxSize().pointerInput(hrList) {
+                detectTapGestures { offset ->
+                    val chartLeft = 48.dp.toPx()
+                    val chartWidth = size.width - chartLeft - 8.dp.toPx()
+                    val index = ((offset.x - chartLeft) / chartWidth * hrList.size).toInt().coerceIn(0, hrList.size - 1)
+                    onTap(index)
+                }
             }
-        }) {
+        ) {
             val chartLeft = 48.dp.toPx(); val chartRight = size.width - 8.dp.toPx()
             val chartTop = 8.dp.toPx(); val chartBottom = size.height - 24.dp.toPx()
             val chartWidth = chartRight - chartLeft; val chartHeight = chartBottom - chartTop
@@ -267,8 +282,12 @@ private fun HrLineChart(
             yLabels.forEachIndexed { i, label ->
                 val y = chartTop + (i.toFloat() / (yLabels.size - 1)) * chartHeight
                 drawLine(color = Color.White.copy(alpha = 0.05f), start = Offset(chartLeft, y), end = Offset(chartRight, y), strokeWidth = 1f)
-                drawContext.canvas.nativeCanvas.drawText("$label", chartLeft - 6.dp.toPx(), y + 4.dp.toPx(),
-                    android.graphics.Paint().apply { color = android.graphics.Color.argb(120, 255, 255, 255); textSize = 10.dp.toPx(); textAlign = android.graphics.Paint.Align.RIGHT })
+                drawContext.canvas.nativeCanvas.drawText(
+                    "$label",
+                    chartLeft - 6.dp.toPx(),
+                    y + 4.dp.toPx(),
+                    android.graphics.Paint().apply { color = android.graphics.Color.argb(120, 255, 255, 255); textSize = 10.dp.toPx(); textAlign = android.graphics.Paint.Align.RIGHT }
+                )
             }
 
             // Axa X folosind durata reală
@@ -278,8 +297,12 @@ private fun HrLineChart(
                 val x = chartLeft + frac * chartWidth
                 val seconds = (frac * totalDurationSeconds).toLong()
                 val label = "%02d:%02d".format(seconds / 60, seconds % 60)
-                drawContext.canvas.nativeCanvas.drawText(label, x, size.height,
-                    android.graphics.Paint().apply { color = android.graphics.Color.argb(100, 255, 255, 255); textSize = 9.dp.toPx(); textAlign = android.graphics.Paint.Align.CENTER })
+                drawContext.canvas.nativeCanvas.drawText(
+                    label,
+                    x,
+                    size.height,
+                    android.graphics.Paint().apply { color = android.graphics.Color.argb(100, 255, 255, 255); textSize = 9.dp.toPx(); textAlign = android.graphics.Paint.Align.CENTER }
+                )
             }
 
             val dashLength = 8.dp.toPx(); val gapLength = 5.dp.toPx()
@@ -307,7 +330,7 @@ private fun HrLineChart(
 
             tooltipIndex?.let { idx ->
                 val x = indexToX(idx); val y = hrToY(hrList[idx]); val hr = hrList[idx]; val pct = hr.toFloat() / maxHr
-                val tooltipZoneColor = when { pct >= 0.90f -> android.graphics.Color.argb(255,239,68,68); pct >= 0.85f -> android.graphics.Color.argb(255,249,115,22); pct >= 0.70f -> android.graphics.Color.argb(255,251,191,36); else -> android.graphics.Color.argb(255,96,165,250) }
+                val tooltipZoneColor = when { pct >= 0.90f -> android.graphics.Color.argb(255, 239, 68, 68); pct >= 0.85f -> android.graphics.Color.argb(255, 249, 115, 22); pct >= 0.70f -> android.graphics.Color.argb(255, 251, 191, 36); else -> android.graphics.Color.argb(255, 96, 165, 250) }
                 val lactateZone = when { pct >= 0.90f -> "> 6 mmol/L"; pct >= 0.85f -> "~4–6 mmol/L · LT2"; pct >= 0.70f -> "~2–4 mmol/L · LT1"; else -> "< 2 mmol/L · Recovery" }
                 // Tooltip folosind secondsPerSample real
                 val seconds = idx * secondsPerSample
@@ -340,15 +363,15 @@ fun ZoneBreakdownSection(hrList: List<Int>, maxHr: Int, secondsPerSample: Long) 
     val z2 = hrList.count { hrToZone(it, maxHr) == 2 }
     val z1 = hrList.count { hrToZone(it, maxHr) == 1 }
     Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-        ZoneItem("Zone 5: Maximum", "${(maxHr*0.9).toInt()}–$maxHr bpm", z5, totalSamples, secondsPerSample, Zone5Color, 5)
+        ZoneItem("Zone 5: Maximum", "${(maxHr * 0.9).toInt()}–$maxHr bpm", z5, totalSamples, secondsPerSample, Zone5Color, 5)
         ZoneDivider()
-        ZoneItem("Zone 4: Anaerobic", "${(maxHr*0.8).toInt()}–${(maxHr*0.9-1).toInt()} bpm", z4, totalSamples, secondsPerSample, Zone4Color, 4)
+        ZoneItem("Zone 4: Anaerobic", "${(maxHr * 0.8).toInt()}–${(maxHr * 0.9 - 1).toInt()} bpm", z4, totalSamples, secondsPerSample, Zone4Color, 4)
         ZoneDivider()
-        ZoneItem("Zone 3: Aerobic", "${(maxHr*0.7).toInt()}–${(maxHr*0.8-1).toInt()} bpm", z3, totalSamples, secondsPerSample, Zone3Color, 3)
+        ZoneItem("Zone 3: Aerobic", "${(maxHr * 0.7).toInt()}–${(maxHr * 0.8 - 1).toInt()} bpm", z3, totalSamples, secondsPerSample, Zone3Color, 3)
         ZoneDivider()
-        ZoneItem("Zone 2: Weight control", "${(maxHr*0.6).toInt()}–${(maxHr*0.7-1).toInt()} bpm", z2, totalSamples, secondsPerSample, Zone2Color, 2)
+        ZoneItem("Zone 2: Weight control", "${(maxHr * 0.6).toInt()}–${(maxHr * 0.7 - 1).toInt()} bpm", z2, totalSamples, secondsPerSample, Zone2Color, 2)
         ZoneDivider()
-        ZoneItem("Zone 1: Low intensity", "sub ${(maxHr*0.6).toInt()} bpm", z1, totalSamples, secondsPerSample, Zone1Color, 1)
+        ZoneItem("Zone 1: Low intensity", "sub ${(maxHr * 0.6).toInt()} bpm", z1, totalSamples, secondsPerSample, Zone1Color, 1)
     }
 }
 

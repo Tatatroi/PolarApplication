@@ -60,8 +60,10 @@ private val AccentIndigo = Color(0xFF818CF8)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(viewModel: DashboardViewModel = viewModel(),
-                  onNavigateToTest: () -> Unit = {}) {
+fun ProfileScreen(
+    viewModel: DashboardViewModel = viewModel(),
+    onNavigateToTest: () -> Unit = {}
+) {
     val context = LocalContext.current
 
     // State din ProfileManager
@@ -281,7 +283,7 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel(),
 
             if (hasTestDone) {
                 AthleticProfileCardLarge(
-                    scores         = athleticScores,
+                    scores = athleticScores,
                     showScoreChips = true
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -297,8 +299,8 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel(),
                 ) {
                     Text(
                         "Reset Athletic Profile",
-                        color      = AccentRed,
-                        fontSize   = 12.sp,
+                        color = AccentRed,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -315,18 +317,18 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel(),
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment     = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             Icons.Default.MonitorHeart,
                             null,
-                            tint     = AccentIndigo,
+                            tint = AccentIndigo,
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
                             "Start Athletic Evaluation",
-                            color      = AccentIndigo,
-                            fontSize   = 13.sp,
+                            color = AccentIndigo,
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -348,7 +350,7 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel(),
                         profileImageUri = profileImageUri,
                         dobMillis = dobMillis,
                         availableDays = availableDays,
-                        userName        = userName
+                        userName = userName
                     )
                 },
                 modifier = Modifier

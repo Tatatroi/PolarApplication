@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.application.polarapplication.R
 @Composable
 fun StressBodyVisualizer(
@@ -41,7 +40,7 @@ fun StressBodyVisualizer(
 
     Box(
         modifier = Modifier
-            .fillMaxSize()  // ← înlocuiește .fillMaxWidth().height(400.dp)
+            .fillMaxSize() // ← înlocuiește .fillMaxWidth().height(400.dp)
             .background(Color.Transparent),
         contentAlignment = Alignment.Center
     ) {
@@ -61,11 +60,11 @@ fun StressBodyVisualizer(
         }
 
         Image(
-            painter            = bodyPainter,
+            painter = bodyPainter,
             contentDescription = "Siluetă Biometrică",
-            modifier           = Modifier
-                .fillMaxHeight(0.95f)  // ← mărit de la 0.9f
-                .fillMaxWidth(0.95f)   // ← mărit de la 0.9f
+            modifier = Modifier
+                .fillMaxHeight(0.95f) // ← mărit de la 0.9f
+                .fillMaxWidth(0.95f) // ← mărit de la 0.9f
         )
     }
 }
