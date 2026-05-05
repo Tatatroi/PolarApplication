@@ -291,6 +291,7 @@ class PolarManager(context: Context) {
     private fun reset() {
         lastHr = null
         lastTimestamp = null
+
         rrBuffer.clear()
         rrTimestampBuffer.clear()
         rrMadBuffer.clear()

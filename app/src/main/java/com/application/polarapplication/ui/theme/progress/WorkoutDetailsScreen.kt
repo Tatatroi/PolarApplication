@@ -152,6 +152,10 @@ private fun HrChartCard(
     val peakLactate = hrToLactate(peakHr, maxHr)
     val peakLactateColor = hrToLactateColor(peakHr, maxHr)
 
+    val peakHr = if (hrList.isNotEmpty()) hrList.max() else 0
+    val peakLactate = hrToLactate(peakHr, maxHr)
+    val peakLactateColor = hrToLactateColor(peakHr, maxHr)
+
     Column(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
             .background(CardDark).padding(16.dp)
@@ -189,6 +193,94 @@ private fun HrChartCard(
                 Text("Peak lactate", color = Color.Gray, fontSize = 12.sp)
                 Text(peakLactate, color = peakLactateColor, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
+            Box(modifier = Modifier.width(1.dp).height(48.dp).background(Color.DarkGray))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Peak lactate", color = Color.Gray, fontSize = 12.sp)
+                Text(
+                    peakLactate,
+                    color = peakLactateColor,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // ── Rândul LT1 / LT2 cu info ──────────────────────────────────────
+        LactateThresholdRow(maxHr = maxHr)
+    }
+}
+
+// ─────────────────────────────────────────────
+// LACTATE THRESHOLD ROW
+// ─────────────────────────────────────────────
+
+@Composable
+private fun LactateThresholdRow(maxHr: Int) {
+    val lt1Bpm = (maxHr * 0.70).toInt()
+    val lt2Bpm = (maxHr * 0.85).toInt()
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // LT1
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFFFBBF24).copy(alpha = 0.07f))
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = "LT1 · $lt1Bpm bpm",
+                    color = Color(0xFFFBBF24),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "~2 mmol/L",
+                    color = Color(0xFFFBBF24).copy(alpha = 0.55f),
+                    fontSize = 11.sp
+                )
+            }
+            InfoIconButton(
+                info = MetricInfoData.LT1,
+                tint = Color(0xFFFBBF24).copy(alpha = 0.5f)
+            )
+        }
+
+        // LT2
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFFF97316).copy(alpha = 0.07f))
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = "LT2 · $lt2Bpm bpm",
+                    color = Color(0xFFF97316),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "~4 mmol/L",
+                    color = Color(0xFFF97316).copy(alpha = 0.55f),
+                    fontSize = 11.sp
+                )
+            }
+            InfoIconButton(
+                info = MetricInfoData.LT2,
+                tint = Color(0xFFF97316).copy(alpha = 0.5f)
+            )
         }
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -253,6 +345,10 @@ private fun HrLineChart(
     val lt2Color = Color(0xFFF97316)
     val showLt1 = lt1Hr in yMin..yMax
     val showLt2 = lt2Hr in yMin..yMax
+
+    // Colori LT
+    val lt1Color = Color(0xFFFBBF24)
+    val lt2Color = Color(0xFFF97316)
 
     Box(modifier = modifier) {
         Canvas(

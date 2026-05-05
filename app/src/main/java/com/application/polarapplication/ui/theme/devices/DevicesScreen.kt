@@ -92,10 +92,7 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
     var isScanning by remember { mutableStateOf(false) }
 
     val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        arrayOf(
-            Manifest.permission.BLUETOOTH_SCAN,
-            Manifest.permission.BLUETOOTH_CONNECT
-        )
+        arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
     } else {
         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
     }
@@ -114,10 +111,7 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: android.content.Context?, intent: Intent?) {
                 if (intent?.action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-                    val state = intent.getIntExtra(
-                        BluetoothAdapter.EXTRA_STATE,
-                        BluetoothAdapter.ERROR
-                    )
+                    val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
                     when (state) {
                         BluetoothAdapter.STATE_ON -> {
                             bluetoothEnabled = true
@@ -135,10 +129,8 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
                 }
             }
         }
-
         val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         context.registerReceiver(receiver, filter)
-
         onDispose {
             context.unregisterReceiver(receiver)
             viewModel.stopScanning()
@@ -147,7 +139,6 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
     }
 
     val isConnected = deviceState.device.isConnected
-
     LaunchedEffect(isConnected) {
         if (isConnected) {
             viewModel.stopScanning()
@@ -187,7 +178,6 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ── Stare permisiuni / bluetooth ────────────────────────────────────
         if (!hasPermissions) {
             WarningCard(
                 icon = Icons.Default.BluetoothDisabled,
@@ -205,9 +195,7 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
                 message = "Turn on Bluetooth to scan for nearby Polar sensors.",
                 actionLabel = "Open Settings",
                 actionColor = AccentAmber,
-                onAction = {
-                    context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
-                }
+                onAction = { context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
@@ -239,7 +227,6 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
             Spacer(modifier = Modifier.height(20.dp))
         }
 
-        // ── Scanare dispozitive ─────────────────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -293,9 +280,7 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
                 message = "No sensors found. Tap 'Scan' to search again."
             )
         } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(devices.toList()) { info ->
                     val isAlreadyConnected = isConnected &&
                         deviceState.device.deviceId == info.deviceId
@@ -318,10 +303,6 @@ fun DevicesScreen(viewModel: DashboardViewModel = viewModel()) {
     }
 }
 
-// ─────────────────────────────────────────────
-// COMPONENTE
-// ─────────────────────────────────────────────
-
 @Composable
 private fun SectionLabel(text: String) {
     Text(
@@ -334,14 +315,7 @@ private fun SectionLabel(text: String) {
 }
 
 @Composable
-private fun WarningCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    message: String,
-    actionLabel: String,
-    actionColor: Color,
-    onAction: () -> Unit
-) {
+private fun WarningCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, message: String, actionLabel: String, actionColor: Color, onAction: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -375,11 +349,7 @@ private fun WarningCard(
 }
 
 @Composable
-private fun ConnectedSensorCard(
-    deviceId: String,
-    batteryLevel: Int,
-    onDisconnect: () -> Unit
-) {
+private fun ConnectedSensorCard(deviceId: String, batteryLevel: Int, onDisconnect: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -443,11 +413,7 @@ private fun ConnectedSensorCard(
 }
 
 @Composable
-private fun LastSensorCard(
-    deviceName: String,
-    deviceId: String,
-    onReconnect: () -> Unit
-) {
+private fun LastSensorCard(deviceName: String, deviceId: String, onReconnect: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -495,24 +461,14 @@ private fun LastSensorCard(
 }
 
 @Composable
-private fun AvailableSensorCard(
-    name: String,
-    deviceId: String,
-    isConnected: Boolean,
-    onClick: () -> Unit
-) {
+private fun AvailableSensorCard(name: String, deviceId: String, isConnected: Boolean, onClick: () -> Unit) {
     val accentColor = if (isConnected) AccentGreen else AccentIndigo
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(GlassBg)
-            .border(
-                1.dp,
-                if (isConnected) AccentGreen.copy(alpha = 0.3f) else GlassBorder,
-                RoundedCornerShape(14.dp)
-            )
+            .border(1.dp, if (isConnected) AccentGreen.copy(alpha = 0.3f) else GlassBorder, RoundedCornerShape(14.dp))
             .clickable(enabled = !isConnected) { onClick() }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -546,13 +502,7 @@ private fun AvailableSensorCard(
             )
         }
         if (isConnected) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(AccentGreen.copy(alpha = 0.12f))
-                    .border(1.dp, AccentGreen.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
-                    .padding(horizontal = 8.dp, vertical = 3.dp)
-            ) {
+            Box(modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(AccentGreen.copy(alpha = 0.12f)).border(1.dp, AccentGreen.copy(alpha = 0.3f), RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp)) {
                 Text("Connected", color = AccentGreen, fontSize = 9.sp, fontWeight = FontWeight.Black)
             }
         } else {
@@ -567,10 +517,7 @@ private fun AvailableSensorCard(
 }
 
 @Composable
-private fun EmptyStateCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    message: String
-) {
+private fun EmptyStateCard(icon: androidx.compose.ui.graphics.vector.ImageVector, message: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
