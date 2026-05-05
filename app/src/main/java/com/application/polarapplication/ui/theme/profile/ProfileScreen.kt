@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.application.polarapplication.athletic.AthleticProfileCardLarge
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 import java.time.LocalDate
 import java.time.Period
@@ -58,7 +60,10 @@ private val AccentIndigo = Color(0xFF818CF8)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
+fun ProfileScreen(
+    viewModel: DashboardViewModel = viewModel(),
+    onNavigateToTest: () -> Unit = {}
+) {
     val context = LocalContext.current
 
     // State din ProfileManager
@@ -80,7 +85,8 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
     var customHrMax by remember(savedCustomHrMax) { mutableStateOf(savedCustomHrMax) }
     var profileImageUri by remember(savedImageUri) { mutableStateOf(savedImageUri) }
     var availableDays by remember(savedAvailableDays) { mutableStateOf(savedAvailableDays) }
-    var userName by remember { mutableStateOf("Nume Utilizator") }
+    val savedUserName by viewModel.profileManager.userName.collectAsState()
+    var userName by remember(savedUserName) { mutableStateOf(savedUserName.ifBlank { "Athlete" }) }
 
     // DatePicker state
     var showDatePicker by remember { mutableStateOf(false) }
@@ -266,6 +272,69 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
                 }
             )
 
+            Spacer(modifier = Modifier.height(20.dp))
+
+// ── Athletic Profile ─────────────────────────────────────────────
+            val athleticScores by viewModel.athleticProfileManager.scores.collectAsState()
+            val hasTestDone by viewModel.athleticProfileManager.hasCompletedInitialTest.collectAsState()
+
+            SectionLabel("Athletic Profile")
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (hasTestDone) {
+                AthleticProfileCardLarge(
+                    scores = athleticScores,
+                    showScoreChips = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(AccentRed.copy(alpha = 0.06f))
+                        .border(1.dp, AccentRed.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                        .clickable { viewModel.athleticProfileManager.resetProfile() }
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Reset Athletic Profile",
+                        color = AccentRed,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(AccentIndigo.copy(alpha = 0.1f))
+                        .border(1.dp, AccentIndigo.copy(alpha = 0.25f), RoundedCornerShape(14.dp))
+                        .clickable { onNavigateToTest() }
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.MonitorHeart,
+                            null,
+                            tint = AccentIndigo,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            "Start Athletic Evaluation",
+                            color = AccentIndigo,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // ── Buton salvare ────────────────────────────────────────────────
@@ -280,7 +349,8 @@ fun ProfileScreen(viewModel: DashboardViewModel = viewModel()) {
                         customHrMax = customHrMax,
                         profileImageUri = profileImageUri,
                         dobMillis = dobMillis,
-                        availableDays = availableDays
+                        availableDays = availableDays,
+                        userName = userName
                     )
                 },
                 modifier = Modifier

@@ -17,6 +17,7 @@ data class TrainingSessionEntity(
     val totalCalories: Int,
     val cnsScoreAtStart: Int,
     val cnsScoreAtEnd: Int,
+    val durationSeconds: Long = 0L,
 
     // Pentru logica Bompa de mai târziu
     val microCycleId: Long? = null,
