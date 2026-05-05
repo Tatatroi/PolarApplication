@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.application.polarapplication.R
 @Composable
 fun StressBodyVisualizer(
@@ -41,17 +40,13 @@ fun StressBodyVisualizer(
 
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            // Ne asigurăm că are o înălțime clară ca să nu se "turtsească"
-            .height(400.dp)
+            .fillMaxSize() // ← înlocuiește .fillMaxWidth().height(400.dp)
             .background(Color.Transparent),
         contentAlignment = Alignment.Center
     ) {
-        // STRATUL 1: Aura Strălucitoare în spate
         Canvas(modifier = Modifier.fillMaxSize()) {
             val centerPoint = center
             val maxRadius = size.minDimension / 1.5f
-            // Când scorul e 0, vrem totuși o aură mică vizibilă
             val currentRadius = maxRadius * (animatedRadiusMultiplier.coerceAtLeast(0.2f))
 
             drawCircle(
@@ -68,8 +63,8 @@ fun StressBodyVisualizer(
             painter = bodyPainter,
             contentDescription = "Siluetă Biometrică",
             modifier = Modifier
-                .fillMaxHeight(0.9f) // Lăsăm puțin spațiu sus/jos
-                .fillMaxWidth(0.9f)
+                .fillMaxHeight(0.95f) // ← mărit de la 0.9f
+                .fillMaxWidth(0.95f) // ← mărit de la 0.9f
         )
     }
 }

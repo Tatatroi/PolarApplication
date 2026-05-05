@@ -53,6 +53,11 @@ class ProfileManager(context: Context) {
     )
     val availableDays: StateFlow<Set<Int>> = _availableDays
 
+    private val _userName = MutableStateFlow(
+        prefs.getString("user_name", "") ?: ""
+    )
+    val userName: StateFlow<String> = _userName
+
     fun saveProfile(
         newAge: Int,
         newWeight: Float,
@@ -64,7 +69,8 @@ class ProfileManager(context: Context) {
         newCompetitionDateMillis: Long? = _competitionDateMillis.value,
         newPlanStartDateMillis: Long? = _planStartDateMillis.value,
         newDobMillis: Long? = _dobMillis.value,
-        newAvailableDays: Set<Int> = _availableDays.value
+        newAvailableDays: Set<Int> = _availableDays.value,
+        newUserName: String = _userName.value
     ) {
         val editor = prefs.edit()
 
@@ -73,6 +79,7 @@ class ProfileManager(context: Context) {
         editor.putInt("height", newHeight)
         editor.putString("gender", newGender)
         editor.putInt("rhr", newRhr)
+        editor.putString("user_name", newUserName)
 
         if (newCustomHrMax != null) {
             editor.putInt("customHrMax", newCustomHrMax)
@@ -119,5 +126,6 @@ class ProfileManager(context: Context) {
         _planStartDateMillis.value = newPlanStartDateMillis
         _dobMillis.value = newDobMillis
         _availableDays.value = newAvailableDays
+        _userName.value = newUserName
     }
 }

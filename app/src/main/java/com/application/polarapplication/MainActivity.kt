@@ -1,8 +1,12 @@
 package com.application.polarapplication
 
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,6 +27,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,6 +45,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import com.application.polarapplication.ai.chatbot.ChatBotScreen
+import com.application.polarapplication.athletic.InitialTestScreen
+import com.application.polarapplication.athletic.ProgressScreen
 import com.application.polarapplication.polar.PermissionHelper
 import com.application.polarapplication.ui.Screen
 import com.application.polarapplication.ui.history.HistoryScreen
@@ -73,6 +80,15 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            val intent = Intent(
+                Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                Uri.parse("package:$packageName")
+            )
+            startActivity(intent)
+        }
+
         if (!PermissionHelper.hasAllPermissions(this)) {
             PermissionHelper.requestAllPermissions(this)
         }
@@ -98,8 +114,8 @@ fun MainNavigationWrapper() {
         bottomBar = {
             if (isBottomBarVisible) {
                 NavigationBar(
-                    containerColor = Color.White,
-                    tonalElevation = 8.dp
+                    containerColor = Color(0xFF0D0D14),
+                    tonalElevation = 0.dp
                 ) {
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
@@ -110,7 +126,15 @@ fun MainNavigationWrapper() {
                                 popUpTo(navController.graph.startDestinationId)
                                 launchSingleTop = true
                             }
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF818CF8),
+                            selectedTextColor = Color(0xFF818CF8),
+                            unselectedIconColor = Color(0xFF555566),
+                            unselectedTextColor = Color(0xFF555566),
+                            indicatorColor = Color(0xFF818CF8).copy(alpha = 0.12f)
+                        )
+
                     )
 
                     NavigationBarItem(
@@ -121,7 +145,14 @@ fun MainNavigationWrapper() {
                             navController.navigate(Screen.Devices.route) {
                                 launchSingleTop = true
                             }
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF818CF8),
+                            selectedTextColor = Color(0xFF818CF8),
+                            unselectedIconColor = Color(0xFF555566),
+                            unselectedTextColor = Color(0xFF555566),
+                            indicatorColor = Color(0xFF818CF8).copy(alpha = 0.12f)
+                        )
                     )
 
                     NavigationBarItem(
@@ -132,7 +163,14 @@ fun MainNavigationWrapper() {
                             navController.navigate(Screen.History.route) {
                                 launchSingleTop = true
                             }
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF818CF8),
+                            selectedTextColor = Color(0xFF818CF8),
+                            unselectedIconColor = Color(0xFF555566),
+                            unselectedTextColor = Color(0xFF555566),
+                            indicatorColor = Color(0xFF818CF8).copy(alpha = 0.12f)
+                        )
                     )
 
                     NavigationBarItem(
@@ -143,7 +181,14 @@ fun MainNavigationWrapper() {
                             navController.navigate(Screen.Profile.route) {
                                 launchSingleTop = true
                             }
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF818CF8),
+                            selectedTextColor = Color(0xFF818CF8),
+                            unselectedIconColor = Color(0xFF555566),
+                            unselectedTextColor = Color(0xFF555566),
+                            indicatorColor = Color(0xFF818CF8).copy(alpha = 0.12f)
+                        )
                     )
 
                     NavigationBarItem(
@@ -155,7 +200,14 @@ fun MainNavigationWrapper() {
                             navController.navigate(Screen.Plan.route) {
                                 launchSingleTop = true
                             }
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF818CF8),
+                            selectedTextColor = Color(0xFF818CF8),
+                            unselectedIconColor = Color(0xFF555566),
+                            unselectedTextColor = Color(0xFF555566),
+                            indicatorColor = Color(0xFF818CF8).copy(alpha = 0.12f)
+                        )
                     )
                 }
             }
@@ -193,9 +245,11 @@ fun MainNavigationWrapper() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Dashboard.route) {
-                DashboardScreen(viewModel = sharedViewModel, onMaximizeWorkout = {
-                    navController.navigate(Screen.ActiveWorkout.route)
-                })
+                DashboardScreen(
+                    viewModel = sharedViewModel,
+                    onMaximizeWorkout = { navController.navigate(Screen.ActiveWorkout.route) },
+                    onNavigateToTest = { navController.navigate(Screen.InitialTest.route) }
+                )
             }
 
             composable(Screen.Devices.route) {
@@ -208,9 +262,8 @@ fun MainNavigationWrapper() {
                 if (selectedSession == null) {
                     HistoryScreen(
                         viewModel = sharedViewModel,
-                        onSessionClick = { session ->
-                            sharedViewModel.selectSession(session)
-                        }
+                        onSessionClick = { session -> sharedViewModel.selectSession(session) },
+                        onNavigateToProgress = { navController.navigate(Screen.Progress.route) }
                     )
                 } else {
                     Column(modifier = Modifier.fillMaxSize()) {
@@ -241,7 +294,10 @@ fun MainNavigationWrapper() {
             }
 
             composable(Screen.Profile.route) {
-                ProfileScreen(viewModel = sharedViewModel)
+                ProfileScreen(
+                    viewModel = sharedViewModel,
+                    onNavigateToTest = { navController.navigate(Screen.InitialTest.route) }
+                )
             }
 
             composable(Screen.TargetSetup.route) {
@@ -277,6 +333,23 @@ fun MainNavigationWrapper() {
 
             composable(Screen.AiChat.route) {
                 ChatBotScreen(viewModel = sharedViewModel)
+            }
+
+            composable(Screen.InitialTest.route) {
+                InitialTestScreen(
+                    viewModel = sharedViewModel,
+                    athleticMgr = sharedViewModel.athleticProfileManager,
+                    onTestComplete = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Screen.Progress.route) {
+                ProgressScreen(
+                    viewModel = sharedViewModel,
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }
