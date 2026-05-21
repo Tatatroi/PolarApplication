@@ -415,27 +415,106 @@ private fun ZoneItem(title: String, rangeText: String, count: Int, totalCount: F
 
 @Composable
 private fun AthleticImpactSection(session: TrainingSessionEntity) {
-    val intensity = when { session.finalTrimp > 80 || session.cnsScoreAtEnd < 40 -> "Hard"; session.finalTrimp > 40 || session.cnsScoreAtEnd < 60 -> "Medium"; else -> "Easy" }
+    val intensity = when {
+        session.finalTrimp > 80 || session.cnsScoreAtEnd < 40 -> "Hard"
+        session.finalTrimp > 40 || session.cnsScoreAtEnd < 60 -> "Medium"
+        else -> "Easy"
+    }
     val pts = when (intensity) { "Hard" -> 3f; "Medium" -> 2f; else -> 1f }
+
     data class AxisChange(val label: String, val delta: Float, val positive: Boolean)
     val changes = mutableListOf<AxisChange>()
+
     when (session.type.uppercase()) {
-        "STRENGTH" -> { changes.add(AxisChange("Strength", pts, true)); changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true)) }
-        "SPEED" -> { changes.add(AxisChange("Speed", pts, true)); changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true)) }
-        "ENDURANCE" -> { changes.add(AxisChange("Endurance", pts, true)); changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true)) }
-        "RECOVERY", "REST" -> changes.add(AxisChange("HRR", 0.5f, true))
+        "STRENGTH" -> {
+            changes.add(AxisChange("Strength", pts, true))
+            val endBonus = when (session.activityType.lowercase()) {
+                "bodyweight", "calisthenics" -> pts * 0.15f
+                else -> 0f
+            }
+            if (endBonus > 0) changes.add(AxisChange("Endurance", endBonus, true))
+            changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true))
+        }
+        "ENDURANCE" -> {
+            changes.add(AxisChange("Endurance", pts, true))
+            val speedBonus = when (session.activityType.lowercase()) {
+                "bag work" -> pts * 0.10f
+                else -> 0f
+            }
+            if (speedBonus > 0) changes.add(AxisChange("Speed", speedBonus, true))
+            changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true))
+        }
+        "SPEED" -> {
+            val (speedPts, strBonus, endBonus) = when (session.activityType.lowercase()) {
+                "martial arts", "boxing" -> Triple(pts * 0.6f, pts * 0.2f, pts * 0.2f)
+                "intervals"              -> Triple(pts * 0.7f, 0f,         pts * 0.3f)
+                "agility"                -> Triple(pts * 0.8f, pts * 0.1f, pts * 0.1f)
+                else                     -> Triple(pts,        0f,          0f)
+            }
+            changes.add(AxisChange("Speed", speedPts, true))
+            if (strBonus > 0) changes.add(AxisChange("Strength", strBonus, true))
+            if (endBonus > 0) changes.add(AxisChange("Endurance", endBonus, true))
+            changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true))
+        }
+        "RECOVERY", "REST" -> {
+            changes.add(AxisChange("HRR", 0.3f, true))
+        }
     }
-    val summaryText = "$intensity session · +${pts.toInt()} pts on ${changes.firstOrNull()?.label ?: "profile"}"
-    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color(0xFF111118)).border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp)).padding(14.dp)) {
-        Text("ATHLETIC IMPACT", color = Color.White.copy(alpha = 0.25f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, modifier = Modifier.padding(bottom = 10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 10.dp)) {
+
+    // RPE bonus vizual
+    val rpeNote = when {
+        session.rpe in 7..8 -> " · Optimal effort"
+        session.rpe >= 9    -> " · High effort"
+        session.rpe in 1..3 -> " · Low effort"
+        else -> ""
+    }
+
+    val activityNote = if (session.activityType.isNotEmpty()) " · ${session.activityType}" else ""
+    val summaryText = "$intensity session$activityNote$rpeNote"
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFF111118))
+            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+            .padding(14.dp)
+    ) {
+        Text(
+            "ATHLETIC IMPACT",
+            color = Color.White.copy(alpha = 0.25f),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            modifier = Modifier.padding(bottom = 10.dp)
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(bottom = 10.dp)
+        ) {
             changes.forEach { change ->
                 val color = if (change.positive) Color(0xFF4ADE80) else Color(0xFFF87171)
-                Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(color.copy(alpha = 0.1f)).border(1.dp, color.copy(alpha = 0.25f), RoundedCornerShape(20.dp)).padding(horizontal = 12.dp, vertical = 5.dp)) {
-                    Text("${if (change.positive) "+" else "-"}${"%.1f".format(change.delta)} ${change.label}", color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(color.copy(alpha = 0.1f))
+                        .border(1.dp, color.copy(alpha = 0.25f), RoundedCornerShape(20.dp))
+                        .padding(horizontal = 12.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        "+${"%.1f".format(change.delta)} ${change.label}",
+                        color = color,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
-        Text(summaryText, color = Color.White.copy(alpha = 0.3f), fontSize = 12.sp, lineHeight = 18.sp)
+        Text(
+            summaryText,
+            color = Color.White.copy(alpha = 0.3f),
+            fontSize = 12.sp,
+            lineHeight = 18.sp
+        )
     }
 }

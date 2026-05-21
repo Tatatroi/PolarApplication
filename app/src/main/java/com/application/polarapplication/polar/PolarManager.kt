@@ -31,7 +31,6 @@ class PolarManager(context: Context) {
     private val _availableDevices = MutableStateFlow<Set<PolarDeviceInfo>>(emptySet())
     val availableDevices = _availableDevices.asStateFlow()
 
-    // FIX: 5 secunde — suficient să acopere gap-urile dar fără lag mare
     private val hrCalculationWindowMs = 5000L
     private val rrTimestampBuffer = mutableListOf<Pair<Long, Double>>()
 
@@ -56,12 +55,19 @@ class PolarManager(context: Context) {
     private var ppiDisposable: Disposable? = null
     private var accDisposable: Disposable? = null
 
-    // Samples pentru grafic — un sample la fiecare 5 secunde
     private val workoutHeartRateSamples = mutableListOf<Int>()
     private var lastSampleTimestamp = 0L
     private val MIN_SAMPLE_INTERVAL_MS = 4500L
 
+    // ── Proprietăți utilizator ────────────────────────────────────────────────
     var userMaxHr: Int = 200
+    var currentActivityType: String = ""
+
+    var userAge: Int = 25
+    var userWeightKg: Float = 75f
+    var userGender: String = "Male"
+
+    private val recentAccReadings = mutableListOf<Pair<Long, Double>>()
 
     private val api: PolarBleApi by lazy {
         PolarBleApiDefaultImpl.defaultImplementation(
@@ -105,14 +111,19 @@ class PolarManager(context: Context) {
                     }
                     lastTimestamp = now
 
+                    val recentMaxAcc = recentAccReadings.maxOfOrNull { it.second } ?: 0.0
+                    if (recentMaxAcc > 5000) {
+                        return@subscribe
+                    }
+
                     data.samples.forEachIndexed { index, sample ->
                         if (sample.skinContactSupported && !sample.skinContactStatus) return@forEachIndexed
                         val rr = sample.ppi.toDouble()
                         if (rr < MIN_RR_MS || rr > MAX_RR_MS) return@forEachIndexed
 
                         val sampleTime = now - (
-                            (batchSize - 1 - index) * (dt * 1000.0 / batchSize)
-                            ).toLong()
+                                (batchSize - 1 - index) * (dt * 1000.0 / batchSize)
+                                ).toLong()
 
                         rrBuffer.add(rr)
                         if (rrBuffer.size > maxRrSize) rrBuffer.removeAt(0)
@@ -145,7 +156,7 @@ class PolarManager(context: Context) {
     }
 
     private fun isOutlierMAD(rr: Double): Boolean {
-        if (rrMadBuffer.size < 5) {
+        if (rrMadBuffer.size < 3) {
             rrMadBuffer.add(rr)
             return false
         }
@@ -166,27 +177,27 @@ class PolarManager(context: Context) {
     }
 
     private fun calculateHrFromWindow(): Double? {
-        if (rrTimestampBuffer.size < 2) return null
-        val meanRr = rrTimestampBuffer.map { it.second }.average()
-        return 60000.0 / meanRr
+        if (rrTimestampBuffer.size < 1) return null
+
+        val recentRrs = rrTimestampBuffer.map { it.second }
+        val trend = if (recentRrs.size >= 4) {
+            val firstHalf  = recentRrs.take(recentRrs.size / 2).average()
+            val secondHalf = recentRrs.drop(recentRrs.size / 2).average()
+            secondHalf - firstHalf
+        } else 0.0
+
+        val effectiveWindow = if (trend < -50) 2000L else hrCalculationWindowMs
+        val cutoff = System.currentTimeMillis() - effectiveWindow
+        val windowRrs = rrTimestampBuffer.filter { it.first > cutoff }.map { it.second }
+
+        if (windowRrs.isEmpty()) return null
+        return 60000.0 / windowRrs.average()
     }
 
     private fun applyRateLimit(newHr: Double, dt: Double): Int {
-        val motionFactor = when {
-            latestAccMagnitude > 3000 -> 0.2 // mișcare foarte bruscă (rotire mână, săritură)
-            latestAccMagnitude > 2000 -> 0.4 // mișcare mare
-            latestAccMagnitude > 1500 -> 0.7 // alergat/mișcare medie
-            else -> 1.0 // stând/mers liniștit (~1050)
-        }
-
-        val maxChange = MAX_HR_CHANGE_BPM_PER_SEC * dt.coerceAtMost(2.0) * motionFactor
-
-        val limitedHr = if (lastHr == null) {
-            newHr
-        } else {
-            val delta = (newHr - lastHr!!).coerceIn(-maxChange, maxChange)
-            lastHr!! + delta
-        }
+        val maxChange = MAX_HR_CHANGE_BPM_PER_SEC * dt.coerceAtMost(2.0)
+        val limitedHr = if (lastHr == null) newHr
+        else lastHr!! + (newHr - lastHr!!).coerceIn(-maxChange, maxChange)
         lastHr = limitedHr
         return limitedHr.toInt()
     }
@@ -210,14 +221,24 @@ class PolarManager(context: Context) {
         }
         val cnsScore = cnsRaw.toInt()
 
-        accumulatedTrimp += zone * timePerSampleMin
-        accumulatedCalories += hr * timePerSampleMin * 0.12
+        accumulatedTrimp += calcTrImpContribution(zone, hr, timePerSampleMin, currentActivityType)
+
+        // ── Formula Keytel et al. (2005) — validată științific ────────────────
+        // Ține cont de vârstă, greutate și sex
+        val caloriesPerMin = if (userGender == "Female") {
+            // Formula pentru femei
+            (-20.4022 + 0.4472 * hr - 0.1263 * userWeightKg + 0.074 * userAge) / 4.184
+        } else {
+            // Formula pentru bărbați
+            (-55.0969 + 0.6309 * hr + 0.1988 * userWeightKg + 0.2017 * userAge) / 4.184
+        }.coerceAtLeast(0.0) // nu putem arde calorii negative
+
+        accumulatedCalories += caloriesPerMin * timePerSampleMin
 
         val now = System.currentTimeMillis()
         if (now - lastSampleTimestamp >= MIN_SAMPLE_INTERVAL_MS) {
             workoutHeartRateSamples.add(hr)
             lastSampleTimestamp = now
-            android.util.Log.d("HR_SAMPLES", "Sample added: $hr BPM, total=${workoutHeartRateSamples.size}")
         }
 
         _athleteVitals.value = AthleteVitals(
@@ -232,6 +253,17 @@ class PolarManager(context: Context) {
         )
     }
 
+    private fun getActivityFactor(activityType: String): Double = when (activityType.lowercase()) {
+        "running"      -> 1.0
+        "cycling"      -> 1.15
+        "swimming"     -> 1.20
+        "gym"          -> 1.30
+        "bodyweight"   -> 1.10
+        "martial arts" -> 1.25
+        "boxing"       -> 1.20
+        else           -> 1.0
+    }
+
     private fun rr2bvpProxy(): Double = rrTimestampBuffer.lastOrNull()?.second ?: 0.0
 
     private fun startAccStreaming(deviceId: String) {
@@ -244,7 +276,9 @@ class PolarManager(context: Context) {
                         val y = sample.y.toDouble()
                         val z = sample.z.toDouble()
                         latestAccMagnitude = sqrt(x * x + y * y + z * z)
-                        android.util.Log.d("ACC_MAG", "Magnitude: $latestAccMagnitude")
+                        val now2 = System.currentTimeMillis()
+                        recentAccReadings.add(now2 to latestAccMagnitude)
+                        recentAccReadings.removeAll { it.first < now2 - 500 }
                     }
                 },
                 { error -> Log.e("POLAR_ACC", "ACC stream error: $error") }
@@ -273,10 +307,7 @@ class PolarManager(context: Context) {
     fun connectToDevice(id: String) { api.connectToDevice(id) }
     fun disconnectFromDevice(id: String) { api.disconnectFromDevice(id); reset() }
 
-    fun getHrSamples(): List<Int> {
-        android.util.Log.d("HR_SAMPLES", "getHrSamples called, size=${workoutHeartRateSamples.size}")
-        return workoutHeartRateSamples.toList()
-    }
+    fun getHrSamples(): List<Int> = workoutHeartRateSamples.toList()
 
     fun prepareNewWorkout() {
         accumulatedTrimp = 0.0
@@ -291,7 +322,6 @@ class PolarManager(context: Context) {
     private fun reset() {
         lastHr = null
         lastTimestamp = null
-
         rrBuffer.clear()
         rrTimestampBuffer.clear()
         rrMadBuffer.clear()
@@ -316,5 +346,32 @@ class PolarManager(context: Context) {
             p < 90 -> 4
             else -> 5
         }
+    }
+
+    private fun calcTrImpContribution(
+        zone: Int, hr: Int, timeMins: Double, activityType: String
+    ): Double {
+        val activityFactor = when (activityType.lowercase()) {
+            "running"      -> 1.0
+            "cycling"      -> 1.15
+            "swimming"     -> 1.20
+            "rowing"       -> 1.10
+            "bag work"     -> 1.05
+            "gym"          -> 1.30
+            "bodyweight"   -> 1.10
+            "kettlebell"   -> 1.20
+            "calisthenics" -> 1.15
+            "sprints"      -> 1.0
+            "martial arts" -> 1.25
+            "boxing"       -> 1.20
+            "intervals"    -> 1.0
+            "agility"      -> 1.10
+            "walking"      -> 0.8
+            "yoga"         -> 0.7
+            "stretching"   -> 0.6
+            "light swim"   -> 0.85
+            else           -> 1.0
+        }
+        return zone * timeMins * activityFactor
     }
 }

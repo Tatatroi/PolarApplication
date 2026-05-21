@@ -7,19 +7,33 @@ import androidx.room.PrimaryKey
 data class TrainingSessionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val date: Long = System.currentTimeMillis(),
-    val type: String, // Ex: "Forță", "Viteză"
-    val isCompleted: Boolean = false, // Dacă e FALSE, e un "Auto-save" (în caz de crash)
 
-    // Datele tale din AthleteVitals
+    // ── Tipul principal de antrenament ────────────────────────────────────────
+    // STRENGTH / ENDURANCE / SPEED / RECOVERY / REST
+    val type: String,
+
+    // ── Activitatea specifică (cum ai făcut antrenamentul) ────────────────────
+    // Ex: "Running", "Cycling", "Martial Arts", "Gym", "Bodyweight", etc.
+    // Gol = formula default per tip
+    val activityType: String = "",
+
+    // ── Detalii sesiune (Step 2 din UI) ──────────────────────────────────────
+    val sessionGoal: String = "",    // "Build Strength", "Improve Endurance", etc.
+    val focusArea: String = "",      // "Lower Body", "Upper Body", "Full Body", etc.
+    val rpe: Int = 0,                // Rate of Perceived Exertion 1-10 (completat după)
+
+    val isCompleted: Boolean = false,
+
+    // ── Date biometrice ───────────────────────────────────────────────────────
     val avgHeartRate: Int,
     val maxHeartRate: Int,
-    val finalTrimp: Double,
+    val finalTrimp: Double,          // TRIMP ajustat per activitate
     val totalCalories: Int,
     val cnsScoreAtStart: Int,
     val cnsScoreAtEnd: Int,
     val durationSeconds: Long = 0L,
 
-    // Pentru logica Bompa de mai târziu
+    // ── Bompa ─────────────────────────────────────────────────────────────────
     val microCycleId: Long? = null,
     val hrSamples: String = ""
 )

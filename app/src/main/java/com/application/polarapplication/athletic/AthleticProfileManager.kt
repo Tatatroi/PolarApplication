@@ -141,63 +141,91 @@ class AthleticProfileManager(context: Context) {
     // UPDATE DUPĂ SESIUNE
     // Logica principală bazată pe date reale
     // ─────────────────────────────────────────────
-
     fun updateAfterSession(session: TrainingSessionEntity) {
-        // 1. Verificăm dacă sesiunea e validă
         if (!isSessionValid(session)) {
-            android.util.Log.d("ATHLETIC", "Sesiune invalidă — ignorată (dur=${session.durationSeconds}s, trimp=${session.finalTrimp}, avgHr=${session.avgHeartRate})")
+            android.util.Log.d("ATHLETIC", "Sesiune invalidă — ignorată")
             return
         }
 
-        val current = _scores.value
-
-        // 2. Calculăm punctele bazate pe indicatori reali
-        val pts = calculatePoints(session)
-
-        // 3. Calculăm delta HRR din recuperarea cardiacă
+        val current  = _scores.value
+        val pts      = calculatePoints(session)
         val hrrDelta = calculateHrrDelta(session)
 
-        android.util.Log.d("ATHLETIC", "Sesiune validă: tip=${session.type}, pts=$pts, hrrDelta=$hrrDelta, trimp=${session.finalTrimp}, dur=${session.durationSeconds}s")
+        android.util.Log.d("ATHLETIC", "tip=${session.type}, activitate=${session.activityType}, pts=$pts")
 
         var updated = current
         var changeAxis = ""; var changeDelta = 0f; var changeReason = ""
 
         when (session.type.uppercase()) {
             "STRENGTH" -> {
-                updated = updated.copy(strength = (current.strength + pts).coerceIn(0f, 100f))
-                changeAxis = "Strength"; changeDelta = pts
+                // Contribuție primară: Strength
+                // Contribuție secundară: dacă e bodyweight/calisthenics → puțin Endurance
+                val strengthPts  = pts
+                val enduranceBonus = when (session.activityType.lowercase()) {
+                    "bodyweight", "calisthenics" -> pts * 0.15f
+                    else -> 0f
+                }
+                updated = updated.copy(
+                    strength  = (current.strength + strengthPts).coerceIn(0f, 100f),
+                    endurance = (current.endurance + enduranceBonus).coerceIn(0f, 100f)
+                )
+                changeAxis = "Strength"; changeDelta = strengthPts
                 changeReason = buildReason(session, pts)
             }
-            "SPEED" -> {
-                updated = updated.copy(speed = (current.speed + pts).coerceIn(0f, 100f))
-                changeAxis = "Speed"; changeDelta = pts
-                changeReason = buildReason(session, pts)
-            }
+
             "ENDURANCE" -> {
-                updated = updated.copy(endurance = (current.endurance + pts).coerceIn(0f, 100f))
-                changeAxis = "Endurance"; changeDelta = pts
+                // Contribuție primară: Endurance
+                // Contribuție secundară: dacă e bag work → puțin Speed
+                val endurancePts = pts
+                val speedBonus = when (session.activityType.lowercase()) {
+                    "bag work" -> pts * 0.10f
+                    else -> 0f
+                }
+                updated = updated.copy(
+                    endurance = (current.endurance + endurancePts).coerceIn(0f, 100f),
+                    speed     = (current.speed + speedBonus).coerceIn(0f, 100f)
+                )
+                changeAxis = "Endurance"; changeDelta = endurancePts
                 changeReason = buildReason(session, pts)
             }
+
+            "SPEED" -> {
+                // Arte marțiale și box → Speed + Strength + puțin Endurance
+                // Sprinturi/Intervale → Speed dominant
+                val (speedPts, strengthBonus, enduranceBonus) = when (session.activityType.lowercase()) {
+                    "martial arts", "boxing" -> Triple(pts * 0.6f, pts * 0.2f, pts * 0.2f)
+                    "intervals"              -> Triple(pts * 0.7f, 0f,          pts * 0.3f)
+                    "agility"                -> Triple(pts * 0.8f, pts * 0.1f,  pts * 0.1f)
+                    else                     -> Triple(pts,        0f,           0f)
+                }
+                updated = updated.copy(
+                    speed     = (current.speed + speedPts).coerceIn(0f, 100f),
+                    strength  = (current.strength + strengthBonus).coerceIn(0f, 100f),
+                    endurance = (current.endurance + enduranceBonus).coerceIn(0f, 100f)
+                )
+                changeAxis = "Speed"; changeDelta = speedPts
+                changeReason = buildReason(session, pts)
+            }
+
             "RECOVERY", "REST" -> {
-                // Recovery adaugă doar la HRR, nu la alte axe
                 updated = updated.copy(hrr = (current.hrr + 0.3f).coerceIn(0f, 100f))
                 changeAxis = "HRR"; changeDelta = 0.3f
                 changeReason = "Recovery session"
             }
         }
 
-        // HRR se actualizează pentru orice tip de sesiune (nu recovery)
+        // HRR pentru orice sesiune non-recovery
         if (session.type.uppercase() !in listOf("RECOVERY", "REST")) {
             updated = updated.copy(hrr = (updated.hrr + hrrDelta).coerceIn(0f, 100f))
         }
 
         saveScores(updated)
         addSnapshot(updated)
-
         if (changeAxis.isNotEmpty()) {
             _lastScoreChange.value = ScoreChange(changeAxis, changeDelta, changeReason)
         }
     }
+
 
     // ─────────────────────────────────────────────
     // VALIDARE SESIUNE
@@ -218,54 +246,71 @@ class AthleticProfileManager(context: Context) {
     // ─────────────────────────────────────────────
 
     private fun calculatePoints(session: TrainingSessionEntity): Float {
-        // Fiecare component contribuie la scorul final
-
-        // 1. TRIMP — volumul de muncă (0-4 pts)
-        // TRIMP mic = sesiune ușoară, TRIMP mare = sesiune grea
+        // 1. TRIMP points (0-4)
         val trimpPts = when {
-            session.finalTrimp >= 150 -> 4.0f // sesiune foarte grea (>2.5 ore intens)
-            session.finalTrimp >= 100 -> 3.0f // sesiune grea
-            session.finalTrimp >= 60 -> 2.5f // sesiune medie-grea
-            session.finalTrimp >= 30 -> 2.0f // sesiune medie
-            session.finalTrimp >= 15 -> 1.5f // sesiune ușoară-medie
-            session.finalTrimp >= 5 -> 1.0f // sesiune ușoară
-            else -> 0f
+            session.finalTrimp >= 150 -> 4.0f
+            session.finalTrimp >= 100 -> 3.0f
+            session.finalTrimp >= 60  -> 2.5f
+            session.finalTrimp >= 30  -> 2.0f
+            session.finalTrimp >= 15  -> 1.5f
+            session.finalTrimp >= 5   -> 1.0f
+            else                      -> 0f
         }
 
-        // 2. Intensitate (zona de puls atinsă) — (0-2 pts)
-        // MaxHR mare față de userMaxHr înseamnă că ai atins zone înalte
-        val hrIntensityRatio = session.maxHeartRate.toFloat() / 200f // aproximare userMaxHr
+        // 2. Intensitate HR (0-2)
+        val hrRatio = session.maxHeartRate.toFloat() / 200f
         val intensityPts = when {
-            hrIntensityRatio >= 0.90f -> 2.0f // Zone 5
-            hrIntensityRatio >= 0.80f -> 1.5f // Zone 4
-            hrIntensityRatio >= 0.70f -> 1.0f // Zone 3
-            hrIntensityRatio >= 0.60f -> 0.5f // Zone 2
-            else -> 0.2f // Zone 1
+            hrRatio >= 0.90f -> 2.0f
+            hrRatio >= 0.80f -> 1.5f
+            hrRatio >= 0.70f -> 1.0f
+            hrRatio >= 0.60f -> 0.5f
+            else             -> 0.2f
         }
 
-        // 3. Durată bonus — sesiunile lungi adaugă un mic bonus (0-1 pt)
+        // 3. Durată bonus (0-1)
         val durationPts = when {
-            session.durationSeconds >= 3600 -> 1.0f // > 1 oră
-            session.durationSeconds >= 1800 -> 0.7f // > 30 min
-            session.durationSeconds >= 900 -> 0.4f // > 15 min
-            session.durationSeconds >= 300 -> 0.2f // > 5 min
-            else -> 0f
+            session.durationSeconds >= 3600 -> 1.0f
+            session.durationSeconds >= 1800 -> 0.7f
+            session.durationSeconds >= 900  -> 0.4f
+            session.durationSeconds >= 300  -> 0.2f
+            else                            -> 0f
         }
 
-        // 4. CNS penalizare — dacă CNS la final e foarte mic, efortul a fost prea mare
-        // și corpul nu a putut absorbi bine antrenamentul
+        // 4. RPE bonus/penalizare (dacă e setat)
+        // RPE 7-8 = efort optim pentru adaptare → bonus mic
+        // RPE 9-10 = over-effort → penalizare mică
+        // RPE 1-3 = prea ușor → penalizare mică
+        val rpePts = when {
+            session.rpe == 0              -> 0f   // nesetat
+            session.rpe in 7..8           -> 0.3f // efort optim
+            session.rpe >= 9              -> -0.2f // prea greu
+            session.rpe <= 3              -> -0.1f // prea ușor
+            else                          -> 0f
+        }
+
+        // 5. Focus area bonus pentru Strength (Lower Body = mai mult efort sistemic)
+        val focusPts = when (session.focusArea.lowercase()) {
+            "lower body" -> if (session.type == "STRENGTH") 0.3f else 0f
+            "full body"  -> if (session.type == "STRENGTH") 0.4f else 0f
+            else         -> 0f
+        }
+
+        // 6. CNS penalizare
         val cnsPenalty = when {
-            session.cnsScoreAtEnd < 20 -> -0.5f // over-trained
-            session.cnsScoreAtEnd < 35 -> -0.2f // obosit
-            else -> 0f
+            session.cnsScoreAtEnd < 20 -> -0.5f
+            session.cnsScoreAtEnd < 35 -> -0.2f
+            else                       -> 0f
         }
 
-        val total = (trimpPts + intensityPts + durationPts + cnsPenalty).coerceAtLeast(0f)
+        val total = (trimpPts + intensityPts + durationPts + rpePts + focusPts + cnsPenalty)
+            .coerceAtLeast(0f)
 
-        android.util.Log.d("ATHLETIC", "Puncte: trimp=$trimpPts, intensity=$intensityPts, duration=$durationPts, cnsPenalty=$cnsPenalty, total=$total")
+        android.util.Log.d("ATHLETIC",
+            "Pts: trimp=$trimpPts intensity=$intensityPts dur=$durationPts rpe=$rpePts focus=$focusPts cns=$cnsPenalty = $total")
 
         return total
     }
+
 
     // ─────────────────────────────────────────────
     // CALCUL HRR DELTA

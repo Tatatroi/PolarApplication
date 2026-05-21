@@ -619,7 +619,7 @@ private fun WeekDayGrid(
     selectedDayInfo: SelectedDayInfo?,
     onDayClick: (LocalDate, WorkoutType, Int) -> Unit
 ) {
-    val dayLabels = listOf("L", "M", "M", "J", "V", "S", "D")
+    val dayLabels = listOf("M", "T", "W", "T", "F", "S", "S")
 
     Column(
         modifier = Modifier
@@ -714,8 +714,8 @@ private fun WeekDayGrid(
 @Composable
 private fun DayDetailPanel(info: SelectedDayInfo) {
     val formatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy")
-    val dayOfWeek = listOf("Luni", "Marți", "Miercuri", "Joi", "Vineri", "Sâmbătă", "Duminică")
-    val months = listOf("ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec")
+    val dayOfWeek = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     val dayName = dayOfWeek[(info.date.dayOfWeek.value - 1)]
     val dateStr = "$dayName, ${info.date.dayOfMonth} ${months[info.date.monthValue - 1]} ${info.date.year}"
 
@@ -740,7 +740,7 @@ private fun DayDetailPanel(info: SelectedDayInfo) {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Săpt. ${info.weekNumberInPlan} din plan",
+                    text = "Week ${info.weekNumberInPlan} of plan",
                     color = Color(0xFF555566),
                     fontSize = 11.sp
                 )
@@ -766,8 +766,8 @@ private fun DayDetailPanel(info: SelectedDayInfo) {
         Spacer(modifier = Modifier.height(12.dp))
 
         // Rânduri detalii
-        DetailRow("Mezociclu", "${info.mesoCycle.phase.replaceFirstChar { it.uppercase() }} · ${info.mesoCycle.microCycle.size} săpt.")
-        DetailRow("Macrociclu", "Forță Generală · plan complet")
+        DetailRow("Mesocycle", "${info.mesoCycle.phase.replaceFirstChar { it.uppercase() }} · ${info.mesoCycle.microCycle.size} weeks")
+        DetailRow("Macrocycle", "General Strength · full plan")
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -782,7 +782,7 @@ private fun DayDetailPanel(info: SelectedDayInfo) {
         ) {
             Column {
                 Text(
-                    text = "Faza ${info.mesoCycle.phase.replaceFirstChar { it.uppercase() }}",
+                    text = "Phase ${info.mesoCycle.phase.replaceFirstChar { it.uppercase() }}",
                     color = phaseColor(info.mesoCycle.phase),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
@@ -810,7 +810,7 @@ private fun DayDetailPanel(info: SelectedDayInfo) {
         ) {
             Column {
                 Text(
-                    text = "Recomandare Bompa",
+                    text = "Bompa Recommendation",
                     color = workoutColor(info.workoutType),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold

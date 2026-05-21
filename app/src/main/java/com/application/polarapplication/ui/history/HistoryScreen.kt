@@ -50,6 +50,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 // ─────────────────────────────────────────────
 // CULORI TEMĂ
@@ -101,7 +102,7 @@ fun HistoryScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Istoric Antrenamente",
+                text = "Training History",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Black,
                 color = Color.White
@@ -143,7 +144,7 @@ fun HistoryScreen(
                 ) {
                     Column {
                         Text(
-                            text = "COMPETIȚIE TARGET",
+                            text = "TARGET COMPETITION",
                             color = Color(0xFFF87171).copy(alpha = 0.7f),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
@@ -165,7 +166,7 @@ fun HistoryScreen(
                             lineHeight = 30.sp
                         )
                         Text(
-                            text = "zile rămase",
+                            text = "days left",
                             color = Color(0xFFF87171).copy(alpha = 0.6f),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
@@ -184,7 +185,7 @@ fun HistoryScreen(
                 .background(CardSurfaceDark, RoundedCornerShape(12.dp))
                 .padding(4.dp)
         ) {
-            listOf("Vizualizare Listă", "Calendar").forEachIndexed { index, label ->
+            listOf("List View", "Calendar").forEachIndexed { index, label ->
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -214,7 +215,7 @@ fun HistoryScreen(
 
         if (sessions.isEmpty() && selectedTabIndex == 0) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Nicio sesiune înregistrată.", color = Color.Gray, fontSize = 16.sp)
+                Text("No sessions recorded.", color = Color.Gray, fontSize = 16.sp)
             }
         } else {
             if (selectedTabIndex == 0) {
@@ -250,117 +251,164 @@ fun PremiumHistoryCard(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val dateStr = SimpleDateFormat("dd MMM yyyy • HH:mm", Locale.getDefault()).format(Date(session.date))
-    val theme = getThemeForWorkout(session.type)
+    val dateStr = SimpleDateFormat("dd MMM yyyy • HH:mm", LocalLocale.current.platformLocale).format(Date(session.date))
+    val theme   = getThemeForWorkout(session.type)
+
     val durationStr = if (session.durationSeconds > 0) {
         val min = session.durationSeconds / 60
         val sec = session.durationSeconds % 60
         "%02d:%02d".format(min, sec)
-    } else {
-        "—"
+    } else "—"
+
+    // Subtitlu cu activitatea (dacă există)
+    val subtitle = buildString {
+        append(session.type.uppercase())
+        if (session.activityType.isNotEmpty()) append(" · ${session.activityType}")
     }
 
-    val cardBackgroundBrush = Brush.horizontalGradient(
-        colors = listOf(
-            theme.color.copy(alpha = 0.15f),
-            CardSurfaceDark,
-            theme.color.copy(alpha = 0.05f)
-        )
-    )
+    // Intensitate pentru bara de jos (0-1)
+    val intensity = (session.finalTrimp / 150.0).coerceIn(0.0, 1.0).toFloat()
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(cardBackgroundBrush)
-            .border(
-                width = 1.dp,
-                brush = Brush.verticalGradient(
-                    colors = listOf(theme.color.copy(alpha = 0.5f), Color.Transparent)
-                ),
-                shape = RoundedCornerShape(16.dp)
-            )
+            .clip(RoundedCornerShape(14.dp))
+            .background(CardSurfaceDark)
+            .border(1.dp, theme.color.copy(alpha = 0.2f), RoundedCornerShape(14.dp))
             .clickable { onClick() }
-            .padding(16.dp)
     ) {
+        // Buton delete
         IconButton(
             onClick = onDelete,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .size(24.dp)
-                .offset(x = 8.dp, y = (-8).dp)
+                .size(36.dp)
+                .padding(top = 4.dp, end = 4.dp)
         ) {
-            Icon(Icons.Default.Delete, contentDescription = "Șterge", tint = Color.Gray.copy(alpha = 0.5f))
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = "Delete",
+                tint = Color.White.copy(alpha = 0.2f),
+                modifier = Modifier.size(16.dp)
+            )
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = session.type.uppercase(),
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        letterSpacing = 1.sp,
-                        modifier = Modifier.padding(end = 32.dp)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = dateStr, fontSize = 12.sp, color = Color.Gray)
-                        Text("·", fontSize = 12.sp, color = Color.Gray)
-                        Text(durationStr, fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                    }
-                }
+        Column(modifier = Modifier.padding(start = 14.dp, end = 40.dp, top = 14.dp, bottom = 0.dp)) {
 
-                Spacer(modifier = Modifier.height(24.dp))
+            // ── Titlu + durată ────────────────────────────────────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text       = subtitle,
+                    color      = Color.White,
+                    fontSize   = 16.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 0.5.sp
+                )
+                Text(
+                    text       = durationStr,
+                    color      = theme.color,
+                    fontSize   = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Avg HR", color = Color.Gray, fontSize = 12.sp)
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text("${session.avgHeartRate}", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                            Text(" bpm", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp, start = 2.dp))
-                        }
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("TRIMP Score", color = Color.Gray, fontSize = 12.sp)
-                            InfoIconButton(info = MetricInfoData.TRIMP, tint = Color.Gray.copy(alpha = 0.5f))
-                        }
+            // ── Data ──────────────────────────────────────────────────────────
+            Text(
+                text     = dateStr,
+                color    = Color.White.copy(alpha = 0.3f),
+                fontSize = 11.sp,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // ── Metrici ───────────────────────────────────────────────────────
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                verticalAlignment     = Alignment.Bottom
+            ) {
+                // Avg HR
+                Column {
+                    Text("Avg HR", color = Color.White.copy(alpha = 0.35f), fontSize = 10.sp)
+                    Row(verticalAlignment = Alignment.Bottom) {
                         Text(
-                            text = "%.1f".format(session.finalTrimp),
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(top = 4.dp)
+                            "${session.avgHeartRate}",
+                            color      = Color.White,
+                            fontSize   = 22.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(
+                            " bpm",
+                            color    = Color.White.copy(alpha = 0.4f),
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(bottom = 2.dp, start = 1.dp)
                         )
                     }
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Calories", color = Color.Gray, fontSize = 12.sp)
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text("${session.totalCalories}", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 4.dp))
-                            Text(" kcal", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(bottom = 2.dp, start = 2.dp))
-                        }
-                    }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-                IntensitySegmentedBar(color = theme.color, trimp = session.finalTrimp.toFloat())
-                Spacer(modifier = Modifier.height(8.dp))
+                // TRIMP
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("TRIMP", color = Color.White.copy(alpha = 0.35f), fontSize = 10.sp)
+                        InfoIconButton(info = MetricInfoData.TRIMP, tint = Color.White.copy(alpha = 0.2f))
+                    }
+                    Text(
+                        "%.1f".format(session.finalTrimp),
+                        color      = Color.White,
+                        fontSize   = 22.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(8.dp).clip(RoundedCornerShape(50)).background(theme.color))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = theme.label, color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                // RPE (dacă e setat)
+                if (session.rpe > 0) {
+                    Column {
+                        Text("RPE", color = Color.White.copy(alpha = 0.35f), fontSize = 10.sp)
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(
+                                "${session.rpe}",
+                                color      = theme.color,
+                                fontSize   = 22.sp,
+                                fontWeight = FontWeight.Black
+                            )
+                            Text(
+                                "/10",
+                                color    = Color.White.copy(alpha = 0.3f),
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(bottom = 2.dp, start = 1.dp)
+                            )
+                        }
+                    }
                 }
             }
 
-            CnsCircularRing(cnsValue = session.cnsScoreAtEnd, color = theme.color)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        // ── Bara de intensitate jos ───────────────────────────────────────────
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(3.dp)
+                .align(Alignment.BottomCenter)
+                .clip(RoundedCornerShape(bottomStart = 14.dp, bottomEnd = 14.dp))
+                .background(Color.White.copy(alpha = 0.05f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(intensity)
+                    .fillMaxHeight()
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(theme.color.copy(alpha = 0.8f), theme.color)
+                        )
+                    )
+            )
         }
     }
 }
@@ -446,7 +494,7 @@ fun WorkoutCalendar(
         realTodayCalendar.get(Calendar.YEAR) == currentViewYear &&
             realTodayCalendar.get(Calendar.MONTH) == currentViewMonth
     val realTodayDayOfMonth = realTodayCalendar.get(Calendar.DAY_OF_MONTH)
-    val weekDays = listOf("L", "M", "M", "J", "V", "S", "D")
+    val weekDays = listOf("M", "T", "W", "T", "F", "S", "S")
 
     Column(
         modifier = Modifier
@@ -464,15 +512,15 @@ fun WorkoutCalendar(
             IconButton(
                 onClick = { currentMonthOffset -= 1 },
                 modifier = Modifier.size(36.dp).background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp))
-            ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Înapoi", tint = Color.White) }
+            ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Back", tint = Color.White) }
 
-            val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(displayCalendar.time).uppercase()
+            val monthName = SimpleDateFormat("MMMM yyyy", LocalLocale.current.platformLocale).format(displayCalendar.time).uppercase()
             Text(text = monthName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
 
             IconButton(
                 onClick = { currentMonthOffset += 1 },
                 modifier = Modifier.size(36.dp).background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp))
-            ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Înainte", tint = Color.White) }
+            ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Forward", tint = Color.White) }
         }
 
         // Legendă Bompa (doar dacă există plan)
@@ -543,10 +591,10 @@ fun WorkoutCalendar(
             containerColor = CardSurfaceDark
         ) {
             Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp).fillMaxWidth()) {
-                Text(text = "Alege sesiunea", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(bottom = 16.dp))
+                Text(text = "Select session", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(bottom = 16.dp))
                 sessionsToSelect!!.forEach { session ->
                     val theme = getThemeForWorkout(session.type)
-                    val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(session.date))
+                    val timeStr = SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale).format(Date(session.date))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -561,7 +609,7 @@ fun WorkoutCalendar(
                     ) {
                         Column {
                             Text(session.type.uppercase(), color = theme.color, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            Text("Ora: $timeStr • TRIMP: ${"%.1f".format(session.finalTrimp)}", color = Color.Gray, fontSize = 12.sp)
+                            Text("Time: $timeStr • TRIMP: ${"%.1f".format(session.finalTrimp)}", color = Color.Gray, fontSize = 12.sp)
                         }
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
                     }
@@ -595,7 +643,7 @@ private fun BompaLegend() {
             ) {
                 Text("F", color = Color(0xFF818CF8), fontSize = 6.sp, fontWeight = FontWeight.Black)
             }
-            Text("Plan Bompa", color = Color(0xFF555566), fontSize = 9.sp)
+            Text("Bompa Plan", color = Color(0xFF555566), fontSize = 9.sp)
         }
 
         // Indicator warning
@@ -610,13 +658,13 @@ private fun BompaLegend() {
             ) {
                 Text("!", color = Color(0xFFF97316), fontSize = 6.sp, fontWeight = FontWeight.Black)
             }
-            Text("Deviere plan", color = Color(0xFF555566), fontSize = 9.sp)
+            Text("Off plan", color = Color(0xFF555566), fontSize = 9.sp)
         }
 
         // Marker competiție
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
             Box(modifier = Modifier.size(8.dp).clip(RoundedCornerShape(50)).background(Color(0xFFEF4444)))
-            Text("Competiție", color = Color(0xFF555566), fontSize = 9.sp)
+            Text("Competition", color = Color(0xFF555566), fontSize = 9.sp)
         }
     }
 }
@@ -671,7 +719,7 @@ fun CalendarDayCell(
     ) {
         // ── Conținut central ──────────────────────────────────────────────────
         when {
-            isCompetitionDay -> Icon(Icons.Default.EmojiEvents, contentDescription = "Competiție", tint = Color(0xFFF87171), modifier = Modifier.size(18.dp))
+            isCompetitionDay -> Icon(Icons.Default.EmojiEvents, contentDescription = "Competition", tint = Color(0xFFF87171), modifier = Modifier.size(18.dp))
             hasWorkout && sessionCount == 1 -> Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,

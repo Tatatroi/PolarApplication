@@ -11,7 +11,7 @@ import com.application.polarapplication.ai.database.SessionDao
 import com.application.polarapplication.model.TrainingSessionEntity
 
 @TypeConverters(Converters::class)
-@Database(entities = [TrainingSessionEntity::class], version = 2)
+@Database(entities = [TrainingSessionEntity::class], version = 3)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun sessionDao(): SessionDao
@@ -28,6 +28,15 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE training_sessions ADD COLUMN activityType TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE training_sessions ADD COLUMN sessionGoal TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE training_sessions ADD COLUMN focusArea TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE training_sessions ADD COLUMN rpe INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -35,7 +44,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "polar_manager_db"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                 INSTANCE = instance
                 instance
