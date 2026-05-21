@@ -147,8 +147,8 @@ class AthleticProfileManager(context: Context) {
             return
         }
 
-        val current  = _scores.value
-        val pts      = calculatePoints(session)
+        val current = _scores.value
+        val pts = calculatePoints(session)
         val hrrDelta = calculateHrrDelta(session)
 
         android.util.Log.d("ATHLETIC", "tip=${session.type}, activitate=${session.activityType}, pts=$pts")
@@ -160,13 +160,13 @@ class AthleticProfileManager(context: Context) {
             "STRENGTH" -> {
                 // Contribuție primară: Strength
                 // Contribuție secundară: dacă e bodyweight/calisthenics → puțin Endurance
-                val strengthPts  = pts
+                val strengthPts = pts
                 val enduranceBonus = when (session.activityType.lowercase()) {
                     "bodyweight", "calisthenics" -> pts * 0.15f
                     else -> 0f
                 }
                 updated = updated.copy(
-                    strength  = (current.strength + strengthPts).coerceIn(0f, 100f),
+                    strength = (current.strength + strengthPts).coerceIn(0f, 100f),
                     endurance = (current.endurance + enduranceBonus).coerceIn(0f, 100f)
                 )
                 changeAxis = "Strength"; changeDelta = strengthPts
@@ -183,7 +183,7 @@ class AthleticProfileManager(context: Context) {
                 }
                 updated = updated.copy(
                     endurance = (current.endurance + endurancePts).coerceIn(0f, 100f),
-                    speed     = (current.speed + speedBonus).coerceIn(0f, 100f)
+                    speed = (current.speed + speedBonus).coerceIn(0f, 100f)
                 )
                 changeAxis = "Endurance"; changeDelta = endurancePts
                 changeReason = buildReason(session, pts)
@@ -194,13 +194,13 @@ class AthleticProfileManager(context: Context) {
                 // Sprinturi/Intervale → Speed dominant
                 val (speedPts, strengthBonus, enduranceBonus) = when (session.activityType.lowercase()) {
                     "martial arts", "boxing" -> Triple(pts * 0.6f, pts * 0.2f, pts * 0.2f)
-                    "intervals"              -> Triple(pts * 0.7f, 0f,          pts * 0.3f)
-                    "agility"                -> Triple(pts * 0.8f, pts * 0.1f,  pts * 0.1f)
-                    else                     -> Triple(pts,        0f,           0f)
+                    "intervals" -> Triple(pts * 0.7f, 0f, pts * 0.3f)
+                    "agility" -> Triple(pts * 0.8f, pts * 0.1f, pts * 0.1f)
+                    else -> Triple(pts, 0f, 0f)
                 }
                 updated = updated.copy(
-                    speed     = (current.speed + speedPts).coerceIn(0f, 100f),
-                    strength  = (current.strength + strengthBonus).coerceIn(0f, 100f),
+                    speed = (current.speed + speedPts).coerceIn(0f, 100f),
+                    strength = (current.strength + strengthBonus).coerceIn(0f, 100f),
                     endurance = (current.endurance + enduranceBonus).coerceIn(0f, 100f)
                 )
                 changeAxis = "Speed"; changeDelta = speedPts
@@ -226,7 +226,6 @@ class AthleticProfileManager(context: Context) {
         }
     }
 
-
     // ─────────────────────────────────────────────
     // VALIDARE SESIUNE
     // ─────────────────────────────────────────────
@@ -250,11 +249,11 @@ class AthleticProfileManager(context: Context) {
         val trimpPts = when {
             session.finalTrimp >= 150 -> 4.0f
             session.finalTrimp >= 100 -> 3.0f
-            session.finalTrimp >= 60  -> 2.5f
-            session.finalTrimp >= 30  -> 2.0f
-            session.finalTrimp >= 15  -> 1.5f
-            session.finalTrimp >= 5   -> 1.0f
-            else                      -> 0f
+            session.finalTrimp >= 60 -> 2.5f
+            session.finalTrimp >= 30 -> 2.0f
+            session.finalTrimp >= 15 -> 1.5f
+            session.finalTrimp >= 5 -> 1.0f
+            else -> 0f
         }
 
         // 2. Intensitate HR (0-2)
@@ -264,16 +263,16 @@ class AthleticProfileManager(context: Context) {
             hrRatio >= 0.80f -> 1.5f
             hrRatio >= 0.70f -> 1.0f
             hrRatio >= 0.60f -> 0.5f
-            else             -> 0.2f
+            else -> 0.2f
         }
 
         // 3. Durată bonus (0-1)
         val durationPts = when {
             session.durationSeconds >= 3600 -> 1.0f
             session.durationSeconds >= 1800 -> 0.7f
-            session.durationSeconds >= 900  -> 0.4f
-            session.durationSeconds >= 300  -> 0.2f
-            else                            -> 0f
+            session.durationSeconds >= 900 -> 0.4f
+            session.durationSeconds >= 300 -> 0.2f
+            else -> 0f
         }
 
         // 4. RPE bonus/penalizare (dacă e setat)
@@ -281,36 +280,37 @@ class AthleticProfileManager(context: Context) {
         // RPE 9-10 = over-effort → penalizare mică
         // RPE 1-3 = prea ușor → penalizare mică
         val rpePts = when {
-            session.rpe == 0              -> 0f   // nesetat
-            session.rpe in 7..8           -> 0.3f // efort optim
-            session.rpe >= 9              -> -0.2f // prea greu
-            session.rpe <= 3              -> -0.1f // prea ușor
-            else                          -> 0f
+            session.rpe == 0 -> 0f // nesetat
+            session.rpe in 7..8 -> 0.3f // efort optim
+            session.rpe >= 9 -> -0.2f // prea greu
+            session.rpe <= 3 -> -0.1f // prea ușor
+            else -> 0f
         }
 
         // 5. Focus area bonus pentru Strength (Lower Body = mai mult efort sistemic)
         val focusPts = when (session.focusArea.lowercase()) {
             "lower body" -> if (session.type == "STRENGTH") 0.3f else 0f
-            "full body"  -> if (session.type == "STRENGTH") 0.4f else 0f
-            else         -> 0f
+            "full body" -> if (session.type == "STRENGTH") 0.4f else 0f
+            else -> 0f
         }
 
         // 6. CNS penalizare
         val cnsPenalty = when {
             session.cnsScoreAtEnd < 20 -> -0.5f
             session.cnsScoreAtEnd < 35 -> -0.2f
-            else                       -> 0f
+            else -> 0f
         }
 
         val total = (trimpPts + intensityPts + durationPts + rpePts + focusPts + cnsPenalty)
             .coerceAtLeast(0f)
 
-        android.util.Log.d("ATHLETIC",
-            "Pts: trimp=$trimpPts intensity=$intensityPts dur=$durationPts rpe=$rpePts focus=$focusPts cns=$cnsPenalty = $total")
+        android.util.Log.d(
+            "ATHLETIC",
+            "Pts: trimp=$trimpPts intensity=$intensityPts dur=$durationPts rpe=$rpePts focus=$focusPts cns=$cnsPenalty = $total"
+        )
 
         return total
     }
-
 
     // ─────────────────────────────────────────────
     // CALCUL HRR DELTA

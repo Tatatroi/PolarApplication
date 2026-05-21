@@ -98,7 +98,8 @@ fun ProfileScreen(
         onResult = { uri: Uri? ->
             if (uri != null) {
                 context.contentResolver.takePersistableUriPermission(
-                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
                 profileImageUri = uri.toString()
             }
@@ -217,7 +218,9 @@ fun ProfileScreen(
                             )
                         }
                     }
-                } else null
+                } else {
+                    null
+                }
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -402,8 +405,11 @@ private fun ProfileHeader(
 
 @Composable
 private fun MetricInputCard(
-    label: String, value: String, unit: String,
-    modifier: Modifier = Modifier, onValueChange: (String) -> Unit
+    label: String,
+    value: String,
+    unit: String,
+    modifier: Modifier = Modifier,
+    onValueChange: (String) -> Unit
 ) {
     var localValue by remember(value) { mutableStateOf(value) }
 
@@ -425,7 +431,9 @@ private fun MetricInputCard(
                     }
                 },
                 textStyle = TextStyle(
-                    color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black,
+                    color = Color.White,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Black,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 ),
                 cursorBrush = SolidColor(AccentIndigo),
@@ -508,7 +516,8 @@ private fun DobCard(dobMillis: Long?, age: Int, onClick: () -> Unit, modifier: M
             Text(
                 text = dobText,
                 color = if (dobMillis != null) Color.White else AccentIndigo,
-                fontSize = 15.sp, fontWeight = FontWeight.Bold
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -529,8 +538,12 @@ private fun DobCard(dobMillis: Long?, age: Int, onClick: () -> Unit, modifier: M
 
 @Composable
 private fun CardioStepCard(
-    title: String, subtitle: String, value: String, color: Color,
-    onDecrease: () -> Unit, onIncrease: () -> Unit,
+    title: String,
+    subtitle: String,
+    value: String,
+    color: Color,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit,
     extraContent: (@Composable ColumnScope.() -> Unit)? = null
 ) {
     Column(
@@ -563,17 +576,17 @@ private fun AvailableDaysCard(availableDays: Set<Int>, onChange: (Int, Boolean) 
     val selectedCount = availableDays.size
 
     val hint = when {
-        selectedCount < 3  -> "Minimum 3 days required"
+        selectedCount < 3 -> "Minimum 3 days required"
         selectedCount == 3 -> "Minimum Bompa plan"
         selectedCount == 4 -> "Optimal Bompa plan"
         selectedCount == 5 -> "Advanced plan"
         selectedCount == 6 -> "Intensive plan"
-        else               -> "No rest day — not recommended"
+        else -> "No rest day — not recommended"
     }
     val hintColor = when {
-        selectedCount < 3  -> AccentRed
+        selectedCount < 3 -> AccentRed
         selectedCount <= 5 -> AccentGreen
-        else               -> AccentRed.copy(alpha = 0.7f)
+        else -> AccentRed.copy(alpha = 0.7f)
     }
 
     Column(

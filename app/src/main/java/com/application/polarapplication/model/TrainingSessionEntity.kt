@@ -18,16 +18,16 @@ data class TrainingSessionEntity(
     val activityType: String = "",
 
     // ── Detalii sesiune (Step 2 din UI) ──────────────────────────────────────
-    val sessionGoal: String = "",    // "Build Strength", "Improve Endurance", etc.
-    val focusArea: String = "",      // "Lower Body", "Upper Body", "Full Body", etc.
-    val rpe: Int = 0,                // Rate of Perceived Exertion 1-10 (completat după)
+    val sessionGoal: String = "", // "Build Strength", "Improve Endurance", etc.
+    val focusArea: String = "", // "Lower Body", "Upper Body", "Full Body", etc.
+    val rpe: Int = 0, // Rate of Perceived Exertion 1-10 (completat după)
 
     val isCompleted: Boolean = false,
 
     // ── Date biometrice ───────────────────────────────────────────────────────
     val avgHeartRate: Int,
     val maxHeartRate: Int,
-    val finalTrimp: Double,          // TRIMP ajustat per activitate
+    val finalTrimp: Double, // TRIMP ajustat per activitate
     val totalCalories: Int,
     val cnsScoreAtStart: Int,
     val cnsScoreAtEnd: Int,

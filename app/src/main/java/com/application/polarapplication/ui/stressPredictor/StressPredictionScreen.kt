@@ -25,11 +25,11 @@ fun StressPredictionScreen(stressManager: StressManager) {
     val options = listOf("Present", "Tomorrow", "7 Days", "Competition")
 
     val displayScore = when (selectedTimeFrame) {
-        "Present"     -> 0.2f
-        "Tomorrow"    -> 0.45f
-        "7 Days"      -> 0.8f
+        "Present" -> 0.2f
+        "Tomorrow" -> 0.45f
+        "7 Days" -> 0.8f
         "Competition" -> 0.1f
-        else          -> 0.0f
+        else -> 0.0f
     }
 
     Column(

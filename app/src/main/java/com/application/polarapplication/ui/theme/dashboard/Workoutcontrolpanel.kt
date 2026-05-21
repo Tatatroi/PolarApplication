@@ -24,40 +24,40 @@ import com.application.polarapplication.ai.model.AthleteVitals
 // ─────────────────────────────────────────────
 // COLORS
 // ─────────────────────────────────────────────
-private val BgCard      = Color(0xFF111118)
+private val BgCard = Color(0xFF111118)
 private val AccentIndigo = Color(0xFF818CF8)
-private val AccentGreen  = Color(0xFF4ADE80)
-private val AccentRed    = Color(0xFFF87171)
-private val AccentAmber  = Color(0xFFFBBF24)
-private val AccentBlue   = Color(0xFF60A5FA)
+private val AccentGreen = Color(0xFF4ADE80)
+private val AccentRed = Color(0xFFF87171)
+private val AccentAmber = Color(0xFFFBBF24)
+private val AccentBlue = Color(0xFF60A5FA)
 
 // ─────────────────────────────────────────────
 // DATA MODELS
 // ─────────────────────────────────────────────
 
 data class WorkoutSessionConfig(
-    val type:         String = "STRENGTH",
+    val type: String = "STRENGTH",
     val activityType: String = "",
-    val sessionGoal:  String = "",
-    val focusArea:    String = "",
-    val rpe:          Int    = 5
+    val sessionGoal: String = "",
+    val focusArea: String = "",
+    val rpe: Int = 5
 )
 
 private data class SessionTypeInfo(
-    val type:  String,
-    val icon:  ImageVector,
+    val type: String,
+    val icon: ImageVector,
     val color: Color
 )
 
 private data class ActivityOption(
-    val name:  String,
-    val icon:  ImageVector
+    val name: String,
+    val icon: ImageVector
 )
 
 private data class Step2Config(
     val activities: List<ActivityOption>,
-    val goals:      List<String>,
-    val focusAreas: List<String>?  // null = nu se afișează
+    val goals: List<String>,
+    val focusAreas: List<String>? // null = nu se afișează
 )
 
 // ─────────────────────────────────────────────
@@ -74,49 +74,49 @@ private val SESSION_TYPES = listOf(
 private fun getStep2Config(type: String): Step2Config = when (type) {
     "STRENGTH" -> Step2Config(
         activities = listOf(
-            ActivityOption("Gym",         Icons.Default.FitnessCenter),
-            ActivityOption("Bodyweight",  Icons.Default.AccessibilityNew),
-            ActivityOption("Kettlebell",  Icons.Default.FitnessCenter),
-            ActivityOption("Calisthenics",Icons.Default.SportsGymnastics)
+            ActivityOption("Gym", Icons.Default.FitnessCenter),
+            ActivityOption("Bodyweight", Icons.Default.AccessibilityNew),
+            ActivityOption("Kettlebell", Icons.Default.FitnessCenter),
+            ActivityOption("Calisthenics", Icons.Default.SportsGymnastics)
         ),
-        goals      = listOf("Build Strength", "Hypertrophy", "Power", "Endurance Strength"),
+        goals = listOf("Build Strength", "Hypertrophy", "Power", "Endurance Strength"),
         focusAreas = listOf("Lower Body", "Upper Body", "Full Body", "Core")
     )
     "ENDURANCE" -> Step2Config(
         activities = listOf(
-            ActivityOption("Running",  Icons.Default.DirectionsRun),
-            ActivityOption("Cycling",  Icons.Default.DirectionsBike),
+            ActivityOption("Running", Icons.Default.DirectionsRun),
+            ActivityOption("Cycling", Icons.Default.DirectionsBike),
             ActivityOption("Swimming", Icons.Default.Pool),
-            ActivityOption("Rowing",   Icons.Default.Rowing),
+            ActivityOption("Rowing", Icons.Default.Rowing),
             ActivityOption("Bag Work", Icons.Default.SportsKabaddi)
         ),
-        goals      = listOf("Improve Endurance", "Fat Burn", "Build Base", "Race Prep"),
+        goals = listOf("Improve Endurance", "Fat Burn", "Build Base", "Race Prep"),
         focusAreas = null
     )
     "SPEED" -> Step2Config(
         activities = listOf(
-            ActivityOption("Sprints",       Icons.Default.Speed),
-            ActivityOption("Martial Arts",  Icons.Default.SportsMartialArts),
-            ActivityOption("Boxing",        Icons.Default.SportsKabaddi),
-            ActivityOption("Intervals",     Icons.Default.Timer),
-            ActivityOption("Agility",       Icons.Default.DirectionsRun)
+            ActivityOption("Sprints", Icons.Default.Speed),
+            ActivityOption("Martial Arts", Icons.Default.SportsMartialArts),
+            ActivityOption("Boxing", Icons.Default.SportsKabaddi),
+            ActivityOption("Intervals", Icons.Default.Timer),
+            ActivityOption("Agility", Icons.Default.DirectionsRun)
         ),
-        goals      = listOf("Improve Speed", "Explosive Power", "Agility", "Fight Conditioning"),
+        goals = listOf("Improve Speed", "Explosive Power", "Agility", "Fight Conditioning"),
         focusAreas = null
     )
     "RECOVERY" -> Step2Config(
         activities = listOf(
-            ActivityOption("Walking",    Icons.Default.DirectionsWalk),
-            ActivityOption("Yoga",       Icons.Default.SelfImprovement),
+            ActivityOption("Walking", Icons.Default.DirectionsWalk),
+            ActivityOption("Yoga", Icons.Default.SelfImprovement),
             ActivityOption("Stretching", Icons.Default.AccessibilityNew),
             ActivityOption("Light Swim", Icons.Default.Pool)
         ),
-        goals      = listOf("Active Recovery", "Mobility", "Flexibility", "Stress Relief"),
+        goals = listOf("Active Recovery", "Mobility", "Flexibility", "Stress Relief"),
         focusAreas = null
     )
     else -> Step2Config(
         activities = emptyList(),
-        goals      = emptyList(),
+        goals = emptyList(),
         focusAreas = null
     )
 }
@@ -135,12 +135,12 @@ private fun typeColor(type: String) = when (type) {
 
 @Composable
 fun WorkoutControlPanel(
-    isActive:          Boolean,
-    vitals:            AthleteVitals,
-    onStart:           (WorkoutSessionConfig) -> Unit,
-    onStop:            (String) -> Unit,
+    isActive: Boolean,
+    vitals: AthleteVitals,
+    onStart: (WorkoutSessionConfig) -> Unit,
+    onStop: (String) -> Unit,
     onMaximizeWorkout: () -> Unit,
-    onTypeSelected:    (String) -> Unit = {}
+    onTypeSelected: (String) -> Unit = {}
 ) {
     var config by remember {
         mutableStateOf(WorkoutSessionConfig())
@@ -161,20 +161,20 @@ fun WorkoutControlPanel(
     ) {
         if (!isActive) {
             PrepareWorkoutContent(
-                vitals    = vitals,
-                config    = config,
+                vitals = vitals,
+                config = config,
                 onConfigChange = { config = it; onTypeSelected(it.type) },
-                onStart   = {
+                onStart = {
                     activeConfig = config
                     onStart(config)
                 }
             )
         } else {
             ActiveWorkoutContent(
-                vitals             = vitals,
-                config             = activeConfig,
-                onMaximizeWorkout  = onMaximizeWorkout,
-                onStop             = { onStop(activeConfig.type) }
+                vitals = vitals,
+                config = activeConfig,
+                onMaximizeWorkout = onMaximizeWorkout,
+                onStop = { onStop(activeConfig.type) }
             )
         }
     }
@@ -186,10 +186,10 @@ fun WorkoutControlPanel(
 
 @Composable
 private fun PrepareWorkoutContent(
-    vitals:         AthleteVitals,
-    config:         WorkoutSessionConfig,
+    vitals: AthleteVitals,
+    config: WorkoutSessionConfig,
     onConfigChange: (WorkoutSessionConfig) -> Unit,
-    onStart:        () -> Unit
+    onStart: () -> Unit
 ) {
     val step2 = getStep2Config(config.type)
     val color = typeColor(config.type)
@@ -197,9 +197,9 @@ private fun PrepareWorkoutContent(
     // Label header
     Text(
         "PREPARE WORKOUT",
-        color         = Color.White.copy(alpha = 0.25f),
-        fontSize      = 9.sp,
-        fontWeight    = FontWeight.Bold,
+        color = Color.White.copy(alpha = 0.25f),
+        fontSize = 9.sp,
+        fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp
     )
 
@@ -207,8 +207,8 @@ private fun PrepareWorkoutContent(
     val (recText, recColor) = when {
         vitals.cnsScore >= 80 -> "CNS rested — recommended: STRENGTH / SPEED" to AccentGreen
         vitals.cnsScore >= 50 -> "CNS normal — recommended: ENDURANCE" to AccentAmber
-        vitals.cnsScore > 0   -> "CNS fatigued — recommended: RECOVERY" to AccentRed
-        else                  -> "Connect sensor for CNS analysis" to Color.White.copy(alpha = 0.3f)
+        vitals.cnsScore > 0 -> "CNS fatigued — recommended: RECOVERY" to AccentRed
+        else -> "Connect sensor for CNS analysis" to Color.White.copy(alpha = 0.3f)
     }
 
     Spacer(modifier = Modifier.height(8.dp))
@@ -220,22 +220,24 @@ private fun PrepareWorkoutContent(
     Spacer(modifier = Modifier.height(8.dp))
 
     Row(
-        modifier              = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         SESSION_TYPES.forEach { info ->
             val isSelected = config.type == info.type
             SessionTypeChip(
-                info       = info,
+                info = info,
                 isSelected = isSelected,
-                modifier   = Modifier.weight(1f),
-                onClick    = {
-                    onConfigChange(WorkoutSessionConfig(
-                        type         = info.type,
-                        activityType = "",
-                        sessionGoal  = "",
-                        focusArea    = ""
-                    ))
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    onConfigChange(
+                        WorkoutSessionConfig(
+                            type = info.type,
+                            activityType = "",
+                            sessionGoal = "",
+                            focusArea = ""
+                        )
+                    )
                 }
             )
         }
@@ -244,16 +246,16 @@ private fun PrepareWorkoutContent(
     // ── STEP 2: Opțiuni specifice ─────────────────────────────────────────────
     AnimatedVisibility(
         visible = true,
-        enter   = fadeIn(tween(300)) + expandVertically(tween(300)),
-        exit    = fadeOut(tween(200)) + shrinkVertically(tween(200))
+        enter = fadeIn(tween(300)) + expandVertically(tween(300)),
+        exit = fadeOut(tween(200)) + shrinkVertically(tween(200))
     ) {
         Column {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 "2. ${config.type.lowercase().replaceFirstChar { it.uppercase() }} Options",
-                color      = color,
-                fontSize   = 13.sp,
+                color = color,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
 
@@ -262,12 +264,12 @@ private fun PrepareWorkoutContent(
             // Activitate
             if (step2.activities.isNotEmpty()) {
                 DropdownRow(
-                    label       = "Activity",
-                    icon        = Icons.Default.Category,
-                    color       = color,
-                    selected    = config.activityType.ifEmpty { "Select activity" },
-                    options     = step2.activities.map { it.name },
-                    onSelect    = { onConfigChange(config.copy(activityType = it)) }
+                    label = "Activity",
+                    icon = Icons.Default.Category,
+                    color = color,
+                    selected = config.activityType.ifEmpty { "Select activity" },
+                    options = step2.activities.map { it.name },
+                    onSelect = { onConfigChange(config.copy(activityType = it)) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -275,11 +277,11 @@ private fun PrepareWorkoutContent(
             // Goal
             if (step2.goals.isNotEmpty()) {
                 DropdownRow(
-                    label    = "Workout Goal",
-                    icon     = Icons.Default.TrackChanges,
-                    color    = color,
+                    label = "Workout Goal",
+                    icon = Icons.Default.TrackChanges,
+                    color = color,
                     selected = config.sessionGoal.ifEmpty { "Select goal" },
-                    options  = step2.goals,
+                    options = step2.goals,
                     onSelect = { onConfigChange(config.copy(sessionGoal = it)) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -288,11 +290,11 @@ private fun PrepareWorkoutContent(
             // Focus Area (doar pentru Strength)
             if (step2.focusAreas != null) {
                 DropdownRow(
-                    label    = "Focus Area",
-                    icon     = Icons.Default.MyLocation,
-                    color    = color,
+                    label = "Focus Area",
+                    icon = Icons.Default.MyLocation,
+                    color = color,
                     selected = config.focusArea.ifEmpty { "Select area" },
-                    options  = step2.focusAreas,
+                    options = step2.focusAreas,
                     onSelect = { onConfigChange(config.copy(focusArea = it)) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -300,8 +302,8 @@ private fun PrepareWorkoutContent(
 
             // RPE Slider
             RpeSlider(
-                rpe    = config.rpe,
-                color  = color,
+                rpe = config.rpe,
+                color = color,
                 onChange = { onConfigChange(config.copy(rpe = it)) }
             )
         }
@@ -337,22 +339,25 @@ private fun PrepareWorkoutContent(
             .height(50.dp)
             .clip(RoundedCornerShape(13.dp))
             .background(
-                if (vitals.heartRate > 0) color.copy(alpha = 0.15f)
-                else Color.White.copy(alpha = 0.05f)
+                if (vitals.heartRate > 0) {
+                    color.copy(alpha = 0.15f)
+                } else {
+                    Color.White.copy(alpha = 0.05f)
+                }
             )
             .border(1.dp, color.copy(alpha = 0.4f), RoundedCornerShape(13.dp))
             .clickable { onStart() },
         contentAlignment = Alignment.Center
     ) {
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(Icons.Default.PlayArrow, null, tint = color, modifier = Modifier.size(18.dp))
             Text(
                 "START WORKOUT",
-                color      = color,
-                fontSize   = 14.sp,
+                color = color,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 0.5.sp
             )
@@ -366,25 +371,25 @@ private fun PrepareWorkoutContent(
 
 @Composable
 private fun ActiveWorkoutContent(
-    vitals:            AthleteVitals,
-    config:            WorkoutSessionConfig,
+    vitals: AthleteVitals,
+    config: WorkoutSessionConfig,
     onMaximizeWorkout: () -> Unit,
-    onStop:            () -> Unit
+    onStop: () -> Unit
 ) {
     val color = typeColor(config.type)
 
     Text(
         "ACTIVE SESSION",
-        color         = AccentAmber,
-        fontSize      = 9.sp,
-        fontWeight    = FontWeight.Bold,
+        color = AccentAmber,
+        fontSize = 9.sp,
+        fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp
     )
 
     Spacer(modifier = Modifier.height(6.dp))
 
     Row(
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(config.type, color = color, fontSize = 14.sp, fontWeight = FontWeight.Black)
@@ -402,13 +407,13 @@ private fun ActiveWorkoutContent(
 
     // Metrici live
     Row(
-        modifier              = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         listOf(
-            Triple("TRIMP",    "%.1f".format(vitals.trimpScore), AccentIndigo),
-            Triple("CALORIES", "${vitals.calories}",             AccentAmber),
-            Triple("CNS",      "${vitals.cnsScore}",             AccentGreen)
+            Triple("TRIMP", "%.1f".format(vitals.trimpScore), AccentIndigo),
+            Triple("CALORIES", "${vitals.calories}", AccentAmber),
+            Triple("CNS", "${vitals.cnsScore}", AccentGreen)
         ).forEach { (label, value, metricColor) ->
             Column(
                 modifier = Modifier
@@ -461,10 +466,10 @@ private fun ActiveWorkoutContent(
 
 @Composable
 private fun SessionTypeChip(
-    info:       SessionTypeInfo,
+    info: SessionTypeInfo,
     isSelected: Boolean,
-    modifier:   Modifier,
-    onClick:    () -> Unit
+    modifier: Modifier,
+    onClick: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -483,13 +488,13 @@ private fun SessionTypeChip(
         Icon(
             info.icon,
             null,
-            tint     = if (isSelected) info.color else Color.White.copy(alpha = 0.25f),
+            tint = if (isSelected) info.color else Color.White.copy(alpha = 0.25f),
             modifier = Modifier.size(18.dp)
         )
         Text(
-            info.type.take(3),  // STR, END, SPD, REC
-            color      = if (isSelected) info.color else Color.White.copy(alpha = 0.25f),
-            fontSize   = 9.sp,
+            info.type.take(3), // STR, END, SPD, REC
+            color = if (isSelected) info.color else Color.White.copy(alpha = 0.25f),
+            fontSize = 9.sp,
             fontWeight = FontWeight.Black,
             letterSpacing = 0.5.sp
         )
@@ -498,11 +503,11 @@ private fun SessionTypeChip(
 
 @Composable
 private fun DropdownRow(
-    label:    String,
-    icon:     ImageVector,
-    color:    Color,
+    label: String,
+    icon: ImageVector,
+    color: Color,
     selected: String,
-    options:  List<String>,
+    options: List<String>,
     onSelect: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -520,26 +525,26 @@ private fun DropdownRow(
                     .border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
                     .clickable { expanded = true }
                     .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(icon, null, tint = color, modifier = Modifier.size(14.dp))
                 Text(
                     selected,
-                    color      = if (selected.startsWith("Select")) Color.White.copy(alpha = 0.25f) else Color.White,
-                    fontSize   = 13.sp,
-                    modifier   = Modifier.weight(1f)
+                    color = if (selected.startsWith("Select")) Color.White.copy(alpha = 0.25f) else Color.White,
+                    fontSize = 13.sp,
+                    modifier = Modifier.weight(1f)
                 )
                 Icon(Icons.Default.KeyboardArrowDown, null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
             }
 
             DropdownMenu(
-                expanded         = expanded,
+                expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
-                        text    = { Text(option) },
+                        text = { Text(option) },
                         onClick = { onSelect(option); expanded = false }
                     )
                 }
@@ -550,8 +555,8 @@ private fun DropdownRow(
 
 @Composable
 private fun RpeSlider(
-    rpe:      Int,
-    color:    Color,
+    rpe: Int,
+    color: Color,
     onChange: (Int) -> Unit
 ) {
     val rpeLabel = when {
@@ -559,20 +564,20 @@ private fun RpeSlider(
         rpe <= 4 -> "Easy"
         rpe <= 6 -> "Moderate"
         rpe <= 8 -> "Hard"
-        else     -> "Maximum"
+        else -> "Maximum"
     }
     val rpeColor = when {
         rpe <= 3 -> AccentGreen
         rpe <= 6 -> AccentAmber
         rpe <= 8 -> AccentRed.copy(alpha = 0.7f)
-        else     -> AccentRed
+        else -> AccentRed
     }
 
     Column {
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text("Planned Intensity (RPE)", color = Color.White.copy(alpha = 0.35f), fontSize = 10.sp, fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -581,12 +586,12 @@ private fun RpeSlider(
             }
         }
         Slider(
-            value         = rpe.toFloat(),
+            value = rpe.toFloat(),
             onValueChange = { onChange(it.toInt()) },
-            valueRange    = 1f..10f,
-            steps         = 8,
-            colors        = SliderDefaults.colors(
-                thumbColor       = rpeColor,
+            valueRange = 1f..10f,
+            steps = 8,
+            colors = SliderDefaults.colors(
+                thumbColor = rpeColor,
                 activeTrackColor = rpeColor,
                 inactiveTrackColor = Color.White.copy(alpha = 0.1f)
             )
@@ -598,9 +603,9 @@ private fun RpeSlider(
 private fun SectionLabel(text: String) {
     Text(
         text,
-        color         = Color.White.copy(alpha = 0.4f),
-        fontSize      = 10.sp,
-        fontWeight    = FontWeight.Bold,
+        color = Color.White.copy(alpha = 0.4f),
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Bold,
         letterSpacing = 0.3.sp
     )
 }

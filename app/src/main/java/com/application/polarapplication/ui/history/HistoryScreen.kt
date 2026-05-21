@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,8 +50,6 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
-import java.util.Locale
-import androidx.compose.ui.platform.LocalLocale
 
 // ─────────────────────────────────────────────
 // CULORI TEMĂ
@@ -252,13 +251,15 @@ fun PremiumHistoryCard(
     onDelete: () -> Unit
 ) {
     val dateStr = SimpleDateFormat("dd MMM yyyy • HH:mm", LocalLocale.current.platformLocale).format(Date(session.date))
-    val theme   = getThemeForWorkout(session.type)
+    val theme = getThemeForWorkout(session.type)
 
     val durationStr = if (session.durationSeconds > 0) {
         val min = session.durationSeconds / 60
         val sec = session.durationSeconds % 60
         "%02d:%02d".format(min, sec)
-    } else "—"
+    } else {
+        "—"
+    }
 
     // Subtitlu cu activitatea (dacă există)
     val subtitle = buildString {
@@ -294,7 +295,6 @@ fun PremiumHistoryCard(
         }
 
         Column(modifier = Modifier.padding(start = 14.dp, end = 40.dp, top = 14.dp, bottom = 0.dp)) {
-
             // ── Titlu + durată ────────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -302,24 +302,24 @@ fun PremiumHistoryCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text       = subtitle,
-                    color      = Color.White,
-                    fontSize   = 16.sp,
+                    text = subtitle,
+                    color = Color.White,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.ExtraBold,
                     letterSpacing = 0.5.sp
                 )
                 Text(
-                    text       = durationStr,
-                    color      = theme.color,
-                    fontSize   = 13.sp,
+                    text = durationStr,
+                    color = theme.color,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
 
             // ── Data ──────────────────────────────────────────────────────────
             Text(
-                text     = dateStr,
-                color    = Color.White.copy(alpha = 0.3f),
+                text = dateStr,
+                color = Color.White.copy(alpha = 0.3f),
                 fontSize = 11.sp,
                 modifier = Modifier.padding(top = 2.dp)
             )
@@ -328,9 +328,9 @@ fun PremiumHistoryCard(
 
             // ── Metrici ───────────────────────────────────────────────────────
             Row(
-                modifier              = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(24.dp),
-                verticalAlignment     = Alignment.Bottom
+                verticalAlignment = Alignment.Bottom
             ) {
                 // Avg HR
                 Column {
@@ -338,13 +338,13 @@ fun PremiumHistoryCard(
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text(
                             "${session.avgHeartRate}",
-                            color      = Color.White,
-                            fontSize   = 22.sp,
+                            color = Color.White,
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.Black
                         )
                         Text(
                             " bpm",
-                            color    = Color.White.copy(alpha = 0.4f),
+                            color = Color.White.copy(alpha = 0.4f),
                             fontSize = 11.sp,
                             modifier = Modifier.padding(bottom = 2.dp, start = 1.dp)
                         )
@@ -359,8 +359,8 @@ fun PremiumHistoryCard(
                     }
                     Text(
                         "%.1f".format(session.finalTrimp),
-                        color      = Color.White,
-                        fontSize   = 22.sp,
+                        color = Color.White,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Black
                     )
                 }
@@ -372,13 +372,13 @@ fun PremiumHistoryCard(
                         Row(verticalAlignment = Alignment.Bottom) {
                             Text(
                                 "${session.rpe}",
-                                color      = theme.color,
-                                fontSize   = 22.sp,
+                                color = theme.color,
+                                fontSize = 22.sp,
                                 fontWeight = FontWeight.Black
                             )
                             Text(
                                 "/10",
-                                color    = Color.White.copy(alpha = 0.3f),
+                                color = Color.White.copy(alpha = 0.3f),
                                 fontSize = 11.sp,
                                 modifier = Modifier.padding(bottom = 2.dp, start = 1.dp)
                             )

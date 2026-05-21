@@ -447,9 +447,9 @@ private fun AthleticImpactSection(session: TrainingSessionEntity) {
         "SPEED" -> {
             val (speedPts, strBonus, endBonus) = when (session.activityType.lowercase()) {
                 "martial arts", "boxing" -> Triple(pts * 0.6f, pts * 0.2f, pts * 0.2f)
-                "intervals"              -> Triple(pts * 0.7f, 0f,         pts * 0.3f)
-                "agility"                -> Triple(pts * 0.8f, pts * 0.1f, pts * 0.1f)
-                else                     -> Triple(pts,        0f,          0f)
+                "intervals" -> Triple(pts * 0.7f, 0f, pts * 0.3f)
+                "agility" -> Triple(pts * 0.8f, pts * 0.1f, pts * 0.1f)
+                else -> Triple(pts, 0f, 0f)
             }
             changes.add(AxisChange("Speed", speedPts, true))
             if (strBonus > 0) changes.add(AxisChange("Strength", strBonus, true))
@@ -464,7 +464,7 @@ private fun AthleticImpactSection(session: TrainingSessionEntity) {
     // RPE bonus vizual
     val rpeNote = when {
         session.rpe in 7..8 -> " · Optimal effort"
-        session.rpe >= 9    -> " · High effort"
+        session.rpe >= 9 -> " · High effort"
         session.rpe in 1..3 -> " · Low effort"
         else -> ""
     }

@@ -79,7 +79,8 @@ class MainActivity : ComponentActivity() {
                 != PackageManager.PERMISSION_GRANTED
             ) {
                 requestPermissions(
-                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1002
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    1002
                 )
             }
         }
@@ -132,7 +133,7 @@ fun MainNavigationWrapper(navigateToLive: MutableStateFlow<Boolean>) {
     val shouldNavigateToLive by navigateToLive.collectAsState()
     LaunchedEffect(shouldNavigateToLive) {
         if (shouldNavigateToLive) {
-            navigateToLive.value = false  // resetăm flag-ul
+            navigateToLive.value = false // resetăm flag-ul
             navController.navigate(Screen.ActiveWorkout.route) {
                 launchSingleTop = true
             }
@@ -220,7 +221,7 @@ fun MainNavigationWrapper(navigateToLive: MutableStateFlow<Boolean>) {
                         icon = { Icon(Icons.Default.DateRange, contentDescription = "Plan") },
                         label = { Text("Plan") },
                         selected = currentRoute == Screen.Plan.route ||
-                                currentRoute == Screen.TargetSetup.route,
+                            currentRoute == Screen.TargetSetup.route,
                         onClick = {
                             navController.navigate(Screen.Plan.route) { launchSingleTop = true }
                         },

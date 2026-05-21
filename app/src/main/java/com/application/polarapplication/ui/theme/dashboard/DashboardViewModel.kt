@@ -36,8 +36,8 @@ import java.time.ZoneId
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
     private val polarManager = PolarManager(application)
-    private val sessionDao   = AppDatabase.getDatabase(application).sessionDao()
-    val profileManager       = ProfileManager(application)
+    private val sessionDao = AppDatabase.getDatabase(application).sessionDao()
+    val profileManager = ProfileManager(application)
 
     // ── Workout activ ──────────────────────────────────────────────────────────
     private val _isWorkoutActive = MutableStateFlow(false)
@@ -124,7 +124,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     // ── Polar ─────────────────────────────────────────────────────────────────
-    val athleteVitals  = polarManager.athleteVitals
+    val athleteVitals = polarManager.athleteVitals
     val availableDevices = polarManager.availableDevices
 
     // ── Profil ────────────────────────────────────────────────────────────────
@@ -163,12 +163,16 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         val filter = android.content.IntentFilter("com.application.polarapplication.WORKOUT_STOP")
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             getApplication<Application>().registerReceiver(
-                workoutStopReceiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED
+                workoutStopReceiver,
+                filter,
+                android.content.Context.RECEIVER_NOT_EXPORTED
             )
         } else {
             ContextCompat.registerReceiver(
-                getApplication<Application>(), workoutStopReceiver,
-                filter, ContextCompat.RECEIVER_NOT_EXPORTED
+                getApplication<Application>(),
+                workoutStopReceiver,
+                filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
             )
         }
         viewModelScope.launch {
@@ -197,12 +201,15 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     // ── Conexiune Polar ───────────────────────────────────────────────────────
     fun toggleConnection(deviceId: String) {
-        if (uiState.value.device.isConnected) polarManager.disconnectFromDevice(deviceId)
-        else polarManager.connectToDevice(deviceId)
+        if (uiState.value.device.isConnected) {
+            polarManager.disconnectFromDevice(deviceId)
+        } else {
+            polarManager.connectToDevice(deviceId)
+        }
     }
 
     fun startScanning() = polarManager.startScan()
-    fun stopScanning()  = polarManager.stopScan()
+    fun stopScanning() = polarManager.stopScan()
     fun connectToSelectedDevice(deviceId: String) = polarManager.connectToDevice(deviceId)
 
     fun saveLastConnectedDevice(deviceId: String, deviceName: String) {
@@ -223,18 +230,18 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         capturedDurationSeconds = 0L
 
         // Salvăm config-ul curent
-        _selectedWorkoutType.value  = config.type
+        _selectedWorkoutType.value = config.type
         _selectedActivityType.value = config.activityType
-        _selectedSessionGoal.value  = config.sessionGoal
-        _selectedFocusArea.value    = config.focusArea
-        _selectedRpe.value          = config.rpe
+        _selectedSessionGoal.value = config.sessionGoal
+        _selectedFocusArea.value = config.focusArea
+        _selectedRpe.value = config.rpe
 
         // Comunicăm activitatea la PolarManager pentru TRIMP ajustat
         polarManager.currentActivityType = config.activityType
 
         polarManager.prepareNewWorkout()
         _isWorkoutActive.value = true
-        _elapsedSeconds.value  = 0L
+        _elapsedSeconds.value = 0L
 
         val intent = WorkoutForegroundService.startIntent(getApplication(), config.type)
         getApplication<Application>().startForegroundService(intent)
@@ -264,12 +271,12 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     fun stopWorkout(workoutType: String) {
         android.util.Log.d("WORKOUT_STOP", "stopWorkout() chemat pentru tip: $workoutType")
 
-        capturedDurationSeconds    = _elapsedSeconds.value
+        capturedDurationSeconds = _elapsedSeconds.value
         _selectedWorkoutType.value = workoutType
-        _isWorkoutActive.value     = false
+        _isWorkoutActive.value = false
 
         serviceUpdateJob?.cancel(); serviceUpdateJob = null
-        timerJob?.cancel();         timerJob = null
+        timerJob?.cancel(); timerJob = null
 
         val stopIntent = WorkoutForegroundService.stopIntent(getApplication())
         getApplication<Application>().startService(stopIntent)
@@ -277,7 +284,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         if (isServiceBound) {
             getApplication<Application>().unbindService(serviceConnection)
             isServiceBound = false
-            boundService   = null
+            boundService = null
         }
 
         viewModelScope.launch {
@@ -293,9 +300,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         }
         workoutSaved = true
 
-        val currentVitals    = athleteVitals.value
-        val samplesList      = polarManager.getHrSamples()
-        val durationToSave   = capturedDurationSeconds
+        val currentVitals = athleteVitals.value
+        val samplesList = polarManager.getHrSamples()
+        val durationToSave = capturedDurationSeconds
 
         android.util.Log.d("WORKOUT_STOP", "Salvăm: ${samplesList.size} samples, ${durationToSave}s, TRIMP=${currentVitals.trimpScore}")
 
@@ -305,19 +312,19 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
         viewModelScope.launch(Dispatchers.IO) {
             val newSession = TrainingSessionEntity(
-                type            = workoutType,
-                activityType    = _selectedActivityType.value,
-                sessionGoal     = _selectedSessionGoal.value,
-                focusArea       = _selectedFocusArea.value,
-                rpe             = _selectedRpe.value,
-                avgHeartRate    = avgHr,
-                maxHeartRate    = maxHr,
-                finalTrimp      = currentVitals.trimpScore,
-                totalCalories   = currentVitals.calories,
+                type = workoutType,
+                activityType = _selectedActivityType.value,
+                sessionGoal = _selectedSessionGoal.value,
+                focusArea = _selectedFocusArea.value,
+                rpe = _selectedRpe.value,
+                avgHeartRate = avgHr,
+                maxHeartRate = maxHr,
+                finalTrimp = currentVitals.trimpScore,
+                totalCalories = currentVitals.calories,
                 cnsScoreAtStart = 0,
-                cnsScoreAtEnd   = currentVitals.cnsScore,
-                hrSamples       = samplesJson,
-                isCompleted     = true,
+                cnsScoreAtEnd = currentVitals.cnsScore,
+                hrSamples = samplesJson,
+                isCompleted = true,
                 durationSeconds = durationToSave
             )
             sessionDao.insertSession(newSession)
@@ -345,9 +352,16 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     // ── Profil ────────────────────────────────────────────────────────────────
     fun saveUserProfile(
-        age: Int, weight: Float, height: Int, gender: String,
-        rhr: Int, customHrMax: Int?, profileImageUri: String?,
-        dobMillis: Long?, availableDays: Set<Int>, userName: String = ""
+        age: Int,
+        weight: Float,
+        height: Int,
+        gender: String,
+        rhr: Int,
+        customHrMax: Int?,
+        profileImageUri: String?,
+        dobMillis: Long?,
+        availableDays: Set<Int>,
+        userName: String = ""
     ) {
         profileManager.saveProfile(
             newAge = age, newWeight = weight, newHeight = height,
@@ -358,7 +372,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun setCompetitionDate(date: LocalDate) {
-        val compMillis  = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val compMillis = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val startMillis = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         profileManager.saveProfile(
             newAge = profileManager.age.value,
@@ -369,7 +383,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             newCustomHrMax = profileManager.customHrMax.value,
             newProfileImageUri = profileManager.profileImageUri.value,
             newCompetitionDateMillis = compMillis,
-            newPlanStartDateMillis = startMillis,
+            newPlanStartDateMillis = startMillis
         )
     }
 

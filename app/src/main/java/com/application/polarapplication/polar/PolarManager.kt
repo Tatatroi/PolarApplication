@@ -122,8 +122,8 @@ class PolarManager(context: Context) {
                         if (rr < MIN_RR_MS || rr > MAX_RR_MS) return@forEachIndexed
 
                         val sampleTime = now - (
-                                (batchSize - 1 - index) * (dt * 1000.0 / batchSize)
-                                ).toLong()
+                            (batchSize - 1 - index) * (dt * 1000.0 / batchSize)
+                            ).toLong()
 
                         rrBuffer.add(rr)
                         if (rrBuffer.size > maxRrSize) rrBuffer.removeAt(0)
@@ -181,10 +181,12 @@ class PolarManager(context: Context) {
 
         val recentRrs = rrTimestampBuffer.map { it.second }
         val trend = if (recentRrs.size >= 4) {
-            val firstHalf  = recentRrs.take(recentRrs.size / 2).average()
+            val firstHalf = recentRrs.take(recentRrs.size / 2).average()
             val secondHalf = recentRrs.drop(recentRrs.size / 2).average()
             secondHalf - firstHalf
-        } else 0.0
+        } else {
+            0.0
+        }
 
         val effectiveWindow = if (trend < -50) 2000L else hrCalculationWindowMs
         val cutoff = System.currentTimeMillis() - effectiveWindow
@@ -196,8 +198,11 @@ class PolarManager(context: Context) {
 
     private fun applyRateLimit(newHr: Double, dt: Double): Int {
         val maxChange = MAX_HR_CHANGE_BPM_PER_SEC * dt.coerceAtMost(2.0)
-        val limitedHr = if (lastHr == null) newHr
-        else lastHr!! + (newHr - lastHr!!).coerceIn(-maxChange, maxChange)
+        val limitedHr = if (lastHr == null) {
+            newHr
+        } else {
+            lastHr!! + (newHr - lastHr!!).coerceIn(-maxChange, maxChange)
+        }
         lastHr = limitedHr
         return limitedHr.toInt()
     }
@@ -254,14 +259,14 @@ class PolarManager(context: Context) {
     }
 
     private fun getActivityFactor(activityType: String): Double = when (activityType.lowercase()) {
-        "running"      -> 1.0
-        "cycling"      -> 1.15
-        "swimming"     -> 1.20
-        "gym"          -> 1.30
-        "bodyweight"   -> 1.10
+        "running" -> 1.0
+        "cycling" -> 1.15
+        "swimming" -> 1.20
+        "gym" -> 1.30
+        "bodyweight" -> 1.10
         "martial arts" -> 1.25
-        "boxing"       -> 1.20
-        else           -> 1.0
+        "boxing" -> 1.20
+        else -> 1.0
     }
 
     private fun rr2bvpProxy(): Double = rrTimestampBuffer.lastOrNull()?.second ?: 0.0
@@ -349,28 +354,31 @@ class PolarManager(context: Context) {
     }
 
     private fun calcTrImpContribution(
-        zone: Int, hr: Int, timeMins: Double, activityType: String
+        zone: Int,
+        hr: Int,
+        timeMins: Double,
+        activityType: String
     ): Double {
         val activityFactor = when (activityType.lowercase()) {
-            "running"      -> 1.0
-            "cycling"      -> 1.15
-            "swimming"     -> 1.20
-            "rowing"       -> 1.10
-            "bag work"     -> 1.05
-            "gym"          -> 1.30
-            "bodyweight"   -> 1.10
-            "kettlebell"   -> 1.20
+            "running" -> 1.0
+            "cycling" -> 1.15
+            "swimming" -> 1.20
+            "rowing" -> 1.10
+            "bag work" -> 1.05
+            "gym" -> 1.30
+            "bodyweight" -> 1.10
+            "kettlebell" -> 1.20
             "calisthenics" -> 1.15
-            "sprints"      -> 1.0
+            "sprints" -> 1.0
             "martial arts" -> 1.25
-            "boxing"       -> 1.20
-            "intervals"    -> 1.0
-            "agility"      -> 1.10
-            "walking"      -> 0.8
-            "yoga"         -> 0.7
-            "stretching"   -> 0.6
-            "light swim"   -> 0.85
-            else           -> 1.0
+            "boxing" -> 1.20
+            "intervals" -> 1.0
+            "agility" -> 1.10
+            "walking" -> 0.8
+            "yoga" -> 0.7
+            "stretching" -> 0.6
+            "light swim" -> 0.85
+            else -> 1.0
         }
         return zone * timeMins * activityFactor
     }

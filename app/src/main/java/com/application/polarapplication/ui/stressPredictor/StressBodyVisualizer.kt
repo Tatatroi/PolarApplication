@@ -25,11 +25,10 @@ fun StressBodyVisualizer(
         label = "AuraSize"
     )
 
-
     val computedAuraColor = auraColor ?: when {
         stressScore < 0.35f -> Color(0xFF00FF94)
         stressScore < 0.70f -> Color(0xFFFFD600)
-        else                -> Color(0xFFFF3D00)
+        else -> Color(0xFFFF3D00)
     }
 
     // 3. Resursa grafică

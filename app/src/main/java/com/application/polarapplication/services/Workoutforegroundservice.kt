@@ -24,16 +24,16 @@ import kotlinx.coroutines.launch
 class WorkoutForegroundService : Service() {
 
     companion object {
-        const val CHANNEL_ID      = "workout_channel"
+        const val CHANNEL_ID = "workout_channel"
         const val NOTIFICATION_ID = 1001
 
-        const val ACTION_START  = "ACTION_START"
-        const val ACTION_STOP   = "ACTION_STOP"
-        const val ACTION_PAUSE  = "ACTION_PAUSE"
+        const val ACTION_START = "ACTION_START"
+        const val ACTION_STOP = "ACTION_STOP"
+        const val ACTION_PAUSE = "ACTION_PAUSE"
         const val ACTION_RESUME = "ACTION_RESUME"
 
-        const val EXTRA_HEART_RATE   = "EXTRA_HEART_RATE"
-        const val EXTRA_CALORIES     = "EXTRA_CALORIES"
+        const val EXTRA_HEART_RATE = "EXTRA_HEART_RATE"
+        const val EXTRA_CALORIES = "EXTRA_CALORIES"
         const val EXTRA_WORKOUT_TYPE = "EXTRA_WORKOUT_TYPE"
 
         // Extra folosit de MainActivity să știe să navigheze la Active Workout
@@ -64,8 +64,8 @@ class WorkoutForegroundService : Service() {
     private val _isPaused = MutableStateFlow(false)
     val isPaused: StateFlow<Boolean> = _isPaused
 
-    private var heartRate   = 0
-    private var calories    = 0
+    private var heartRate = 0
+    private var calories = 0
     private var workoutType = "WORKOUT"
 
     private var timerJob: Job? = null
@@ -96,13 +96,14 @@ class WorkoutForegroundService : Service() {
         when (intent?.action) {
             ACTION_START -> {
                 workoutType = intent.getStringExtra(EXTRA_WORKOUT_TYPE) ?: workoutType
-                heartRate   = intent.getIntExtra(EXTRA_HEART_RATE, heartRate)
-                calories    = intent.getIntExtra(EXTRA_CALORIES, calories)
+                heartRate = intent.getIntExtra(EXTRA_HEART_RATE, heartRate)
+                calories = intent.getIntExtra(EXTRA_CALORIES, calories)
 
                 if (timerJob == null) {
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                         startForeground(
-                            NOTIFICATION_ID, buildNotification(),
+                            NOTIFICATION_ID,
+                            buildNotification(),
                             android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
                         )
                     } else {
@@ -171,13 +172,15 @@ class WorkoutForegroundService : Service() {
 
     fun updateVitals(newHeartRate: Int, newCalories: Int) {
         heartRate = newHeartRate
-        calories  = newCalories
+        calories = newCalories
         updateNotification()
     }
 
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
-            CHANNEL_ID, "Active Workout", NotificationManager.IMPORTANCE_LOW
+            CHANNEL_ID,
+            "Active Workout",
+            NotificationManager.IMPORTANCE_LOW
         ).apply {
             description = "Shows live workout data during an active session"
             setShowBadge(true)
@@ -187,24 +190,25 @@ class WorkoutForegroundService : Service() {
     }
 
     private fun buildNotification(): Notification {
-        val elapsed    = _elapsedSeconds.value
-        val hours      = elapsed / 3600
-        val minutes    = (elapsed % 3600) / 60
-        val seconds    = elapsed % 60
+        val elapsed = _elapsedSeconds.value
+        val hours = elapsed / 3600
+        val minutes = (elapsed % 3600) / 60
+        val seconds = elapsed % 60
         val timeString = if (hours > 0) {
             String.format("%d:%02d:%02d", hours, minutes, seconds)
         } else {
             String.format("%02d:%02d", minutes, seconds)
         }
 
-        val hrText     = if (heartRate > 0) "$heartRate BPM" else "— BPM"
-        val calText    = "$calories kcal"
+        val hrText = if (heartRate > 0) "$heartRate BPM" else "— BPM"
+        val calText = "$calories kcal"
         val isPausedNow = _isPaused.value
 
         // ── Tap pe notificare → deschide Live screen ──────────────────────────
         // Folosim MainActivity cu un extra — mai fiabil decât deep link
         val openLiveIntent = PendingIntent.getActivity(
-            this, 0,
+            this,
+            0,
             Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                 putExtra(EXTRA_NAVIGATE_TO_LIVE, true)
@@ -214,7 +218,8 @@ class WorkoutForegroundService : Service() {
 
         // ── Buton "Stop" → deschide Live screen (utilizatorul salvează de acolo) ──
         val stopToLiveIntent = PendingIntent.getActivity(
-            this, 1,
+            this,
+            1,
             Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                 putExtra(EXTRA_NAVIGATE_TO_LIVE, true)
@@ -224,7 +229,8 @@ class WorkoutForegroundService : Service() {
 
         // ── Buton Pause/Resume ─────────────────────────────────────────────────
         val pauseResumeIntent = PendingIntent.getService(
-            this, 2,
+            this,
+            2,
             Intent(this, WorkoutForegroundService::class.java).apply {
                 action = if (isPausedNow) ACTION_RESUME else ACTION_PAUSE
             },
@@ -242,8 +248,11 @@ class WorkoutForegroundService : Service() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setCategory(NotificationCompat.CATEGORY_WORKOUT)
             .addAction(
-                if (isPausedNow) android.R.drawable.ic_media_play
-                else android.R.drawable.ic_media_pause,
+                if (isPausedNow) {
+                    android.R.drawable.ic_media_play
+                } else {
+                    android.R.drawable.ic_media_pause
+                },
                 if (isPausedNow) "Resume" else "Pause",
                 pauseResumeIntent
             )
