@@ -186,7 +186,7 @@ fun ActiveWorkoutScreen(
                         .border(1.dp, GlassBorder, RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    StressBodyVisualizer(stressScore = stressFraction, userGender = userGender)
+                    StressBodyVisualizer(stressScore = stressFraction, userGender = userGender, auraColor = animatedZoneColor)
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)

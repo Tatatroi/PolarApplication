@@ -16,7 +16,7 @@ class ProfileManager(context: Context) {
     private val _height = MutableStateFlow(prefs.getInt("height", 180))
     val height: StateFlow<Int> = _height
 
-    private val _gender = MutableStateFlow(prefs.getString("gender", "Masculin") ?: "Masculin")
+    private val _gender = MutableStateFlow(prefs.getString("gender", "Male") ?: "Male")
     val gender: StateFlow<String> = _gender
 
     private val _rhr = MutableStateFlow(prefs.getInt("rhr", 55))

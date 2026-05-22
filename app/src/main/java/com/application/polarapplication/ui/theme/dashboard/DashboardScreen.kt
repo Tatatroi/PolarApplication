@@ -74,11 +74,11 @@ private fun workoutLabel(type: WorkoutType) = when (type) {
 }
 
 private fun workoutName(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH -> "Forță Maximă"
-    WorkoutType.ENDURANCE -> "Rezistență Aerobă"
-    WorkoutType.SPEED -> "Viteză Explozivă"
-    WorkoutType.RECOVERY -> "Recuperare Activă"
-    WorkoutType.REST -> "Zi de Odihnă"
+    WorkoutType.STRENGTH -> "Max Strength"
+    WorkoutType.ENDURANCE -> "Aerobic Endurance"
+    WorkoutType.SPEED -> "Explosive Speed"
+    WorkoutType.RECOVERY -> "Active Recovery"
+    WorkoutType.REST -> "Rest Day"
 }
 
 private fun workoutDuration(type: WorkoutType) = when (type) {
@@ -98,12 +98,12 @@ private fun workoutIntensity(type: WorkoutType) = when (type) {
 }
 
 private fun cnsHint(cnsScore: Int, workoutType: WorkoutType): String {
-    if (workoutType == WorkoutType.REST) return "Zi de odihnă — recuperare completă"
+    if (workoutType == WorkoutType.REST) return "Rest day — full recovery"
     return when {
-        cnsScore >= 70 -> "CNS odihnit — antrenament intens recomandat"
-        cnsScore >= 50 -> "CNS normal — antrenament standard recomandat"
-        cnsScore > 0 -> "CNS obosit — prioritizează recuperarea"
-        else -> "Conectează senzorul pentru analiza CNS"
+        cnsScore >= 70 -> "CNS rested — intense training recommended"
+        cnsScore >= 50 -> "CNS normal — standard training recommended"
+        cnsScore > 0 -> "CNS fatigued — prioritize recovery"
+        else -> "Connect sensor for CNS analysis"
     }
 }
 
@@ -295,10 +295,9 @@ fun DashboardScreen(
                 WorkoutControlPanel(
                     isActive = uiState.isWorkoutActive,
                     vitals = uiState.vitals,
-                    onStart = { viewModel.startWorkout() },
+                    onStart = { config -> viewModel.startWorkout(config) },
                     onStop = { type -> viewModel.stopWorkout(type) },
-                    onMaximizeWorkout = onMaximizeWorkout,
-                    onTypeSelected = { type -> viewModel.setWorkoutType(type) }
+                    onMaximizeWorkout = onMaximizeWorkout
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             }
@@ -383,7 +382,7 @@ private fun DashHeader(
             ) {
                 Column(horizontalAlignment = Alignment.End) {
                     Text("$daysToComp", color = Color(0xFFF87171), fontSize = 26.sp, fontWeight = FontWeight.Black, lineHeight = 28.sp)
-                    Text("zile", color = Color(0x99F87171), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("days", color = Color(0x99F87171), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -442,12 +441,12 @@ private fun SensorCard(
 
         Column(modifier = Modifier.weight(1f)) {
             if (device.isConnected) {
-                Text("SENZOR ACTIV", color = Color(0xFF4ADE80), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text("ACTIVE SENSOR", color = Color(0xFF4ADE80), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 Text("${vitals.heartRate} BPM", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black, lineHeight = 34.sp)
-                Text("Apasă pentru deconectare", color = Color.White.copy(alpha = 0.2f), fontSize = 11.sp)
+                Text("Tap to disconnect", color = Color.White.copy(alpha = 0.2f), fontSize = 11.sp)
             } else {
-                Text("Așteptare conexiune...", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                Text("Configurează din tab-ul Senzori", color = Color.White.copy(alpha = 0.25f), fontSize = 11.sp)
+                Text("Waiting for connection...", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Text("Configure in the Sensors tab", color = Color.White.copy(alpha = 0.25f), fontSize = 11.sp)
             }
         }
 
@@ -486,7 +485,7 @@ private fun ActiveSessionCard(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            Text("SESIUNE ACTIVĂ", color = Color(0xFFF97316), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text("ACTIVE SESSION", color = Color(0xFFF97316), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Text(workoutType, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("TRIMP ${"%.1f".format(vitals.trimpScore)}", color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
@@ -522,9 +521,9 @@ private fun CnsCard(vitals: AthleteVitals) {
         label = "cnsColor"
     )
     val cnsLabel = when {
-        cns >= 70 -> "ODIHNIT"
+        cns >= 70 -> "RESTED"
         cns >= 50 -> "NORMAL"
-        cns > 0 -> "OBOSIT"
+        cns > 0 -> "FATIGUED"
         else -> "N/A"
     }
     val animatedFrac by animateFloatAsState(targetValue = cns / 100f, animationSpec = tween(800), label = "cnsFrac")
@@ -562,7 +561,7 @@ private fun CnsCard(vitals: AthleteVitals) {
         }
         Spacer(modifier = Modifier.height(5.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            listOf("Epuizat", "Obosit", "Normal", "Odihnit").forEach { lbl ->
+            listOf("Exhausted", "Fatigued", "Normal", "Rested").forEach { lbl ->
                 Text(lbl, color = Color.White.copy(alpha = 0.12f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
             }
         }
@@ -597,8 +596,8 @@ private fun PhaseCompactCard(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(color))
             Column {
-                Text("Faza ${phaseName.replaceFirstChar { it.uppercase() }}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Text("$weeksLeft săpt. rămase în fază", color = Color.White.copy(alpha = 0.25f), fontSize = 11.sp)
+                Text("Phase ${phaseName.replaceFirstChar { it.uppercase() }}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("$weeksLeft weeks left in phase", color = Color.White.copy(alpha = 0.25f), fontSize = 11.sp)
             }
         }
         Column(horizontalAlignment = Alignment.End) {
@@ -621,7 +620,7 @@ private fun TodayWorkoutCard(
     val color = workoutColor(workoutType)
     val bgColor = workoutBgColor(workoutType)
     val hintColor = if (isConnected) cnsHintColor(cnsScore) else Color.White.copy(alpha = 0.2f)
-    val hintText = if (isConnected) cnsHint(cnsScore, workoutType) else "Conectează senzorul pentru recomandarea CNS"
+    val hintText = if (isConnected) cnsHint(cnsScore, workoutType) else "Connect sensor for CNS recommendation"
 
     Column(
         modifier = Modifier
@@ -636,7 +635,7 @@ private fun TodayWorkoutCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("AZI · PLAN BOMPA", color = Color.White.copy(alpha = 0.25f), fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text("TODAY · BOMPA PLAN", color = Color.White.copy(alpha = 0.25f), fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))

@@ -77,16 +77,12 @@ fun WorkoutDetailsScreen(session: TrainingSessionEntity, maxHr: Int = 200) {
         } catch (e: Exception) { emptyList() }
     }
 
-    // Folosim durationSeconds din session (salvat din timer real)
-    // Dacă e 0 (sesiuni vechi), calculăm din samples cu 5 sec/sample
     val totalDurationSeconds = if (session.durationSeconds > 0) {
         session.durationSeconds
     } else {
         hrList.size * 5L
     }
 
-    // Câte secunde reprezintă un sample în grafic
-    // Distribuim samples uniform pe durata reală
     val secondsPerSample = if (hrList.isNotEmpty()) {
         (totalDurationSeconds.toFloat() / hrList.size).toLong().coerceAtLeast(1L)
     } else {
@@ -152,14 +148,6 @@ private fun HrChartCard(
     val peakLactate = hrToLactate(peakHr, maxHr)
     val peakLactateColor = hrToLactateColor(peakHr, maxHr)
 
-    val peakHr = if (hrList.isNotEmpty()) hrList.max() else 0
-    val peakLactate = hrToLactate(peakHr, maxHr)
-    val peakLactateColor = hrToLactateColor(peakHr, maxHr)
-
-    val peakHr = if (hrList.isNotEmpty()) hrList.max() else 0
-    val peakLactate = hrToLactate(peakHr, maxHr)
-    val peakLactateColor = hrToLactateColor(peakHr, maxHr)
-
     Column(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
             .background(CardDark).padding(16.dp)
@@ -185,50 +173,25 @@ private fun HrChartCard(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Avg. heart rate", color = Color.Gray, fontSize = 12.sp)
-                Text("${if (hrList.isNotEmpty()) hrList.average().toInt() else 0} bpm", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("${if (hrList.isNotEmpty()) hrList.average().toInt() else 0} bpm", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            Box(modifier = Modifier.width(1.dp).height(48.dp).background(Color.DarkGray))
+            Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.DarkGray))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Max. heart rate", color = Color.Gray, fontSize = 12.sp)
-                Text("$peakHr bpm", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("$peakHr bpm", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            Box(modifier = Modifier.width(1.dp).height(48.dp).background(Color.DarkGray))
+            Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.DarkGray))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Peak lactate", color = Color.Gray, fontSize = 12.sp)
-                Text(peakLactate, color = peakLactateColor, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            }
-            Box(modifier = Modifier.width(1.dp).height(48.dp).background(Color.DarkGray))
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Peak lactate", color = Color.Gray, fontSize = 12.sp)
-                Text(
-                    peakLactate,
-                    color = peakLactateColor,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Box(modifier = Modifier.width(1.dp).height(48.dp).background(Color.DarkGray))
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Peak lactate", color = Color.Gray, fontSize = 12.sp)
-                Text(
-                    peakLactate,
-                    color = peakLactateColor,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Text(peakLactate, color = peakLactateColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // ── Rândul LT1 / LT2 cu info ──────────────────────────────────────
         LactateThresholdRow(maxHr = maxHr)
     }
 }
-
-// ─────────────────────────────────────────────
-// LACTATE THRESHOLD ROW
-// ─────────────────────────────────────────────
 
 @Composable
 private fun LactateThresholdRow(maxHr: Int) {
@@ -239,7 +202,6 @@ private fun LactateThresholdRow(maxHr: Int) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // LT1
         Row(
             modifier = Modifier
                 .weight(1f)
@@ -250,25 +212,12 @@ private fun LactateThresholdRow(maxHr: Int) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(
-                    text = "LT1 · $lt1Bpm bpm",
-                    color = Color(0xFFFBBF24),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "~2 mmol/L",
-                    color = Color(0xFFFBBF24).copy(alpha = 0.55f),
-                    fontSize = 11.sp
-                )
+                Text(text = "LT1 · $lt1Bpm bpm", color = Color(0xFFFBBF24), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(text = "~2 mmol/L", color = Color(0xFFFBBF24).copy(alpha = 0.55f), fontSize = 11.sp)
             }
-            InfoIconButton(
-                info = MetricInfoData.LT1,
-                tint = Color(0xFFFBBF24).copy(alpha = 0.5f)
-            )
+            InfoIconButton(info = MetricInfoData.LT1, tint = Color(0xFFFBBF24).copy(alpha = 0.5f))
         }
 
-        // LT2
         Row(
             modifier = Modifier
                 .weight(1f)
@@ -279,22 +228,10 @@ private fun LactateThresholdRow(maxHr: Int) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(
-                    text = "LT2 · $lt2Bpm bpm",
-                    color = Color(0xFFF97316),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "~4 mmol/L",
-                    color = Color(0xFFF97316).copy(alpha = 0.55f),
-                    fontSize = 11.sp
-                )
+                Text(text = "LT2 · $lt2Bpm bpm", color = Color(0xFFF97316), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(text = "~4 mmol/L", color = Color(0xFFF97316).copy(alpha = 0.55f), fontSize = 11.sp)
             }
-            InfoIconButton(
-                info = MetricInfoData.LT2,
-                tint = Color(0xFFF97316).copy(alpha = 0.5f)
-            )
+            InfoIconButton(info = MetricInfoData.LT2, tint = Color(0xFFF97316).copy(alpha = 0.5f))
         }
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -303,10 +240,6 @@ private fun LactateThresholdRow(maxHr: Int) {
         LactateThresholdRow(maxHr = maxHr)
     }
 }
-
-// ─────────────────────────────────────────────
-// LACTATE THRESHOLD ROW
-// ─────────────────────────────────────────────
 
 @Composable
 private fun LactateThresholdRow(maxHr: Int) {
@@ -438,14 +371,6 @@ private fun HrLineChart(
     val showLt1 = lt1Hr in yMin..yMax
     val showLt2 = lt2Hr in yMin..yMax
 
-    // Colori LT
-    val lt1Color = Color(0xFFFBBF24)
-    val lt2Color = Color(0xFFF97316)
-
-    // Colori LT
-    val lt1Color = Color(0xFFFBBF24)
-    val lt2Color = Color(0xFFF97316)
-
     Box(modifier = modifier) {
         Canvas(
             modifier = Modifier.fillMaxSize().pointerInput(hrList) {
@@ -482,7 +407,6 @@ private fun HrLineChart(
                 )
             }
 
-            // Axa X folosind durata reală
             val xLabelCount = 4
             for (i in 0..xLabelCount) {
                 val frac = i.toFloat() / xLabelCount
@@ -524,7 +448,6 @@ private fun HrLineChart(
                 val x = indexToX(idx); val y = hrToY(hrList[idx]); val hr = hrList[idx]; val pct = hr.toFloat() / maxHr
                 val tooltipZoneColor = when { pct >= 0.90f -> android.graphics.Color.argb(255, 239, 68, 68); pct >= 0.85f -> android.graphics.Color.argb(255, 249, 115, 22); pct >= 0.70f -> android.graphics.Color.argb(255, 251, 191, 36); else -> android.graphics.Color.argb(255, 96, 165, 250) }
                 val lactateZone = when { pct >= 0.90f -> "> 6 mmol/L"; pct >= 0.85f -> "~4–6 mmol/L · LT2"; pct >= 0.70f -> "~2–4 mmol/L · LT1"; else -> "< 2 mmol/L · Recovery" }
-                // Tooltip folosind secondsPerSample real
                 val seconds = idx * secondsPerSample
                 val line1 = "$hr bpm  ${"%02d:%02d".format(seconds / 60, seconds % 60)}"
                 val line2 = lactateZone
@@ -554,7 +477,7 @@ fun ZoneBreakdownSection(hrList: List<Int>, maxHr: Int, secondsPerSample: Long) 
     val z3 = hrList.count { hrToZone(it, maxHr) == 3 }
     val z2 = hrList.count { hrToZone(it, maxHr) == 2 }
     val z1 = hrList.count { hrToZone(it, maxHr) == 1 }
-    Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+    Column {
         ZoneItem("Zone 5: Maximum", "${(maxHr * 0.9).toInt()}–$maxHr bpm", z5, totalSamples, secondsPerSample, Zone5Color, 5)
         ZoneDivider()
         ZoneItem("Zone 4: Anaerobic", "${(maxHr * 0.8).toInt()}–${(maxHr * 0.9 - 1).toInt()} bpm", z4, totalSamples, secondsPerSample, Zone4Color, 4)
@@ -601,27 +524,106 @@ private fun ZoneItem(title: String, rangeText: String, count: Int, totalCount: F
 
 @Composable
 private fun AthleticImpactSection(session: TrainingSessionEntity) {
-    val intensity = when { session.finalTrimp > 80 || session.cnsScoreAtEnd < 40 -> "Hard"; session.finalTrimp > 40 || session.cnsScoreAtEnd < 60 -> "Medium"; else -> "Easy" }
+    val intensity = when {
+        session.finalTrimp > 80 || session.cnsScoreAtEnd < 40 -> "Hard"
+        session.finalTrimp > 40 || session.cnsScoreAtEnd < 60 -> "Medium"
+        else -> "Easy"
+    }
     val pts = when (intensity) { "Hard" -> 3f; "Medium" -> 2f; else -> 1f }
+
     data class AxisChange(val label: String, val delta: Float, val positive: Boolean)
     val changes = mutableListOf<AxisChange>()
+
     when (session.type.uppercase()) {
-        "STRENGTH" -> { changes.add(AxisChange("Strength", pts, true)); changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true)) }
-        "SPEED" -> { changes.add(AxisChange("Speed", pts, true)); changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true)) }
-        "ENDURANCE" -> { changes.add(AxisChange("Endurance", pts, true)); changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true)) }
-        "RECOVERY", "REST" -> changes.add(AxisChange("HRR", 0.5f, true))
+        "STRENGTH" -> {
+            changes.add(AxisChange("Strength", pts, true))
+            val endBonus = when (session.activityType.lowercase()) {
+                "bodyweight", "calisthenics" -> pts * 0.15f
+                else -> 0f
+            }
+            if (endBonus > 0) changes.add(AxisChange("Endurance", endBonus, true))
+            changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true))
+        }
+        "ENDURANCE" -> {
+            changes.add(AxisChange("Endurance", pts, true))
+            val speedBonus = when (session.activityType.lowercase()) {
+                "bag work" -> pts * 0.10f
+                else -> 0f
+            }
+            if (speedBonus > 0) changes.add(AxisChange("Speed", speedBonus, true))
+            changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true))
+        }
+        "SPEED" -> {
+            val (speedPts, strBonus, endBonus) = when (session.activityType.lowercase()) {
+                "martial arts", "boxing" -> Triple(pts * 0.6f, pts * 0.2f, pts * 0.2f)
+                "intervals" -> Triple(pts * 0.7f, 0f, pts * 0.3f)
+                "agility" -> Triple(pts * 0.8f, pts * 0.1f, pts * 0.1f)
+                else -> Triple(pts, 0f, 0f)
+            }
+            changes.add(AxisChange("Speed", speedPts, true))
+            if (strBonus > 0) changes.add(AxisChange("Strength", strBonus, true))
+            if (endBonus > 0) changes.add(AxisChange("Endurance", endBonus, true))
+            changes.add(AxisChange("HRR", if (pts >= 3f) 1.5f else 0.5f, true))
+        }
+        "RECOVERY", "REST" -> {
+            changes.add(AxisChange("HRR", 0.3f, true))
+        }
     }
-    val summaryText = "$intensity session · +${pts.toInt()} pts on ${changes.firstOrNull()?.label ?: "profile"}"
-    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color(0xFF111118)).border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp)).padding(14.dp)) {
-        Text("ATHLETIC IMPACT", color = Color.White.copy(alpha = 0.25f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, modifier = Modifier.padding(bottom = 10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 10.dp)) {
+
+    // RPE bonus vizual
+    val rpeNote = when {
+        session.rpe in 7..8 -> " · Optimal effort"
+        session.rpe >= 9 -> " · High effort"
+        session.rpe in 1..3 -> " · Low effort"
+        else -> ""
+    }
+
+    val activityNote = if (session.activityType.isNotEmpty()) " · ${session.activityType}" else ""
+    val summaryText = "$intensity session$activityNote$rpeNote"
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFF111118))
+            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+            .padding(14.dp)
+    ) {
+        Text(
+            "ATHLETIC IMPACT",
+            color = Color.White.copy(alpha = 0.25f),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            modifier = Modifier.padding(bottom = 10.dp)
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(bottom = 10.dp)
+        ) {
             changes.forEach { change ->
                 val color = if (change.positive) Color(0xFF4ADE80) else Color(0xFFF87171)
-                Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(color.copy(alpha = 0.1f)).border(1.dp, color.copy(alpha = 0.25f), RoundedCornerShape(20.dp)).padding(horizontal = 12.dp, vertical = 5.dp)) {
-                    Text("${if (change.positive) "+" else "-"}${"%.1f".format(change.delta)} ${change.label}", color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(color.copy(alpha = 0.1f))
+                        .border(1.dp, color.copy(alpha = 0.25f), RoundedCornerShape(20.dp))
+                        .padding(horizontal = 12.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        "+${"%.1f".format(change.delta)} ${change.label}",
+                        color = color,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
-        Text(summaryText, color = Color.White.copy(alpha = 0.3f), fontSize = 12.sp, lineHeight = 18.sp)
+        Text(
+            summaryText,
+            color = Color.White.copy(alpha = 0.3f),
+            fontSize = 12.sp,
+            lineHeight = 18.sp
+        )
     }
 }

@@ -131,7 +131,7 @@ fun InitialTestScreen(
     val completedSteps = remember {
         mutableStateListOf<Boolean>().also { list ->
             repeat(TEST_STEPS.size) { list.add(false) }
-        } 
+        }
     }
 
     val stepHrData = remember { mutableStateListOf<List<Int>>() }
