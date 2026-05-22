@@ -250,7 +250,6 @@ private fun LactateThresholdRow(maxHr: Int) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // LT1
         Row(
             modifier = Modifier
                 .weight(1f)
@@ -261,25 +260,12 @@ private fun LactateThresholdRow(maxHr: Int) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(
-                    text = "LT1 · $lt1Bpm bpm",
-                    color = Color(0xFFFBBF24),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "~2 mmol/L",
-                    color = Color(0xFFFBBF24).copy(alpha = 0.55f),
-                    fontSize = 11.sp
-                )
+                Text(text = "LT1 · $lt1Bpm bpm", color = Color(0xFFFBBF24), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(text = "~2 mmol/L", color = Color(0xFFFBBF24).copy(alpha = 0.55f), fontSize = 11.sp)
             }
-            InfoIconButton(
-                info = MetricInfoData.LT1,
-                tint = Color(0xFFFBBF24).copy(alpha = 0.5f)
-            )
+            InfoIconButton(info = MetricInfoData.LT1, tint = Color(0xFFFBBF24).copy(alpha = 0.5f))
         }
 
-        // LT2
         Row(
             modifier = Modifier
                 .weight(1f)
@@ -290,22 +276,10 @@ private fun LactateThresholdRow(maxHr: Int) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(
-                    text = "LT2 · $lt2Bpm bpm",
-                    color = Color(0xFFF97316),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "~4 mmol/L",
-                    color = Color(0xFFF97316).copy(alpha = 0.55f),
-                    fontSize = 11.sp
-                )
+                Text(text = "LT2 · $lt2Bpm bpm", color = Color(0xFFF97316), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(text = "~4 mmol/L", color = Color(0xFFF97316).copy(alpha = 0.55f), fontSize = 11.sp)
             }
-            InfoIconButton(
-                info = MetricInfoData.LT2,
-                tint = Color(0xFFF97316).copy(alpha = 0.5f)
-            )
+            InfoIconButton(info = MetricInfoData.LT2, tint = Color(0xFFF97316).copy(alpha = 0.5f))
         }
 
         Spacer(modifier = Modifier.height(14.dp))
