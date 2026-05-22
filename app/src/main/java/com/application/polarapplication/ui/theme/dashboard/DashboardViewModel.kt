@@ -39,7 +39,6 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     private val sessionDao = AppDatabase.getDatabase(application).sessionDao()
     val profileManager = ProfileManager(application)
 
-    // ── Workout activ ──────────────────────────────────────────────────────────
     private val _isWorkoutActive = MutableStateFlow(false)
     val isWorkoutActive = _isWorkoutActive.asStateFlow()
 

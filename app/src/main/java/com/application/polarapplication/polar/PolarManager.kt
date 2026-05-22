@@ -55,6 +55,7 @@ class PolarManager(context: Context) {
     private var ppiDisposable: Disposable? = null
     private var accDisposable: Disposable? = null
 
+    // Samples pentru grafic — un sample la fiecare 5 secunde
     private val workoutHeartRateSamples = mutableListOf<Int>()
     private var lastSampleTimestamp = 0L
     private val MIN_SAMPLE_INTERVAL_MS = 4500L
@@ -244,6 +245,7 @@ class PolarManager(context: Context) {
         if (now - lastSampleTimestamp >= MIN_SAMPLE_INTERVAL_MS) {
             workoutHeartRateSamples.add(hr)
             lastSampleTimestamp = now
+            android.util.Log.d("HR_SAMPLES", "Sample added: $hr BPM, total=${workoutHeartRateSamples.size}")
         }
 
         _athleteVitals.value = AthleteVitals(

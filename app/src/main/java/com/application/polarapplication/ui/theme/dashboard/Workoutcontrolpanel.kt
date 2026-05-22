@@ -258,6 +258,15 @@ private fun PrepareWorkoutContent(
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
+            .padding(16.dp)
+    ) {
+        Text(
+            text = if (isActive) "ACTIVE SESSION" else "PREPARE WORKOUT",
+            color = if (isActive) AccentAmber else Color.White.copy(alpha = 0.25f),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
 
             Spacer(modifier = Modifier.height(12.dp))
 

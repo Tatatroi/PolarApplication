@@ -252,6 +252,13 @@ fun PremiumHistoryCard(
 ) {
     val dateStr = SimpleDateFormat("dd MMM yyyy • HH:mm", LocalLocale.current.platformLocale).format(Date(session.date))
     val theme = getThemeForWorkout(session.type)
+    val durationStr = if (session.durationSeconds > 0) {
+        val min = session.durationSeconds / 60
+        val sec = session.durationSeconds % 60
+        "%02d:%02d".format(min, sec)
+    } else {
+        "—"
+    }
 
     val durationStr = if (session.durationSeconds > 0) {
         val min = session.durationSeconds / 60
@@ -348,6 +355,14 @@ fun PremiumHistoryCard(
                             fontSize = 11.sp,
                             modifier = Modifier.padding(bottom = 2.dp, start = 1.dp)
                         )
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Calories", color = Color.Gray, fontSize = 12.sp)
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text("${session.totalCalories}", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 4.dp))
+                            Text(" kcal", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(bottom = 2.dp, start = 2.dp))
+                        }
                     }
                 }
 
