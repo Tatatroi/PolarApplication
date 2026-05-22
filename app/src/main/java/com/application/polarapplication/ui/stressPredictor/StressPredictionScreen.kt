@@ -21,16 +21,14 @@ import com.application.polarapplication.ui.planning.NeonBlue
 
 @Composable
 fun StressPredictionScreen(stressManager: StressManager) {
-    var selectedTimeFrame by remember { mutableStateOf("Prezent") }
-    val options = listOf("Prezent", "Mâine", "7 Zile", "Concurs")
+    var selectedTimeFrame by remember { mutableStateOf("Present") }
+    val options = listOf("Present", "Tomorrow", "7 Days", "Competition")
 
-    // Aici simulăm scorul de stres.
-    // În realitate, 'Prezent' vine din senzor, restul din algoritmul tău AI.
     val displayScore = when (selectedTimeFrame) {
-        "Prezent" -> 0.2f // Exemplu: Calm acum
-        "Mâine" -> 0.45f // Exemplu: Stres mediu estimat
-        "7 Zile" -> 0.8f // Exemplu: Acumulare oboseală mare
-        "Concurs" -> 0.1f // Exemplu: Tapering reușit, ești fresh
+        "Present" -> 0.2f
+        "Tomorrow" -> 0.45f
+        "7 Days" -> 0.8f
+        "Competition" -> 0.1f
         else -> 0.0f
     }
 
@@ -42,21 +40,19 @@ fun StressPredictionScreen(stressManager: StressManager) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "PREDICȚIE BIOMETRICĂ",
+            text = "BIOMETRIC PREDICTION",
             color = Color.White,
             fontSize = 24.sp,
             fontWeight = FontWeight.Black,
             modifier = Modifier.padding(vertical = 24.dp)
         )
 
-        // 1. VIZUALIZAREA (Silueta cu Aura)
-        StressBodyVisualizer(stressScore = displayScore, userGender = "Feminin")
+        StressBodyVisualizer(stressScore = displayScore, userGender = "Female")
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 2. SELECTORUL DE TIMP (Meniul de jos)
         Text(
-            text = "ORIZONT TEMPORAL",
+            text = "TIME HORIZON",
             color = NeonBlue,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,

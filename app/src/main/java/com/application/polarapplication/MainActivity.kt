@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -48,6 +49,7 @@ import com.application.polarapplication.ai.chatbot.ChatBotScreen
 import com.application.polarapplication.athletic.InitialTestScreen
 import com.application.polarapplication.athletic.ProgressScreen
 import com.application.polarapplication.polar.PermissionHelper
+import com.application.polarapplication.services.WorkoutForegroundService
 import com.application.polarapplication.ui.Screen
 import com.application.polarapplication.ui.history.HistoryScreen
 import com.application.polarapplication.ui.planning.ActivePlanScreen
@@ -61,8 +63,13 @@ import com.application.polarapplication.ui.theme.dashboard.PeriodizationCalendar
 import com.application.polarapplication.ui.theme.devices.DevicesScreen
 import com.application.polarapplication.ui.theme.profile.ProfileScreen
 import com.application.polarapplication.ui.theme.progress.WorkoutDetailsScreen
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity() {
+
+    // Flow care semnalează că trebuie să navigăm la Active Workout
+    // Folosim StateFlow ca să fie accesibil din Composable
+    private val navigateToLive = MutableStateFlow(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,19 +100,45 @@ class MainActivity : ComponentActivity() {
             PermissionHelper.requestAllPermissions(this)
         }
 
+        // Verificăm dacă am fost lansați cu intent de navigate to live
+        handleNavigateToLiveIntent(intent)
+
         setContent {
             PolarApplicationTheme {
-                MainNavigationWrapper()
+                MainNavigationWrapper(navigateToLive = navigateToLive)
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNavigateToLiveIntent(intent)
+    }
+
+    private fun handleNavigateToLiveIntent(intent: Intent?) {
+        if (intent?.getBooleanExtra(WorkoutForegroundService.EXTRA_NAVIGATE_TO_LIVE, false) == true) {
+            navigateToLive.value = true
         }
     }
 }
 
 @Composable
-fun MainNavigationWrapper() {
+fun MainNavigationWrapper(navigateToLive: MutableStateFlow<Boolean>) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    // Ascultăm semnalul de navigare la Live
+    val shouldNavigateToLive by navigateToLive.collectAsState()
+    LaunchedEffect(shouldNavigateToLive) {
+        if (shouldNavigateToLive) {
+            navigateToLive.value = false // resetăm flag-ul
+            navController.navigate(Screen.ActiveWorkout.route) {
+                launchSingleTop = true
+            }
+        }
+    }
 
     val isBottomBarVisible = currentRoute != Screen.ActiveWorkout.route
 
@@ -134,7 +167,6 @@ fun MainNavigationWrapper() {
                             unselectedTextColor = Color(0xFF555566),
                             indicatorColor = Color(0xFF818CF8).copy(alpha = 0.12f)
                         )
-
                     )
 
                     NavigationBarItem(
@@ -142,9 +174,7 @@ fun MainNavigationWrapper() {
                         label = { Text("Devices") },
                         selected = currentRoute == Screen.Devices.route,
                         onClick = {
-                            navController.navigate(Screen.Devices.route) {
-                                launchSingleTop = true
-                            }
+                            navController.navigate(Screen.Devices.route) { launchSingleTop = true }
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Color(0xFF818CF8),
@@ -160,9 +190,7 @@ fun MainNavigationWrapper() {
                         label = { Text("History") },
                         selected = currentRoute == Screen.History.route,
                         onClick = {
-                            navController.navigate(Screen.History.route) {
-                                launchSingleTop = true
-                            }
+                            navController.navigate(Screen.History.route) { launchSingleTop = true }
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Color(0xFF818CF8),
@@ -178,9 +206,7 @@ fun MainNavigationWrapper() {
                         label = { Text("Profile") },
                         selected = currentRoute == Screen.Profile.route,
                         onClick = {
-                            navController.navigate(Screen.Profile.route) {
-                                launchSingleTop = true
-                            }
+                            navController.navigate(Screen.Profile.route) { launchSingleTop = true }
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Color(0xFF818CF8),
@@ -197,9 +223,7 @@ fun MainNavigationWrapper() {
                         selected = currentRoute == Screen.Plan.route ||
                             currentRoute == Screen.TargetSetup.route,
                         onClick = {
-                            navController.navigate(Screen.Plan.route) {
-                                launchSingleTop = true
-                            }
+                            navController.navigate(Screen.Plan.route) { launchSingleTop = true }
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Color(0xFF818CF8),
@@ -218,9 +242,7 @@ fun MainNavigationWrapper() {
             ) {
                 FloatingActionButton(
                     onClick = {
-                        navController.navigate(Screen.AiChat.route) {
-                            launchSingleTop = true
-                        }
+                        navController.navigate(Screen.AiChat.route) { launchSingleTop = true }
                     },
                     containerColor = Color(0xFF1A1A2E),
                     contentColor = Color(0xFF818CF8),
@@ -239,6 +261,7 @@ fun MainNavigationWrapper() {
     ) { innerPadding ->
         val sharedViewModel: DashboardViewModel = viewModel()
         val currentMaxHr by sharedViewModel.userMaxHr.collectAsState()
+
         NavHost(
             navController = navController,
             startDestination = Screen.Dashboard.route,
@@ -258,7 +281,6 @@ fun MainNavigationWrapper() {
 
             composable(Screen.History.route) {
                 val selectedSession by sharedViewModel.selectedSession.collectAsState()
-
                 if (selectedSession == null) {
                     HistoryScreen(
                         viewModel = sharedViewModel,
@@ -277,11 +299,10 @@ fun MainNavigationWrapper() {
                     }
                 }
             }
+
             composable(
                 route = Screen.ActiveWorkout.route,
-                deepLinks = listOf(
-                    navDeepLink { uriPattern = "polar://active_workout" }
-                )
+                deepLinks = listOf(navDeepLink { uriPattern = "polar://active_workout" })
             ) {
                 val userGender by sharedViewModel.profileManager.gender.collectAsState()
                 ActiveWorkoutScreen(
@@ -325,9 +346,7 @@ fun MainNavigationWrapper() {
             composable(Screen.Plan.route) {
                 ActivePlanScreen(
                     viewModel = sharedViewModel,
-                    onGenerateNewPlan = {
-                        navController.navigate(Screen.TargetSetup.route)
-                    }
+                    onGenerateNewPlan = { navController.navigate(Screen.TargetSetup.route) }
                 )
             }
 
@@ -339,9 +358,7 @@ fun MainNavigationWrapper() {
                 InitialTestScreen(
                     viewModel = sharedViewModel,
                     athleticMgr = sharedViewModel.athleticProfileManager,
-                    onTestComplete = {
-                        navController.popBackStack()
-                    }
+                    onTestComplete = { navController.popBackStack() }
                 )
             }
 

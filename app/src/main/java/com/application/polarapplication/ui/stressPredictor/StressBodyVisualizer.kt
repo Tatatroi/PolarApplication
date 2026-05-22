@@ -15,7 +15,8 @@ import com.application.polarapplication.R
 @Composable
 fun StressBodyVisualizer(
     stressScore: Float,
-    userGender: String
+    userGender: String,
+    auraColor: Color? = null
 ) {
     // 1. Animăm mărimea aurei (0.0 -> 1.0)
     val animatedRadiusMultiplier by animateFloatAsState(
@@ -24,15 +25,14 @@ fun StressBodyVisualizer(
         label = "AuraSize"
     )
 
-    // 2. Alegem culoarea aurei
-    val auraColor = when {
-        stressScore < 0.35f -> Color(0xFF00FF94) // Verde
-        stressScore < 0.70f -> Color(0xFFFFD600) // Galben
-        else -> Color(0xFFFF3D00) // Roșu
+    val computedAuraColor = auraColor ?: when {
+        stressScore < 0.35f -> Color(0xFF00FF94)
+        stressScore < 0.70f -> Color(0xFFFFD600)
+        else -> Color(0xFFFF3D00)
     }
 
     // 3. Resursa grafică
-    val bodyPainter = if (userGender == "Feminin") {
+    val bodyPainter = if (userGender == "Female") {
         painterResource(id = R.drawable.womanclear)
     } else {
         painterResource(id = R.drawable.clearman)
@@ -51,7 +51,7 @@ fun StressBodyVisualizer(
 
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(auraColor.copy(alpha = 0.6f), Color.Transparent),
+                    colors = listOf(computedAuraColor.copy(alpha = 0.6f), Color.Transparent),
                     center = centerPoint,
                     radius = currentRadius
                 ),
