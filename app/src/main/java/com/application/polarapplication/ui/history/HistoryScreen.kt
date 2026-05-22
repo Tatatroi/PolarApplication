@@ -252,13 +252,6 @@ fun PremiumHistoryCard(
 ) {
     val dateStr = SimpleDateFormat("dd MMM yyyy • HH:mm", LocalLocale.current.platformLocale).format(Date(session.date))
     val theme = getThemeForWorkout(session.type)
-    val durationStr = if (session.durationSeconds > 0) {
-        val min = session.durationSeconds / 60
-        val sec = session.durationSeconds % 60
-        "%02d:%02d".format(min, sec)
-    } else {
-        "—"
-    }
 
     val durationStr = if (session.durationSeconds > 0) {
         val min = session.durationSeconds / 60
