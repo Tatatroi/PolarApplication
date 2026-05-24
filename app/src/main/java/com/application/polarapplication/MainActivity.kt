@@ -35,8 +35,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,6 +56,8 @@ import com.application.polarapplication.polar.PermissionHelper
 import com.application.polarapplication.services.WorkoutForegroundService
 import com.application.polarapplication.ui.Screen
 import com.application.polarapplication.ui.history.HistoryScreen
+import com.application.polarapplication.ui.onboarding.OnboardingManager
+import com.application.polarapplication.ui.onboarding.OnboardingScreen
 import com.application.polarapplication.ui.planning.ActivePlanScreen
 import com.application.polarapplication.ui.planning.TargetSetupScreen
 import com.application.polarapplication.ui.theme.Indigo
@@ -262,111 +268,138 @@ fun MainNavigationWrapper(navigateToLive: MutableStateFlow<Boolean>) {
         val sharedViewModel: DashboardViewModel = viewModel()
         val currentMaxHr by sharedViewModel.userMaxHr.collectAsState()
 
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Dashboard.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable(Screen.Dashboard.route) {
-                DashboardScreen(
-                    viewModel = sharedViewModel,
-                    onMaximizeWorkout = { navController.navigate(Screen.ActiveWorkout.route) },
-                    onNavigateToTest = { navController.navigate(Screen.InitialTest.route) }
-                )
-            }
+        val context = LocalContext.current
+        val onboardingManager = remember { OnboardingManager(context) }
+        var showOnboarding by remember { mutableStateOf(!onboardingManager.isCompleted) }
 
-            composable(Screen.Devices.route) {
-                DevicesScreen(viewModel = sharedViewModel)
-            }
-
-            composable(Screen.History.route) {
-                val selectedSession by sharedViewModel.selectedSession.collectAsState()
-                if (selectedSession == null) {
-                    HistoryScreen(
+        if (showOnboarding) {
+            OnboardingScreen(
+                onComplete = { name, age, gender, height, weight ->
+                    // Salvează în ProfileManager
+                    sharedViewModel.saveUserProfile(
+                        age = age,
+                        weight = weight,
+                        height = height,
+                        gender = gender,
+                        rhr = 55,
+                        customHrMax = null,
+                        profileImageUri = null,
+                        dobMillis = null,
+                        availableDays = emptySet(),
+                        userName = name
+                    )                    // Marchează completat
+                    onboardingManager.markCompleted()
+                    showOnboarding = false
+                }
+            )
+        }
+        else {
+            NavHost(
+                navController = navController,
+                startDestination = Screen.Dashboard.route,
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                composable(Screen.Dashboard.route) {
+                    DashboardScreen(
                         viewModel = sharedViewModel,
-                        onSessionClick = { session -> sharedViewModel.selectSession(session) },
-                        onNavigateToProgress = { navController.navigate(Screen.Progress.route) }
+                        onMaximizeWorkout = { navController.navigate(Screen.ActiveWorkout.route) },
+                        onNavigateToTest = { navController.navigate(Screen.InitialTest.route) }
                     )
-                } else {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        TextButton(
-                            onClick = { sharedViewModel.selectSession(null) },
-                            modifier = Modifier.padding(8.dp)
-                        ) {
-                            Text("< Înapoi la listă", color = Indigo)
+                }
+
+                composable(Screen.Devices.route) {
+                    DevicesScreen(viewModel = sharedViewModel)
+                }
+
+                composable(Screen.History.route) {
+                    val selectedSession by sharedViewModel.selectedSession.collectAsState()
+                    if (selectedSession == null) {
+                        HistoryScreen(
+                            viewModel = sharedViewModel,
+                            onSessionClick = { session -> sharedViewModel.selectSession(session) },
+                            onNavigateToProgress = { navController.navigate(Screen.Progress.route) }
+                        )
+                    } else {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            TextButton(
+                                onClick = { sharedViewModel.selectSession(null) },
+                                modifier = Modifier.padding(8.dp)
+                            ) {
+                                Text("< Înapoi la listă", color = Indigo)
+                            }
+                            WorkoutDetailsScreen(session = selectedSession!!, maxHr = currentMaxHr)
                         }
-                        WorkoutDetailsScreen(session = selectedSession!!, maxHr = currentMaxHr)
                     }
                 }
-            }
 
-            composable(
-                route = Screen.ActiveWorkout.route,
-                deepLinks = listOf(navDeepLink { uriPattern = "polar://active_workout" })
-            ) {
-                val userGender by sharedViewModel.profileManager.gender.collectAsState()
-                ActiveWorkoutScreen(
-                    viewModel = sharedViewModel,
-                    userGender = userGender,
-                    onMinimizeClick = {
-                        navController.popBackStack(Screen.Dashboard.route, inclusive = false)
-                    }
-                )
-            }
-
-            composable(Screen.Profile.route) {
-                ProfileScreen(
-                    viewModel = sharedViewModel,
-                    onNavigateToTest = { navController.navigate(Screen.InitialTest.route) }
-                )
-            }
-
-            composable(Screen.TargetSetup.route) {
-                TargetSetupScreen(
-                    viewModel = sharedViewModel,
-                    onPlanGenerated = {
-                        navController.navigate(Screen.PeriodizationCalendar.route) {
-                            popUpTo(Screen.TargetSetup.route) { inclusive = true }
+                composable(
+                    route = Screen.ActiveWorkout.route,
+                    deepLinks = listOf(navDeepLink { uriPattern = "polar://active_workout" })
+                ) {
+                    val userGender by sharedViewModel.profileManager.gender.collectAsState()
+                    ActiveWorkoutScreen(
+                        viewModel = sharedViewModel,
+                        userGender = userGender,
+                        onMinimizeClick = {
+                            navController.popBackStack(Screen.Dashboard.route, inclusive = false)
                         }
-                    }
-                )
-            }
+                    )
+                }
 
-            composable(Screen.PeriodizationCalendar.route) {
-                PeriodizationCalendarScreen(
-                    viewModel = sharedViewModel,
-                    onBack = {
-                        navController.navigate(Screen.TargetSetup.route) {
-                            popUpTo(Screen.PeriodizationCalendar.route) { inclusive = true }
+                composable(Screen.Profile.route) {
+                    ProfileScreen(
+                        viewModel = sharedViewModel,
+                        onNavigateToTest = { navController.navigate(Screen.InitialTest.route) }
+                    )
+                }
+
+                composable(Screen.TargetSetup.route) {
+                    TargetSetupScreen(
+                        viewModel = sharedViewModel,
+                        onPlanGenerated = {
+                            navController.navigate(Screen.PeriodizationCalendar.route) {
+                                popUpTo(Screen.TargetSetup.route) { inclusive = true }
+                            }
                         }
-                    }
-                )
-            }
+                    )
+                }
 
-            composable(Screen.Plan.route) {
-                ActivePlanScreen(
-                    viewModel = sharedViewModel,
-                    onGenerateNewPlan = { navController.navigate(Screen.TargetSetup.route) }
-                )
-            }
+                composable(Screen.PeriodizationCalendar.route) {
+                    PeriodizationCalendarScreen(
+                        viewModel = sharedViewModel,
+                        onBack = {
+                            navController.navigate(Screen.TargetSetup.route) {
+                                popUpTo(Screen.PeriodizationCalendar.route) { inclusive = true }
+                            }
+                        }
+                    )
+                }
 
-            composable(Screen.AiChat.route) {
-                ChatBotScreen(viewModel = sharedViewModel)
-            }
+                composable(Screen.Plan.route) {
+                    ActivePlanScreen(
+                        viewModel = sharedViewModel,
+                        onGenerateNewPlan = { navController.navigate(Screen.TargetSetup.route) }
+                    )
+                }
 
-            composable(Screen.InitialTest.route) {
-                InitialTestScreen(
-                    viewModel = sharedViewModel,
-                    athleticMgr = sharedViewModel.athleticProfileManager,
-                    onTestComplete = { navController.popBackStack() }
-                )
-            }
+                composable(Screen.AiChat.route) {
+                    ChatBotScreen(viewModel = sharedViewModel)
+                }
 
-            composable(Screen.Progress.route) {
-                ProgressScreen(
-                    viewModel = sharedViewModel,
-                    onBack = { navController.popBackStack() }
-                )
+                composable(Screen.InitialTest.route) {
+                    InitialTestScreen(
+                        viewModel = sharedViewModel,
+                        athleticMgr = sharedViewModel.athleticProfileManager,
+                        onTestComplete = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen.Progress.route) {
+                    ProgressScreen(
+                        viewModel = sharedViewModel,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }
