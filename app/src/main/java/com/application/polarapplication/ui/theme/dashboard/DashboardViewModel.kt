@@ -138,6 +138,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         .map { millis -> millis?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate() } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    val planFocus: StateFlow<String> = profileManager.planFocus
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "full")
+
     val athleticProfileManager = AthleticProfileManager(application)
 
     val planStartDate: StateFlow<LocalDate?> = profileManager.planStartDateMillis
@@ -370,7 +373,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         )
     }
 
-    fun setCompetitionDate(date: LocalDate) {
+    fun setCompetitionDate(date: LocalDate, focus: String = "full") {
         val compMillis = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val startMillis = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         profileManager.saveProfile(
@@ -382,7 +385,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             newCustomHrMax = profileManager.customHrMax.value,
             newProfileImageUri = profileManager.profileImageUri.value,
             newCompetitionDateMillis = compMillis,
-            newPlanStartDateMillis = startMillis
+            newPlanStartDateMillis = startMillis,
+            newPlanFocus = focus
         )
     }
 
@@ -390,4 +394,18 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     fun saveChatMessages(messages: List<ChatMessage>) { _chatMessages.value = messages }
     fun saveChatSetup(setup: SessionSetup) { _chatSetup.value = setup }
     fun clearChat() { _chatMessages.value = emptyList(); _chatSetup.value = null }
+
+    fun deletePlan() {
+        profileManager.saveProfile(
+            newAge               = profileManager.age.value,
+            newWeight            = profileManager.weight.value,
+            newHeight            = profileManager.height.value,
+            newGender            = profileManager.gender.value,
+            newRhr               = profileManager.rhr.value,
+            newCustomHrMax       = profileManager.customHrMax.value,
+            newProfileImageUri   = profileManager.profileImageUri.value,
+            newCompetitionDateMillis = null,  // ← șterge data competiției
+            newPlanStartDateMillis   = null   // ← șterge data de start
+        )
+    }
 }

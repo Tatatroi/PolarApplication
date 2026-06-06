@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -75,7 +76,10 @@ fun ProfileScreen(
     var rhr by remember(savedRhr) { mutableStateOf(savedRhr) }
     var customHrMax by remember(savedCustomHrMax) { mutableStateOf(savedCustomHrMax) }
     var profileImageUri by remember(savedImageUri) { mutableStateOf(savedImageUri) }
-    var availableDays by remember(savedAvailableDays) { mutableStateOf(savedAvailableDays) }
+    var availableDays by remember { mutableStateOf(savedAvailableDays) }
+    LaunchedEffect(savedAvailableDays) {
+        availableDays = savedAvailableDays
+    }
     val savedUserName by viewModel.profileManager.userName.collectAsState()
     var userName by remember(savedUserName) { mutableStateOf(savedUserName.ifBlank { "Athlete" }) }
 
@@ -240,7 +244,7 @@ fun ProfileScreen(
                 onChange = { day, selected ->
                     val newSet = availableDays.toMutableSet()
                     if (selected) newSet.add(day) else newSet.remove(day)
-                    if (newSet.size >= 3) availableDays = newSet
+                    availableDays = newSet
                 }
             )
 
@@ -614,7 +618,10 @@ private fun AvailableDaysCard(availableDays: Set<Int>, onChange: (Int, Boolean) 
                         .clip(RoundedCornerShape(9.dp))
                         .background(if (selected) AccentIndigo.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.03f))
                         .border(1.dp, if (selected) AccentIndigo.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.06f), RoundedCornerShape(9.dp))
-                        .clickable { onChange(dayNum, !selected) },
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { onChange(dayNum, !selected) },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

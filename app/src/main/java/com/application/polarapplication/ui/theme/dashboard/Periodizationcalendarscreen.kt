@@ -100,21 +100,21 @@ private fun workoutLabel(type: WorkoutType): String = when (type) {
     WorkoutType.REST -> "REST"
 }
 
-private fun workoutDescription(type: WorkoutType): String = when (type) {
-    WorkoutType.STRENGTH -> "Forță: 5×5 la 80–85% 1RM. Pauze 3 min între seturi."
-    WorkoutType.ENDURANCE -> "Rezistență aerobă: 30–40 min la 65–75% HRmax. Ritm constant."
-    WorkoutType.SPEED -> "Viteză: 10×20 sec sprint maximal, pauze 40 sec active."
-    WorkoutType.RECOVERY -> "Recuperare activă: 20–25 min mers ușor + mobilitate."
-    WorkoutType.REST -> "Zi de odihnă totală. Somn prioritar, hidratare optimă."
+private fun phaseDescription(phaseName: String): String = when (phaseName.lowercase()) {
+    "general" -> "Builds aerobic base and general strength. High volume, moderate intensity."
+    "specific" -> "Transfers capacities toward sport demands. Increased intensity."
+    "precomp" -> "Competition simulation. Low volume, maximum intensity."
+    "comp" -> "Maintaining peak form. Short and explosive sessions."
+    "recovery" -> "Complete neuromuscular regeneration. Preparation for next macrocycle."
+    else -> ""
 }
 
-private fun phaseDescription(phaseName: String): String = when (phaseName.lowercase()) {
-    "general" -> "Construiește baza aerobă și forța generală. Volum ridicat, intensitate moderată."
-    "specific" -> "Transferă capacitățile spre cerințele sportului. Intensitate crescută."
-    "precomp" -> "Simulare competițională. Volum scăzut, intensitate maximă."
-    "comp" -> "Menținerea formei de vârf. Antrenamente scurte și explosive."
-    "recovery" -> "Regenerare completă neuromusculară. Pregătire pentru următorul macrociclu."
-    else -> ""
+private fun workoutDescription(type: WorkoutType): String = when (type) {
+    WorkoutType.STRENGTH -> "Strength: 5×5 at 80–85% 1RM. 3 min rest between sets."
+    WorkoutType.ENDURANCE -> "Aerobic endurance: 30–40 min at 65–75% HRmax. Steady pace."
+    WorkoutType.SPEED -> "Speed: 10×20 sec maximal sprint, 40 sec active rest."
+    WorkoutType.RECOVERY -> "Active recovery: 20–25 min easy walk + mobility work."
+    WorkoutType.REST -> "Full rest day. Prioritize sleep and optimal hydration."
 }
 
 data class SelectedDayInfo(
@@ -137,8 +137,17 @@ fun PeriodizationCalendarScreen(
     val competitionDate by viewModel.competitionDate.collectAsState()
     val effectiveDate = competitionDate ?: LocalDate.now().plusWeeks(24)
 
+    val availableDays by viewModel.profileManager.availableDays.collectAsState()
+    val planFocus by viewModel.planFocus.collectAsState()
+
     val planner = remember { TrainingPlanner() }
-    val plan = remember(effectiveDate) { planner.generatePlan(effectiveDate) }
+    val plan = remember(effectiveDate, availableDays, planFocus) {
+        planner.generatePlan(
+            competitionDate = effectiveDate,
+            availableDays = availableDays,
+            focus = planFocus
+        )
+    }
     val today = remember { LocalDate.now() }
 
     // Găsim microciclu-ul săptămânii curente
@@ -197,17 +206,36 @@ fun PeriodizationCalendarScreen(
                 selectedMeso = meso
                 selectedMicro = meso.microCycle.firstOrNull()
                 selectedDayInfo = null
+            },
+            onMacroClick = {
+                selectedMeso = null
+                selectedMicro = currentMicro ?: plan.mesoCycles.firstOrNull()?.microCycle?.firstOrNull()
+                selectedDayInfo = null
             }
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ── Selector microciclu (săptămâni din faza selectată) ──
-        selectedMeso?.let { meso ->
-            SectionLabel("Faza ${meso.phase} · ${meso.microCycle.size} săptămâni")
+        if (selectedMeso == null) {
+            // Arată toate săptămânile din toate fazele
+            SectionLabel("FULL PLAN · ${plan.mesoCycles.sumOf { it.microCycle.size }} weeks")
             Spacer(modifier = Modifier.height(8.dp))
             MicroCycleSelector(
-                mesoCycle = meso,
+                mesoCycles = plan.mesoCycles,  // toate fazele
+                selectedMicro = selectedMicro,
+                today = today,
+                totalWeeks = totalWeeks,
+                planStart = plan.stratDate,
+                onMicroSelected = { micro ->
+                    selectedMicro = micro
+                    selectedDayInfo = null
+                }
+            )
+        } else {
+            SectionLabel("${selectedMeso!!.phase.replaceFirstChar { it.uppercase() }} phase · ${selectedMeso!!.microCycle.size} weeks")
+            Spacer(modifier = Modifier.height(8.dp))
+            MicroCycleSelector(
+                mesoCycles = listOf(selectedMeso!!),
                 selectedMicro = selectedMicro,
                 today = today,
                 totalWeeks = totalWeeks,
@@ -219,16 +247,19 @@ fun PeriodizationCalendarScreen(
             )
         }
 
+
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ── Grila săptămânii selectate ──
         selectedMicro?.let { micro ->
-            val mesoForMicro = selectedMeso ?: return@let
+            val mesoForMicro = selectedMeso ?: plan.mesoCycles.firstOrNull { meso ->
+                meso.microCycle.any { it.startDate == micro.startDate }
+            } ?: return@let
+
             val weekNum = plan.mesoCycles
                 .flatMap { it.microCycle }
                 .indexOfFirst { it.startDate == micro.startDate } + 1
 
-            SectionLabel("Microciclu · Săpt. $weekNum din $totalWeeks")
+            SectionLabel("Microcycle · Week $weekNum of $totalWeeks")
             Spacer(modifier = Modifier.height(8.dp))
             WeekDayGrid(
                 microCycle = micro,
@@ -255,7 +286,10 @@ fun PeriodizationCalendarScreen(
             exit = fadeOut() + shrinkVertically()
         ) {
             selectedDayInfo?.let { info ->
-                DayDetailPanel(info = info)
+                DayDetailPanel(
+                    info = info,
+                    macrocycleLabel = "${plan.mesoCycles.firstOrNull()?.phase?.replaceFirstChar { it.uppercase() } ?: "General"} · $totalWeeks weeks"
+                )
             }
         }
 
@@ -283,13 +317,13 @@ private fun PlanHeader(
     ) {
         Column {
             Text(
-                text = "Plan Periodizare",
+                text = "Periodization Plan",
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Black
             )
             Text(
-                text = "Bompa · $totalWeeks săptămâni",
+                text = "Bompa · $totalWeeks weeks",
                 color = Color(0xFF555566),
                 fontSize = 12.sp
             )
@@ -303,7 +337,7 @@ private fun PlanHeader(
             ) {
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "COMPETIȚIE",
+                        text = "COMPETITION",
                         color = ColorComp.copy(alpha = 0.7f),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
@@ -316,7 +350,7 @@ private fun PlanHeader(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "$daysLeft zile rămase",
+                        text = "$daysLeft days left",
                         color = ColorComp.copy(alpha = 0.6f),
                         fontSize = 10.sp
                     )
@@ -366,7 +400,7 @@ private fun PhaseLegend() {
                     .clip(CircleShape)
                     .background(ColorComp)
             )
-            Text(text = "Competiție", color = Color(0xFF666677), fontSize = 10.sp, fontWeight = FontWeight.Medium)
+            Text(text = "Competition", color = Color(0xFF666677), fontSize = 10.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
@@ -377,11 +411,11 @@ private fun PeriodizationTimeline(
     today: LocalDate,
     competitionDate: LocalDate,
     selectedMeso: MesoCycle?,
-    onMesoClick: (MesoCycle) -> Unit
+    onMesoClick: (MesoCycle) -> Unit,
+    onMacroClick: () -> Unit
 ) {
     val totalDays = ChronoUnit.DAYS.between(plan.stratDate, plan.endDate).toFloat().coerceAtLeast(1f)
     val todayOffset = ChronoUnit.DAYS.between(plan.stratDate, today).toFloat().coerceIn(0f, totalDays)
-    val compOffset = ChronoUnit.DAYS.between(plan.stratDate, competitionDate).toFloat().coerceIn(0f, totalDays)
 
     Column(
         modifier = Modifier
@@ -390,73 +424,88 @@ private fun PeriodizationTimeline(
             .border(1.dp, BorderDark, RoundedCornerShape(14.dp))
             .padding(12.dp)
     ) {
-        // Riga MACRO
-        TimelineRow(label = "MACRO") { trackWidth ->
-            // Bara macro completă
+        // ── Rând MACRO ──────────────────────────────────────────────────────
+        TimelineRow(label = "MACRO") {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(20.dp)
                     .clip(RoundedCornerShape(6.dp))
                     .background(Color(0xFF1A1A3E))
-                    .border(1.dp, Color(0xFF2A2A5E), RoundedCornerShape(6.dp)),
+                    .border(1.dp, Color(0xFF2A2A5E), RoundedCornerShape(6.dp))
+                    .clickable { onMacroClick() },
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(
-                    text = "Macrociclu Forță",
+                    text = "Macrocycle",
                     color = ColorIndigo.copy(alpha = 0.8f),
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 8.dp)
                 )
+                // Today line în macro
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.5.dp)
+                        .align(Alignment.CenterStart)
+                        .padding(start = (todayOffset / totalDays * 100).coerceIn(0f, 99f).dp * 1.5f)
+                        .background(ColorIndigo.copy(alpha = 0.6f))
+                )
             }
-            // Linia TODAY
-            TodayLine(fraction = todayOffset / totalDays)
-            // Marker COMP
-            CompMarker(fraction = compOffset / totalDays)
         }
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // Riga MEZO
-        TimelineRow(label = "MEZO") { _ ->
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                plan.mesoCycles.forEach { meso ->
-                    val days = ChronoUnit.DAYS.between(meso.startDate, meso.endDate).toFloat()
-                    val fraction = days / totalDays
-                    val isSelected = meso.startDate == selectedMeso?.startDate
-                    Box(
-                        modifier = Modifier
-                            .weight(fraction)
-                            .height(20.dp)
-                            .clip(RoundedCornerShape(5.dp))
-                            .background(phaseBg(meso.phase))
-                            .border(
-                                width = if (isSelected) 1.5.dp else 0.5.dp,
-                                color = if (isSelected) phaseColor(meso.phase) else phaseColor(meso.phase).copy(alpha = 0.3f),
-                                shape = RoundedCornerShape(5.dp)
+        // ── Rând MEZO ───────────────────────────────────────────────────────
+        TimelineRow(label = "MEZO") {
+            Box(modifier = Modifier.fillMaxWidth().height(20.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    plan.mesoCycles.forEach { meso ->
+                        val days = ChronoUnit.DAYS.between(meso.startDate, meso.endDate).toFloat()
+                        val fraction = days / totalDays
+                        val isSelected = meso.startDate == selectedMeso?.startDate
+                        Box(
+                            modifier = Modifier
+                                .weight(fraction)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(5.dp))
+                                .background(phaseBg(meso.phase))
+                                .border(
+                                    width = if (isSelected) 1.5.dp else 0.5.dp,
+                                    color = if (isSelected) phaseColor(meso.phase) else phaseColor(meso.phase).copy(alpha = 0.3f),
+                                    shape = RoundedCornerShape(5.dp)
+                                )
+                                .clickable { onMesoClick(meso) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = meso.phase.replaceFirstChar { it.uppercase() },
+                                color = phaseColor(meso.phase),
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
-                            .clickable { onMesoClick(meso) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = meso.phase.replaceFirstChar { it.uppercase() },
-                            color = phaseColor(meso.phase),
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        }
                     }
                 }
+                // Today line peste mezo
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.5.dp)
+                        .align(Alignment.CenterStart)
+                        .offset(x = ((todayOffset / totalDays) * 300).dp)
+                        .background(ColorIndigo)
+                )
             }
-            TodayLine(fraction = todayOffset / totalDays)
-            CompMarker(fraction = compOffset / totalDays)
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-
-        // Etichete luni
         MonthLabels(planStart = plan.stratDate, totalDays = totalDays.toInt())
     }
 }
@@ -547,7 +596,7 @@ private fun MonthLabels(planStart: LocalDate, totalDays: Int) {
 
 @Composable
 private fun MicroCycleSelector(
-    mesoCycle: MesoCycle,
+    mesoCycles: List<MesoCycle>,  // <-- schimbat
     selectedMicro: MicroCycle?,
     today: LocalDate,
     totalWeeks: Int,
@@ -561,50 +610,41 @@ private fun MicroCycleSelector(
             .horizontalScroll(scrollState),
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        mesoCycle.microCycle.forEachIndexed { index, micro ->
-            val isCurrentWeek = !micro.startDate.isAfter(today) && !micro.endDate.isBefore(today)
-            val isSelected = micro.startDate == selectedMicro?.startDate
-            val weekNum = ChronoUnit.WEEKS.between(planStart, micro.startDate).toInt() + 1
+        mesoCycles.forEach { meso ->
+            meso.microCycle.forEachIndexed { index, micro ->
+                val isCurrentWeek = !micro.startDate.isAfter(today) && !micro.endDate.isBefore(today)
+                val isSelected = micro.startDate == selectedMicro?.startDate
+                val weekNum = ChronoUnit.WEEKS.between(planStart, micro.startDate).toInt() + 1
 
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(
-                        if (isSelected) {
-                            phaseBg(mesoCycle.phase)
-                        } else {
-                            Color(0xFF15151C)
-                        }
-                    )
-                    .border(
-                        width = if (isSelected) 1.5.dp else 0.5.dp,
-                        color = if (isSelected) {
-                            phaseColor(mesoCycle.phase)
-                        } else if (isCurrentWeek) {
-                            ColorIndigo.copy(alpha = 0.5f)
-                        } else {
-                            BorderDark
-                        },
-                        shape = RoundedCornerShape(10.dp)
-                    )
-                    .clickable { onMicroSelected(micro) }
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "S$weekNum",
-                        color = if (isSelected) phaseColor(mesoCycle.phase) else Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (isCurrentWeek) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            if (isSelected) phaseBg(meso.phase) else Color(0xFF15151C)
+                        )
+                        .border(
+                            width = if (isSelected) 1.5.dp else 0.5.dp,
+                            color = when {
+                                isSelected -> phaseColor(meso.phase)
+                                isCurrentWeek -> ColorIndigo.copy(alpha = 0.5f)
+                                else -> BorderDark
+                            },
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .clickable { onMicroSelected(micro) }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "azi",
-                            color = ColorIndigo,
-                            fontSize = 9.sp,
+                            text = "S$weekNum",
+                            color = if (isSelected) phaseColor(meso.phase) else Color.White,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
+                        if (isCurrentWeek) {
+                            Text("today", color = ColorIndigo, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -656,7 +696,7 @@ private fun WeekDayGrid(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .aspectRatio(0.75f)
+                        .height(56.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .background(
                             when {
@@ -678,32 +718,28 @@ private fun WeekDayGrid(
                             },
                             shape = RoundedCornerShape(10.dp)
                         )
-                        .clickable { onDayClick(date, workoutType, index) }
-                        .padding(4.dp),
+                        .clickable { onDayClick(date, workoutType, index) },
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         Text(
                             text = "${date.dayOfMonth}",
                             color = if (isToday) Color.White else Color(0xFF666677),
-                            fontSize = 10.sp,
+                            fontSize = 9.sp,
                             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(workoutBg(workoutType))
-                                .border(0.5.dp, workoutColor(workoutType).copy(alpha = 0.4f), RoundedCornerShape(4.dp))
-                                .padding(horizontal = 3.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = workoutLabel(workoutType),
-                                color = workoutColor(workoutType),
-                                fontSize = 8.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Text(
+                            text = workoutLabel(workoutType),
+                            color = workoutColor(workoutType),
+                            fontSize = 7.sp,
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1
+                        )
                     }
                 }
             }
@@ -712,7 +748,7 @@ private fun WeekDayGrid(
 }
 
 @Composable
-private fun DayDetailPanel(info: SelectedDayInfo) {
+private fun DayDetailPanel(info: SelectedDayInfo, macrocycleLabel: String) {
     val formatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy")
     val dayOfWeek = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
@@ -767,8 +803,7 @@ private fun DayDetailPanel(info: SelectedDayInfo) {
 
         // Rânduri detalii
         DetailRow("Mesocycle", "${info.mesoCycle.phase.replaceFirstChar { it.uppercase() }} · ${info.mesoCycle.microCycle.size} weeks")
-        DetailRow("Macrocycle", "General Strength · full plan")
-
+        DetailRow("Macrocycle", macrocycleLabel)
         Spacer(modifier = Modifier.height(12.dp))
 
         // Descriere fază

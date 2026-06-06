@@ -16,13 +16,14 @@ class TrainingPlanner {
 
     fun generatePlan(
         competitionDate: LocalDate,
-        startDate: LocalDate = LocalDate.now()
+        startDate: LocalDate = LocalDate.now(),
+        availableDays: Set<Int> = setOf(1, 2, 3, 4, 5),
+        focus: String = "full"
     ): TrainingPlan {
-        val start = startDate
-        val totalDays = ChronoUnit.DAYS.between(start, competitionDate).toInt()
-            .coerceAtLeast(7) // minim 1 saptamana ca sa nu crashuiasca
+        val totalDays = ChronoUnit.DAYS.between(startDate, competitionDate).toInt()
+            .coerceAtLeast(7)
 
-        var currentStart = start
+        var currentStart = startDate
         val mesoList = mutableListOf<MesoCycle>()
 
         for ((phase, percentage) in phases) {
@@ -34,22 +35,14 @@ class TrainingPlanner {
                 MicroCycle(
                     startDate = currentStart.plusDays((weekIndex * 7).toLong()),
                     endDate = currentStart.plusDays((weekIndex * 7 + 6).toLong()),
-                    workouts = MicroCycleGenerator.generate(phase)
+                    workouts = MicroCycleGenerator.generate(phase, availableDays, focus) // <-- aici
                 )
             }
 
-            mesoList.add(
-                MesoCycle(
-                    startDate = currentStart,
-                    endDate = phaseEnd,
-                    phase = phase,
-                    microCycle = microcycles
-                )
-            )
-
+            mesoList.add(MesoCycle(currentStart, phaseEnd, phase, microcycles))
             currentStart = phaseEnd
         }
 
-        return TrainingPlan(start, competitionDate, mesoList)
+        return TrainingPlan(startDate, competitionDate, mesoList)
     }
 }

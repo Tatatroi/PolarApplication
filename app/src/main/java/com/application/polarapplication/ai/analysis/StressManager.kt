@@ -8,12 +8,15 @@ class StressManager {
      * 1 -> Stres Ridicat
      */
     fun predictStress(inputs: DoubleArray): Int {
-        // AICI folosim numele fisierului tau Java (StressClassifier)
-        // si metoda lui (score)
         val result = StressClassifier.score(inputs)
-
-        // Rezultatul este un double[] de tipul [probabilitate_calm, probabilitate_stres]
         return if (result[1] > result[0]) 1 else 0
+    }
+
+    fun predictStressWithScore(inputs: DoubleArray): Pair<Int, Float> {
+        val result = StressClassifier.score(inputs)
+        val label = if (result[1] > result[0]) 1 else 0
+        val score = result[1].toFloat() // probabilitatea pentru clasa stress
+        return Pair(label, score)
     }
 
     /**

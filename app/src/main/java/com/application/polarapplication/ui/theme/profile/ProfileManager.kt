@@ -58,6 +58,11 @@ class ProfileManager(context: Context) {
     )
     val userName: StateFlow<String> = _userName
 
+    private val _planFocus = MutableStateFlow(
+        prefs.getString("planFocus", "full") ?: "full"
+    )
+    val planFocus: StateFlow<String> = _planFocus
+
     fun saveProfile(
         newAge: Int,
         newWeight: Float,
@@ -70,7 +75,8 @@ class ProfileManager(context: Context) {
         newPlanStartDateMillis: Long? = _planStartDateMillis.value,
         newDobMillis: Long? = _dobMillis.value,
         newAvailableDays: Set<Int> = _availableDays.value,
-        newUserName: String = _userName.value
+        newUserName: String = _userName.value,
+        newPlanFocus: String = _planFocus.value
     ) {
         val editor = prefs.edit()
 
@@ -80,6 +86,7 @@ class ProfileManager(context: Context) {
         editor.putString("gender", newGender)
         editor.putInt("rhr", newRhr)
         editor.putString("user_name", newUserName)
+        editor.putString("planFocus", newPlanFocus)
 
         if (newCustomHrMax != null) {
             editor.putInt("customHrMax", newCustomHrMax)
@@ -127,5 +134,6 @@ class ProfileManager(context: Context) {
         _dobMillis.value = newDobMillis
         _availableDays.value = newAvailableDays
         _userName.value = newUserName
+        _planFocus.value = newPlanFocus
     }
 }

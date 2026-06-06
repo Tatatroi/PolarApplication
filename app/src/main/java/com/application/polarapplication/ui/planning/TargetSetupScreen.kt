@@ -22,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.polarapplication.ui.theme.dashboard.DashboardViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.platform.LocalLocale
 
 val AppBackground = Color(0xFF0D0D12)
 val CardSurfaceDark = Color(0xFF15151C)
@@ -34,11 +35,19 @@ fun TargetSetupScreen(
     viewModel: DashboardViewModel = viewModel(),
     onPlanGenerated: () -> Unit
 ) {
-    var competitionDate by remember { mutableStateOf(System.currentTimeMillis() + (86400000 * 30)) } // Default peste 30 zile
-    var selectedGoal by remember { mutableStateOf("Maraton / Endurance") }
+    var competitionDate by remember { mutableStateOf(System.currentTimeMillis() + (86400000 * 30)) }
+    var selectedGoal by remember { mutableStateOf("Marathon / Endurance") }
     var showDatePicker by remember { mutableStateOf(false) }
 
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = competitionDate)
+
+    // Mapează goal → focus string
+    val focusMap = mapOf(
+        "Marathon / Endurance" to "endurance",
+        "Sprinting / Speed"    to "speed",
+        "Powerlifting / Strength" to "strength",
+        "General Fitness"      to "full"
+    )
 
     Column(
         modifier = Modifier
@@ -50,21 +59,20 @@ fun TargetSetupScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Planificare Inteligentă",
+            text = "Smart Planning",
             color = Color.White,
             fontSize = 28.sp,
             fontWeight = FontWeight.Black
         )
         Text(
-            text = "Configurează competiția pentru algoritmul AI",
+            text = "Set up your competition for the AI algorithm",
             color = Color.Gray,
             fontSize = 14.sp
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // --- SELECTIE DATA ---
-        Text("DATA COMPETIȚIEI", color = NeonBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text("COMPETITION DATE", color = NeonBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(12.dp))
 
         Card(
@@ -80,18 +88,22 @@ fun TargetSetupScreen(
             ) {
                 Icon(Icons.Default.DateRange, contentDescription = null, tint = NeonBlue)
                 Spacer(modifier = Modifier.width(16.dp))
-                val formattedDate = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(Date(competitionDate))
+                val formattedDate = SimpleDateFormat("dd MMMM yyyy", LocalLocale.current.platformLocale).format(Date(competitionDate))
                 Text(text = formattedDate, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // --- SELECTIE OBIECTIV ---
-        Text("TIPUL OBIECTIVULUI", color = NeonBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text("TRAINING FOCUS", color = NeonBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(12.dp))
 
-        val goals = listOf("Maraton / Endurance", "Sprinting / Speed", "Powerlifting / Strength", "General Fitness")
+        val goals = listOf(
+            "Marathon / Endurance",
+            "Sprinting / Speed",
+            "Powerlifting / Strength",
+            "General Fitness"
+        )
         goals.forEach { goal ->
             GoalCard(
                 title = goal,
@@ -103,14 +115,14 @@ fun TargetSetupScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // --- BUTON GENERARE ---
         Button(
             onClick = {
                 val selectedLocalDate = java.time.Instant
                     .ofEpochMilli(competitionDate)
                     .atZone(java.time.ZoneId.systemDefault())
                     .toLocalDate()
-                viewModel.setCompetitionDate(selectedLocalDate)
+                val focus = focusMap[selectedGoal] ?: "full"
+                viewModel.setCompetitionDate(selectedLocalDate, focus) // <-- transmite focus
                 onPlanGenerated()
             },
             modifier = Modifier
@@ -120,11 +132,10 @@ fun TargetSetupScreen(
             colors = ButtonDefaults.buttonColors(containerColor = NeonBlue),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("GENEREAZĂ PERIODIZARE BOMPA", color = AppBackground, fontWeight = FontWeight.Black)
+            Text("GENERATE BOMPA PLAN", color = AppBackground, fontWeight = FontWeight.Black)
         }
     }
 
-    // Modal Date Picker
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -132,7 +143,7 @@ fun TargetSetupScreen(
                 TextButton(onClick = {
                     competitionDate = datePickerState.selectedDateMillis ?: competitionDate
                     showDatePicker = false
-                }) { Text("CONFIRMĂ", color = NeonBlue) }
+                }) { Text("CONFIRM", color = NeonBlue) }
             }
         ) {
             DatePicker(state = datePickerState)

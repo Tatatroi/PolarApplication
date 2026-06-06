@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.application.polarapplication.ai.analysis.AiBiometricCard
 import com.application.polarapplication.ui.info.InfoIconButton
 import com.application.polarapplication.ui.info.MetricInfo
 import com.application.polarapplication.ui.info.MetricInfoData
@@ -254,43 +255,22 @@ fun ActiveWorkoutScreen(
 
             // ── Chart Pager ───────────────────────────────────────────────────
             WorkoutChartPager(
-                samples     = hrSamples.toList(),
-                peaks       = peaks.toList(),
-                maxHr       = maxHr,
-                workoutType = workoutType,
-                modifier    = Modifier
+                samples      = hrSamples.toList(),
+                peaks        = peaks.toList(),
+                maxHr        = maxHr,
+                workoutType  = workoutType,
+                // ── Adaugă astea ──────────────────
+                stressLevel  = vitals.stressLevel,
+                stressScore  = vitals.stressScore,
+                heartRate    = vitals.heartRate,
+                cnsScore     = vitals.cnsScore,
+                rmssd        = vitals.rmssd,
+                modifier     = Modifier
                     .fillMaxWidth()
                     .weight(0.35f)
                     .padding(horizontal = 16.dp)
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // ── AI Strip ──────────────────────────────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(11.dp)).background(GlassBg)
-                    .border(1.dp, GlassBorder, RoundedCornerShape(11.dp))
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(animatedAiColor))
-                    Column {
-                        Text("AI BIOMETRIC ANALYSIS", color = Color.White.copy(alpha = 0.2f), fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
-                        Text(zoneConfig.aiStatus, color = animatedAiColor, fontSize = 12.sp, fontWeight = FontWeight.Black)
-                    }
-                }
-                Box(
-                    modifier = Modifier.clip(RoundedCornerShape(5.dp))
-                        .background(animatedAiColor.copy(alpha = 0.08f))
-                        .border(1.dp, animatedAiColor.copy(alpha = 0.2f), RoundedCornerShape(5.dp))
-                        .padding(horizontal = 7.dp, vertical = 2.dp)
-                ) {
-                    Text(zoneConfig.aiShort, color = animatedAiColor, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
-                }
-            }
 
             Spacer(modifier = Modifier.height(6.dp))
 

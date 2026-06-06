@@ -1,9 +1,7 @@
 package com.application.polarapplication.ui.theme.dashboard
 
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -18,22 +16,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.application.polarapplication.ai.analysis.AiBiometricCard
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WorkoutChartPager(
-    samples:     List<HrSample>,
-    peaks:       List<Peak>,
-    maxHr:       Int,
-    workoutType: String,
-    modifier:    Modifier = Modifier
+    samples:      List<HrSample>,
+    peaks:        List<Peak>,
+    maxHr:        Int,
+    workoutType:  String,
+    // ── Parametri noi pentru AI slide ─────────────────────────────────────────
+    stressLevel:  Int    = 0,
+    stressScore:  Float  = 0f,
+    heartRate:    Int    = 0,
+    cnsScore:     Int    = 0,
+    rmssd:        Double = 0.0,
+    modifier:     Modifier = Modifier
 ) {
-    val pagerState = rememberPagerState(pageCount = { 3 })
-
-    val pageLabels = listOf("Timeline", "Zones", "Recovery")
+    val pageLabels = listOf("Timeline", "Zones", "Recovery", "AI Analysis")
+    val pagerState = rememberPagerState(pageCount = { pageLabels.size })
 
     Column(modifier = modifier) {
-        // ── Page indicators + labels ──────────────────────────────────────────
+        // ── Page label + indicators ───────────────────────────────────────────
         Row(
             modifier              = Modifier.fillMaxWidth().padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -41,7 +45,10 @@ fun WorkoutChartPager(
         ) {
             Text(
                 pageLabels[pagerState.currentPage],
-                color      = Color.White.copy(alpha = 0.7f),
+                color      = if (pagerState.currentPage == 3)
+                    Color(0xFF818CF8) // AI slide — indigo
+                else
+                    Color.White.copy(alpha = 0.7f),
                 fontSize   = 11.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -49,16 +56,18 @@ fun WorkoutChartPager(
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalAlignment     = Alignment.CenterVertically
             ) {
-                repeat(3) { idx ->
+                pageLabels.forEachIndexed { idx, _ ->
                     val isActive = pagerState.currentPage == idx
+                    val dotColor = when {
+                        isActive && idx == 3 -> Color(0xFF818CF8) // AI — indigo
+                        isActive             -> Color(0xFF818CF8)
+                        else                 -> Color.White.copy(alpha = 0.25f)
+                    }
                     Box(
                         modifier = Modifier
                             .size(if (isActive) 7.dp else 5.dp)
                             .clip(CircleShape)
-                            .background(
-                                if (isActive) Color(0xFF818CF8)
-                                else Color.White.copy(alpha = 0.25f)
-                            )
+                            .background(dotColor)
                     )
                 }
             }
@@ -77,28 +86,37 @@ fun WorkoutChartPager(
                     modifier = Modifier.fillMaxSize()
                 )
                 1 -> WorkoutZoneChart(
-                    samples     = samples,
-                    targetZone  = when (workoutType.uppercase()) {
+                    samples    = samples,
+                    targetZone = when (workoutType.uppercase()) {
                         "ENDURANCE" -> 3
                         "SPEED"     -> 4
                         "STRENGTH"  -> 3
                         "RECOVERY"  -> 2
                         else        -> 3
                     },
-                    modifier    = Modifier.fillMaxSize().padding(horizontal = 4.dp)
+                    modifier   = Modifier.fillMaxSize().padding(horizontal = 4.dp)
                 )
                 2 -> WorkoutRecoveryChart(
                     samples  = samples,
                     peaks    = peaks,
                     modifier = Modifier.fillMaxSize()
                 )
+                3 -> AiBiometricCard(
+                    stressLevel   = stressLevel,
+                    stressScore   = stressScore,
+                    heartRate     = heartRate,
+                    cnsScore      = cnsScore,
+                    rmssd         = rmssd,
+                    windowSeconds = 30,
+                    modifier      = Modifier.fillMaxSize()
+                )
             }
         }
 
-        // ── Swipe hint (prima volta) ──────────────────────────────────────────
+        // ── Swipe hint ────────────────────────────────────────────────────────
         if (pagerState.currentPage == 0 && samples.size < 10) {
             Text(
-                "← swipe for zones & recovery →",
+                "← swipe for zones, recovery & AI →",
                 color    = Color.White.copy(alpha = 0.15f),
                 fontSize = 9.sp,
                 modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 4.dp)

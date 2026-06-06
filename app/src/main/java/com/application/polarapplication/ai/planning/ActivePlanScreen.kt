@@ -2,6 +2,7 @@ package com.application.polarapplication.ui.planning
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -158,7 +159,8 @@ private fun workoutIcon(type: WorkoutType): ImageVector = when (type) {
 @Composable
 fun ActivePlanScreen(
     viewModel: DashboardViewModel = viewModel(),
-    onGenerateNewPlan: () -> Unit
+    onGenerateNewPlan: () -> Unit,
+    onViewCalendar: () -> Unit = {}
 ) {
     val competitionDate by viewModel.competitionDate.collectAsState()
     val planStartDate by viewModel.planStartDate.collectAsState()
@@ -215,7 +217,8 @@ fun ActivePlanScreen(
             daysToComp = daysToComp,
             totalWeeks = totalWeeks,
             competitionDate = effectiveComp,
-            onNewPlan = onGenerateNewPlan
+            onNewPlan = onGenerateNewPlan,
+            onViewCalendar = onViewCalendar
         )
 
         // ── 3 Tabs ───────────────────────────────────────────────────────────
@@ -331,7 +334,8 @@ private fun PlanHeader(
     daysToComp: Long,
     totalWeeks: Int,
     competitionDate: LocalDate,
-    onNewPlan: () -> Unit
+    onNewPlan: () -> Unit,
+    onViewCalendar: () -> Unit
 ) {
     val fmt = DateTimeFormatter.ofPattern("MMM dd, yyyy")
     Row(
@@ -353,6 +357,33 @@ private fun PlanHeader(
                 color = Color.White.copy(alpha = 0.3f),
                 fontSize = 12.sp
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(AccentIndigo.copy(alpha = 0.08f))
+                    .border(1.dp, AccentIndigo.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                    .clickable { onViewCalendar() }
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Icon(
+                        Icons.Default.CalendarMonth,
+                        contentDescription = null,
+                        tint = AccentIndigo,
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Text(
+                        "View Timeline",
+                        color = AccentIndigo,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
         Column(
             horizontalAlignment = Alignment.End,
@@ -894,6 +925,7 @@ private fun FullPlanTab(
     )
     val fmt = DateTimeFormatter.ofPattern("MMM dd")
     val fmtFull = DateTimeFormatter.ofPattern("MMM dd, yyyy")
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     var expandedBlock by remember { mutableStateOf<Int?>(null) }
 
@@ -912,7 +944,7 @@ private fun FullPlanTab(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("24-Week Plan", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text("$totalWeeks-Week Plan", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             Text(
                 "Week $currentWeekNum · ${(progressFraction * 100).toInt()}%",
                 color = AccentIndigo,
@@ -1095,9 +1127,7 @@ private fun FullPlanTab(
         }
 
         Button(
-            onClick = {
-                viewModel.setCompetitionDate(LocalDate.now().plusWeeks(24))
-            },
+            onClick = { showDeleteDialog = true },
             modifier = Modifier.weight(1f).height(46.dp),
             colors = ButtonDefaults.buttonColors(containerColor = AccentRed.copy(alpha = 0.06f)),
             shape = RoundedCornerShape(12.dp),
@@ -1107,6 +1137,69 @@ private fun FullPlanTab(
             Spacer(modifier = Modifier.width(6.dp))
             Text("Delete Plan", color = AccentRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            containerColor   = Color(0xFF1A1A24),
+            shape            = RoundedCornerShape(20.dp),
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(AccentRed.copy(alpha = 0.1f))
+                        .border(1.dp, AccentRed.copy(alpha = 0.2f), RoundedCornerShape(14.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.DeleteOutline, null,
+                        tint = AccentRed, modifier = Modifier.size(22.dp))
+                }
+            },
+            title = {
+                Text("Delete Training Plan?", color = Color.White,
+                    fontSize = 17.sp, fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Center)
+            },
+            text = {
+                Text(
+                    "This will permanently delete your Bompa plan. " +
+                            "Your session history will not be affected.",
+                    color = Color.White.copy(alpha = 0.45f),
+                    fontSize = 13.sp, lineHeight = 18.sp,
+                    textAlign = TextAlign.Center
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteDialog = false
+                        viewModel.deletePlan()
+                        onGenerateNewPlan()
+                    },
+                    colors   = ButtonDefaults.buttonColors(containerColor = AccentRed.copy(alpha = 0.15f)),
+                    shape    = RoundedCornerShape(10.dp),
+                    border   = BorderStroke(1.dp, AccentRed.copy(alpha = 0.35f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Yes, Delete Plan", color = AccentRed,
+                        fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick  = { showDeleteDialog = false },
+                    colors   = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                    shape    = RoundedCornerShape(10.dp),
+                    border   = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cancel", color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
     }
 }
 

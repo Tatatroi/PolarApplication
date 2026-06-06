@@ -1,6 +1,7 @@
 package com.application.polarapplication.ui.theme.progress
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -14,6 +15,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -366,79 +371,282 @@ private fun RecoveryView(
     recoveryEvents: List<RecoveryEvent>,
     modifier:       Modifier = Modifier
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (recoveryEvents.isEmpty()) {
-            Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
-                Text("No sprint-recovery data detected.", color = Color.White.copy(alpha = 0.3f), fontSize = 12.sp)
+            Box(
+                modifier = Modifier.fillMaxWidth().height(100.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "No significant effort peaks detected.",
+                    color = Color.White.copy(alpha = 0.3f),
+                    fontSize = 12.sp
+                )
             }
             return@Column
         }
 
-        val fatigue = recoveryEvents.size >= 2 &&
-                recoveryEvents.takeLast(2).all { it.rating == RecoveryRating.POOR }
+        var showExplanation by remember { mutableStateOf(false) }
 
-        if (fatigue) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF818CF8).copy(alpha = 0.05f))
+                .border(1.dp, Color(0xFF818CF8).copy(alpha = 0.12f), RoundedCornerShape(10.dp))
+                .clickable { showExplanation = !showExplanation }
+                .padding(10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Row(
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFFFBBF24).copy(alpha = 0.1f))
-                    .border(1.dp, Color(0xFFFBBF24).copy(alpha = 0.3f), RoundedCornerShape(10.dp))
-                    .padding(10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment     = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("⚠", fontSize = 14.sp)
-                Text("Consider rest or lower intensity", color = Color(0xFFFBBF24), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Icon(
+                    Icons.Default.Info,
+                    null,
+                    tint = Color(0xFF818CF8).copy(alpha = 0.6f),
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    "What is cardiac recovery?",
+                    color = Color(0xFF818CF8),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Icon(
+                if (showExplanation) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                null,
+                tint = Color(0xFF818CF8).copy(alpha = 0.4f),
+                modifier = Modifier.size(16.dp)
+            )
+        }
+
+        AnimatedVisibility(visible = showExplanation) {
+            Box(
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color(0xFF818CF8).copy(alpha = 0.04f))
+                    .border(1.dp, Color(0xFF818CF8).copy(alpha = 0.08f), RoundedCornerShape(10.dp))
+                    .padding(10.dp)
+            ) {
+                Text(
+                    "After each intense effort, your heart should recover quickly. " +
+                            "A drop of 30+ bpm in under 2 minutes indicates good cardiovascular fitness. " +
+                            "Slow recovery (under 20 bpm) may signal fatigue or high cumulative load.",
+                    color = Color.White.copy(alpha = 0.45f),
+                    fontSize = 11.sp,
+                    lineHeight = 16.sp
+                )
             }
         }
 
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // ── Summary header ────────────────────────────────────────────────
+        val goodCount = recoveryEvents.count { it.rating != RecoveryRating.POOR }
+        val poorCount = recoveryEvents.size - goodCount
+        val overallFatigue = poorCount >= 2
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(
+                    if (overallFatigue) Color(0xFFF87171).copy(alpha = 0.07f)
+                    else Color(0xFF4ADE80).copy(alpha = 0.07f)
+                )
+                .border(
+                    1.dp,
+                    if (overallFatigue) Color(0xFFF87171).copy(alpha = 0.2f)
+                    else Color(0xFF4ADE80).copy(alpha = 0.2f),
+                    RoundedCornerShape(12.dp)
+                )
+                .padding(12.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    Text(
+                        if (overallFatigue) "Cardiac fatigue detected" else "Good cardiac recovery",
+                        color = if (overallFatigue) Color(0xFFF87171) else Color(0xFF4ADE80),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        "${recoveryEvents.size} effort peak${if (recoveryEvents.size != 1) "s" else ""} analyzed",
+                        color = Color.White.copy(alpha = 0.3f),
+                        fontSize = 11.sp
+                    )
+                }
+                Text(
+                    if (overallFatigue) "⚠" else "✓",
+                    fontSize = 22.sp
+                )
+            }
+        }
+
+        // ── Effort peaks ──────────────────────────────────────────────────
         recoveryEvents.forEachIndexed { idx, ev ->
-            val color = ev.rating.color
+            val accentColor = ev.rating.color
             val zoneC = zoneColor(ev.peak.zone)
 
-            Row(
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+            val recoveryQuality = when {
+                ev.hrDrop >= 30 -> "Fast recovery"
+                ev.hrDrop >= 20 -> "Moderate recovery"
+                else -> "Slow recovery"
+            }
+            val recoveryQualityColor = when {
+                ev.hrDrop >= 30 -> Color(0xFF4ADE80)
+                ev.hrDrop >= 20 -> Color(0xFFFBBF24)
+                else -> Color(0xFFF87171)
+            }
+
+            val interpretation = when {
+                ev.hrDrop >= 30 -> "Heart rate dropped quickly — good cardiovascular fitness."
+                ev.hrDrop >= 20 -> "Moderate recovery speed — normal for this intensity."
+                else -> "Slow recovery — possible fatigue or high effort accumulation."
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
                     .background(CardDark)
-                    .border(1.dp, color.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+                    .border(1.dp, accentColor.copy(alpha = 0.2f), RoundedCornerShape(14.dp))
+                    .padding(12.dp)
             ) {
-                Box(modifier = Modifier.width(4.dp).fillMaxHeight().background(color))
-                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment     = Alignment.CenterVertically
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Effort Peak #${idx + 1}",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(recoveryQualityColor.copy(alpha = 0.12f))
+                            .border(1.dp, recoveryQualityColor.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
-                        Text("Sprint #${idx + 1}", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Black)
-                        Box(
-                            modifier = Modifier.clip(RoundedCornerShape(6.dp))
-                                .background(color.copy(alpha = 0.12f))
-                                .border(1.dp, color.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
-                                .padding(horizontal = 8.dp, vertical = 2.dp)
-                        ) {
-                            Text(ev.rating.label, color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                        }
+                        Text(
+                            recoveryQuality,
+                            color = recoveryQualityColor,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(zoneC.copy(alpha = 0.15f)).padding(horizontal = 5.dp, vertical = 1.dp)) {
-                            Text(zoneName(ev.peak.zone), color = zoneC, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                        }
-                        Text("${ev.peak.bpm} BPM @ ${formatElapsed(ev.peak.elapsedSec)}", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Visual bar — peak HR vs drop
+                val maxPossible = 200f
+                val peakFrac = (ev.peak.bpm / maxPossible).coerceIn(0f, 1f)
+                val dropFrac = ((ev.peak.bpm - ev.hrDrop) / maxPossible).coerceIn(0f, 1f)
+
+                Column {
+                    Text(
+                        "Peak HR",
+                        color = Color.White.copy(alpha = 0.25f),
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color.White.copy(alpha = 0.05f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(peakFrac)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(zoneC.copy(alpha = 0.8f))
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(dropFrac)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(recoveryQualityColor.copy(alpha = 0.5f))
+                        )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("↓", color = color, fontSize = 14.sp, fontWeight = FontWeight.Black)
-                        Text("${formatElapsed(ev.recoveryTimeSec)} → -${ev.hrDrop} BPM", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(zoneC.copy(alpha = 0.15f))
+                                    .padding(horizontal = 5.dp, vertical = 1.dp)
+                            ) {
+                                Text(
+                                    zoneName(ev.peak.zone),
+                                    color = zoneC,
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Text(
+                                "${ev.peak.bpm} bpm",
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Black
+                            )
+                        }
+                        Text(
+                            "↓ ${ev.hrDrop} bpm in ${formatElapsed(ev.recoveryTimeSec)}",
+                            color = recoveryQualityColor,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Interpretation
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.White.copy(alpha = 0.03f))
+                        .padding(8.dp)
+                ) {
                     Text(
-                        "Recovery: -${ev.hrDrop} BPM ${if (ev.hrDrop >= 30) "✓" else if (ev.hrDrop >= 20) "~" else "✗"}",
-                        color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold
+                        interpretation,
+                        color = Color.White.copy(alpha = 0.4f),
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp
                     )
                 }
             }
         }
     }
 }
-
 // ─────────────────────────────────────────────
 // COMPONENTE EXISTENTE (păstrate neschimbate)
 // ─────────────────────────────────────────────

@@ -261,6 +261,29 @@ fun PremiumHistoryCard(
         "—"
     }
 
+    // ── Goal + Focus ──────────────────────────────────────────────────────────
+    val extraInfo = buildString {
+        if (session.sessionGoal.isNotEmpty()) append(session.sessionGoal)
+        if (session.sessionGoal.isNotEmpty() && session.focusArea.isNotEmpty()) append(" · ")
+        if (session.focusArea.isNotEmpty()) append(session.focusArea)
+    }
+    if (extraInfo.isNotEmpty()) {
+        Text(
+            text = extraInfo,
+            color = theme.color.copy(alpha = 0.6f),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+    }
+
+    Text(
+        text = dateStr,
+        color = Color.White.copy(alpha = 0.3f),
+        fontSize = 11.sp,
+        modifier = Modifier.padding(top = 2.dp)
+    )
+
     // Subtitlu cu activitatea (dacă există)
     val subtitle = buildString {
         append(session.type.uppercase())

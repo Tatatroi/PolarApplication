@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -45,56 +44,56 @@ import java.time.temporal.ChronoUnit
 // ─────────────────────────────────────────────
 // CULORI
 // ─────────────────────────────────────────────
-private val BgDark = Color(0xFF080808)
-private val GlassBg = Color(0x0AFFFFFF)
+private val BgDark      = Color(0xFF080808)
+private val GlassBg     = Color(0x0AFFFFFF)
 private val GlassBorder = Color(0x14FFFFFF)
 
 private fun workoutColor(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH -> Color(0xFF818CF8)
+    WorkoutType.STRENGTH  -> Color(0xFF818CF8)
     WorkoutType.ENDURANCE -> Color(0xFF4ADE80)
-    WorkoutType.SPEED -> Color(0xFFFBBF24)
-    WorkoutType.RECOVERY -> Color(0xFF60A5FA)
-    WorkoutType.REST -> Color(0xFF666677)
+    WorkoutType.SPEED     -> Color(0xFFFBBF24)
+    WorkoutType.RECOVERY  -> Color(0xFF60A5FA)
+    WorkoutType.REST      -> Color(0xFF666677)
 }
 
 private fun workoutBgColor(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH -> Color(0x1A818CF8)
+    WorkoutType.STRENGTH  -> Color(0x1A818CF8)
     WorkoutType.ENDURANCE -> Color(0x1A4ADE80)
-    WorkoutType.SPEED -> Color(0x1AFBBF24)
-    WorkoutType.RECOVERY -> Color(0x1A60A5FA)
-    WorkoutType.REST -> Color(0x1A666677)
+    WorkoutType.SPEED     -> Color(0x1AFBBF24)
+    WorkoutType.RECOVERY  -> Color(0x1A60A5FA)
+    WorkoutType.REST      -> Color(0x1A666677)
 }
 
 private fun workoutLabel(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH -> "STRENGTH"
+    WorkoutType.STRENGTH  -> "STRENGTH"
     WorkoutType.ENDURANCE -> "ENDURANCE"
-    WorkoutType.SPEED -> "SPEED"
-    WorkoutType.RECOVERY -> "RECOVERY"
-    WorkoutType.REST -> "REST"
+    WorkoutType.SPEED     -> "SPEED"
+    WorkoutType.RECOVERY  -> "RECOVERY"
+    WorkoutType.REST      -> "REST"
 }
 
 private fun workoutName(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH -> "Max Strength"
+    WorkoutType.STRENGTH  -> "Max Strength"
     WorkoutType.ENDURANCE -> "Aerobic Endurance"
-    WorkoutType.SPEED -> "Explosive Speed"
-    WorkoutType.RECOVERY -> "Active Recovery"
-    WorkoutType.REST -> "Rest Day"
+    WorkoutType.SPEED     -> "Explosive Speed"
+    WorkoutType.RECOVERY  -> "Active Recovery"
+    WorkoutType.REST      -> "Rest Day"
 }
 
 private fun workoutDuration(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH -> "45–60 min"
+    WorkoutType.STRENGTH  -> "45–60 min"
     WorkoutType.ENDURANCE -> "30–45 min"
-    WorkoutType.SPEED -> "30–40 min"
-    WorkoutType.RECOVERY -> "20–30 min"
-    WorkoutType.REST -> "—"
+    WorkoutType.SPEED     -> "30–40 min"
+    WorkoutType.RECOVERY  -> "20–30 min"
+    WorkoutType.REST      -> "—"
 }
 
 private fun workoutIntensity(type: WorkoutType) = when (type) {
-    WorkoutType.STRENGTH -> "80–85% 1RM · 5×5"
+    WorkoutType.STRENGTH  -> "80–85% 1RM · 5×5"
     WorkoutType.ENDURANCE -> "65–75% HRmax"
-    WorkoutType.SPEED -> "10×20 sec sprint"
-    WorkoutType.RECOVERY -> "sub 65% HRmax"
-    WorkoutType.REST -> "Odihnă totală"
+    WorkoutType.SPEED     -> "10×20 sec sprint"
+    WorkoutType.RECOVERY  -> "sub 65% HRmax"
+    WorkoutType.REST      -> "Full rest"
 }
 
 private fun cnsHint(cnsScore: Int, workoutType: WorkoutType): String {
@@ -102,25 +101,25 @@ private fun cnsHint(cnsScore: Int, workoutType: WorkoutType): String {
     return when {
         cnsScore >= 70 -> "CNS rested — intense training recommended"
         cnsScore >= 50 -> "CNS normal — standard training recommended"
-        cnsScore > 0 -> "CNS fatigued — prioritize recovery"
-        else -> "Connect sensor for CNS analysis"
+        cnsScore > 0   -> "CNS fatigued — prioritize recovery"
+        else           -> "Connect sensor for CNS analysis"
     }
 }
 
 private fun cnsHintColor(cnsScore: Int): Color = when {
     cnsScore >= 70 -> Color(0xFF4ADE80)
     cnsScore >= 50 -> Color(0xFFFBBF24)
-    cnsScore > 0 -> Color(0xFFF87171)
-    else -> Color(0xFF555566)
+    cnsScore > 0   -> Color(0xFFF87171)
+    else           -> Color(0xFF555566)
 }
 
 private fun phaseColor(phase: String) = when (phase.lowercase()) {
-    "general" -> Color(0xFF4ADE80)
+    "general"  -> Color(0xFF4ADE80)
     "specific" -> Color(0xFFFBBF24)
-    "precomp" -> Color(0xFFA78BFA)
-    "comp" -> Color(0xFFF87171)
+    "precomp"  -> Color(0xFFA78BFA)
+    "comp"     -> Color(0xFFF87171)
     "recovery" -> Color(0xFF67E8F9)
-    else -> Color(0xFF818CF8)
+    else       -> Color(0xFF818CF8)
 }
 
 // ─────────────────────────────────────────────
@@ -133,16 +132,19 @@ fun DashboardScreen(
     onMaximizeWorkout: () -> Unit,
     onNavigateToTest: () -> Unit = {}
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState         by viewModel.uiState.collectAsState()
     val competitionDate by viewModel.competitionDate.collectAsState()
-    val planStartDate by viewModel.planStartDate.collectAsState()
-    val today = remember { LocalDate.now() }
+    val planStartDate   by viewModel.planStartDate.collectAsState()
 
-    val effectiveComp = competitionDate ?: today.plusWeeks(24)
+    // ── SESIUNI PENTRU CNS EVOLUTION ──────────────────────────────────────────
+    val allSessions by viewModel.allSessions.collectAsState(initial = emptyList())
+
+    val today          = remember { LocalDate.now() }
+    val effectiveComp  = competitionDate ?: today.plusWeeks(24)
     val effectiveStart = planStartDate ?: today
 
     val planner = remember { TrainingPlanner() }
-    val plan = remember(effectiveStart, effectiveComp) {
+    val plan    = remember(effectiveStart, effectiveComp) {
         planner.generatePlan(effectiveComp, effectiveStart)
     }
 
@@ -170,28 +172,23 @@ fun DashboardScreen(
         ?.coerceAtLeast(0) ?: 0
 
     val daysToComp = ChronoUnit.DAYS.between(today, effectiveComp).coerceAtLeast(0)
+    val userName   by viewModel.profileManager.userName.collectAsState()
 
-    val userName by viewModel.profileManager.userName.collectAsState()
-    // Blob color reactioneaza la puls
-    val hrPct = uiState.vitals.heartRate.toFloat() / 200f
-    val blobColor by animateColorAsState(
+    val hrPct      = uiState.vitals.heartRate.toFloat() / 200f
+    val blobColor  by animateColorAsState(
         targetValue = when {
             hrPct >= 0.9f -> Color(0x0DEF4444)
             hrPct >= 0.8f -> Color(0x0DF97316)
             hrPct >= 0.7f -> Color(0x0D4ADE80)
             hrPct >= 0.6f -> Color(0x0D60A5FA)
-            else -> Color(0x0D6366F1)
+            else          -> Color(0x0D6366F1)
         },
         animationSpec = tween(1000),
         label = "blob"
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BgDark)
-    ) {
-        // Blob decorativ fundal
+    Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
+        // Blob decorativ
         Box(
             modifier = Modifier
                 .size(320.dp)
@@ -214,20 +211,20 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             DashHeader(
-                userName = userName.ifBlank { "Athlete" },
-                daysToComp = daysToComp,
-                phaseName = currentMeso?.phase ?: "—",
-                currentWeekNum = currentWeekNum,
-                totalWeeks = totalWeeks,
+                userName        = userName.ifBlank { "Athlete" },
+                daysToComp      = daysToComp,
+                phaseName       = currentMeso?.phase ?: "—",
+                currentWeekNum  = currentWeekNum,
+                totalWeeks      = totalWeeks,
                 competitionDate = effectiveComp
             )
 
             Spacer(modifier = Modifier.height(14.dp))
 
             SensorCard(
-                device = uiState.device,
-                vitals = uiState.vitals,
-                onDisconnectClick = {
+                device             = uiState.device,
+                vitals             = uiState.vitals,
+                onDisconnectClick  = {
                     if (uiState.device.deviceId.isNotEmpty()) {
                         viewModel.toggleConnection(uiState.device.deviceId)
                     }
@@ -237,7 +234,7 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             val athleticScores by viewModel.athleticProfileManager.scores.collectAsState()
-            val hasTestDone by viewModel.athleticProfileManager.hasCompletedInitialTest.collectAsState()
+            val hasTestDone    by viewModel.athleticProfileManager.hasCompletedInitialTest.collectAsState()
 
             if (hasTestDone) {
                 AthleticProfileCardSmall(scores = athleticScores)
@@ -250,68 +247,52 @@ fun DashboardScreen(
                         .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
                         .clickable { onNavigateToTest() }
                         .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Icon(
-                        Icons.Default.MonitorHeart,
-                        null,
-                        tint = Color(0xFF818CF8),
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Icon(Icons.Default.MonitorHeart, null, tint = Color(0xFF818CF8), modifier = Modifier.size(20.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "Athletic Profile",
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            "Take the evaluation test to build your profile",
-                            color = Color.White.copy(alpha = 0.3f),
-                            fontSize = 11.sp
-                        )
+                        Text("Athletic Profile", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Take the evaluation test to build your profile", color = Color.White.copy(alpha = 0.3f), fontSize = 11.sp)
                     }
-                    Icon(
-                        Icons.Default.ArrowForwardIos,
-                        null,
-                        tint = Color.White.copy(alpha = 0.2f),
-                        modifier = Modifier.size(14.dp)
-                    )
+                    Icon(Icons.Default.ArrowForwardIos, null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(14.dp))
                 }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Antrenament activ — mini preview
+            // Antrenament activ
             if (uiState.device.isConnected && uiState.isWorkoutActive) {
                 ActiveSessionCard(
-                    vitals = uiState.vitals,
-                    workoutType = workoutLabel(todayWorkoutType),
+                    vitals       = uiState.vitals,
+                    workoutType  = workoutLabel(todayWorkoutType),
                     onMaximizeWorkout = onMaximizeWorkout
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             } else if (uiState.device.isConnected) {
                 WorkoutControlPanel(
-                    isActive = uiState.isWorkoutActive,
-                    vitals = uiState.vitals,
-                    onStart = { config -> viewModel.startWorkout(config) },
-                    onStop = { type -> viewModel.stopWorkout(type) },
-                    onMaximizeWorkout = onMaximizeWorkout
+                    isActive         = uiState.isWorkoutActive,
+                    vitals           = uiState.vitals,
+                    onStart          = { config -> viewModel.startWorkout(config) },
+                    onStop           = { type -> viewModel.stopWorkout(type) },
+                    onMaximizeWorkout = onMaximizeWorkout,
+                    sessions     = allSessions,
+                    currentPhase = currentMeso?.phase ?: "general"
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             }
 
-            CnsCard(vitals = uiState.vitals)
+            // ── CNS EVOLUTION (înlocuiește CnsCard) ───────────────────────────
+            CnsEvolutionCard(sessions = allSessions)
 
             Spacer(modifier = Modifier.height(10.dp))
 
             if (competitionDate != null) {
                 PhaseCompactCard(
-                    phaseName = currentMeso?.phase ?: "—",
-                    weeksLeft = weeksLeftInPhase,
-                    weekNum = currentWeekNum,
-                    totalWeeks = totalWeeks,
+                    phaseName       = currentMeso?.phase ?: "—",
+                    weeksLeft       = weeksLeftInPhase,
+                    weekNum         = currentWeekNum,
+                    totalWeeks      = totalWeeks,
                     competitionDate = effectiveComp
                 )
                 Spacer(modifier = Modifier.height(10.dp))
@@ -319,7 +300,7 @@ fun DashboardScreen(
 
             TodayWorkoutCard(
                 workoutType = todayWorkoutType,
-                cnsScore = uiState.vitals.cnsScore,
+                cnsScore    = uiState.vitals.cnsScore,
                 isConnected = uiState.device.isConnected
             )
 
@@ -343,31 +324,30 @@ private fun DashHeader(
 ) {
     val fmt = DateTimeFormatter.ofPattern("dd MMM yyyy")
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier              = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top
+        verticalAlignment     = Alignment.Top
     ) {
         Column {
             val greeting = when (java.time.LocalTime.now().hour) {
-                in 5..11 -> "Good morning"
+                in 5..11  -> "Good morning"
                 in 12..17 -> "Good afternoon"
                 in 18..21 -> "Good evening"
-                else -> "Hey"
+                else      -> "Hey"
             }
             val todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, dd MMM"))
-
             Text("$greeting, $userName", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
             Text(todayStr, color = Color.White.copy(alpha = 0.25f), fontSize = 12.sp)
             Spacer(modifier = Modifier.height(6.dp))
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(phaseColor(phaseName)))
                 Text(
-                    text = "${phaseName.replaceFirstChar { it.uppercase() }} · S$currentWeekNum/$totalWeeks",
-                    color = Color.White.copy(alpha = 0.3f),
-                    fontSize = 11.sp,
+                    "${phaseName.replaceFirstChar { it.uppercase() }} · S$currentWeekNum/$totalWeeks",
+                    color      = Color.White.copy(alpha = 0.3f),
+                    fontSize   = 11.sp,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -399,7 +379,7 @@ private fun SensorCard(
     vitals: AthleteVitals,
     onDisconnectClick: () -> Unit
 ) {
-    val hrPct = (vitals.heartRate.toFloat() / 200f).coerceIn(0f, 1f)
+    val hrPct     = (vitals.heartRate.toFloat() / 200f).coerceIn(0f, 1f)
     val zoneColor by animateColorAsState(
         targetValue = if (device.isConnected) {
             when {
@@ -407,11 +387,9 @@ private fun SensorCard(
                 hrPct >= 0.8f -> Color(0xFFF97316)
                 hrPct >= 0.7f -> Color(0xFF4ADE80)
                 hrPct >= 0.6f -> Color(0xFF60A5FA)
-                else -> Color(0xFF4ADE80)
+                else          -> Color(0xFF4ADE80)
             }
-        } else {
-            Color.White.copy(alpha = 0.2f)
-        },
+        } else Color.White.copy(alpha = 0.2f),
         animationSpec = tween(500),
         label = "zoneColor"
     )
@@ -424,18 +402,18 @@ private fun SensorCard(
             .border(1.dp, GlassBorder, RoundedCornerShape(18.dp))
             .clickable(enabled = device.isConnected) { onDisconnectClick() }
             .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Box(
-            modifier = Modifier.size(44.dp).clip(CircleShape).background(zoneColor.copy(alpha = 0.1f)),
+            modifier         = Modifier.size(44.dp).clip(CircleShape).background(zoneColor.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = if (device.isConnected) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                imageVector        = if (device.isConnected) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = null,
-                tint = zoneColor,
-                modifier = Modifier.size(22.dp)
+                tint               = zoneColor,
+                modifier           = Modifier.size(22.dp)
             )
         }
 
@@ -482,7 +460,7 @@ private fun ActiveSessionCard(
             .border(1.dp, Color(0x33F97316), RoundedCornerShape(16.dp))
             .padding(14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment     = Alignment.CenterVertically
     ) {
         Column {
             Text("ACTIVE SESSION", color = Color(0xFFF97316), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
@@ -493,77 +471,12 @@ private fun ActiveSessionCard(
             }
         }
         Button(
-            onClick = onMaximizeWorkout,
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0x33F97316)),
-            shape = RoundedCornerShape(10.dp),
+            onClick        = onMaximizeWorkout,
+            colors         = ButtonDefaults.buttonColors(containerColor = Color(0x33F97316)),
+            shape          = RoundedCornerShape(10.dp),
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
         ) {
             Text("Live →", color = Color(0xFFF97316), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-// ─────────────────────────────────────────────
-// CNS CARD
-// ─────────────────────────────────────────────
-
-@Composable
-private fun CnsCard(vitals: AthleteVitals) {
-    val cns = vitals.cnsScore.coerceIn(0, 100)
-    val cnsColor by animateColorAsState(
-        targetValue = when {
-            cns >= 70 -> Color(0xFF4ADE80)
-            cns >= 50 -> Color(0xFFFBBF24)
-            cns > 0 -> Color(0xFFF87171)
-            else -> Color.White.copy(alpha = 0.2f)
-        },
-        animationSpec = tween(500),
-        label = "cnsColor"
-    )
-    val cnsLabel = when {
-        cns >= 70 -> "RESTED"
-        cns >= 50 -> "NORMAL"
-        cns > 0 -> "FATIGUED"
-        else -> "N/A"
-    }
-    val animatedFrac by animateFloatAsState(targetValue = cns / 100f, animationSpec = tween(800), label = "cnsFrac")
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(GlassBg)
-            .border(1.dp, GlassBorder, RoundedCornerShape(16.dp))
-            .padding(14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("CNS READINESS", color = Color.White.copy(alpha = 0.25f), fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                    InfoIconButton(info = MetricInfoData.CNS, tint = Color.White.copy(alpha = 0.15f))
-                }
-                Text("based on live RMSSD", color = Color.White.copy(alpha = 0.18f), fontSize = 10.sp)
-            }
-            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(if (cns > 0) "$cns" else "—", color = cnsColor, fontSize = 28.sp, fontWeight = FontWeight.Black, lineHeight = 30.sp)
-                Text(cnsLabel, color = cnsColor, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 4.dp))
-            }
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-        Box(
-            modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)).background(Color.White.copy(alpha = 0.05f))
-        ) {
-            Box(modifier = Modifier.fillMaxWidth(animatedFrac).fillMaxHeight().clip(RoundedCornerShape(2.dp)).background(cnsColor))
-        }
-        Spacer(modifier = Modifier.height(5.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            listOf("Exhausted", "Fatigued", "Normal", "Rested").forEach { lbl ->
-                Text(lbl, color = Color.White.copy(alpha = 0.12f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-            }
         }
     }
 }
@@ -581,7 +494,7 @@ private fun PhaseCompactCard(
     competitionDate: LocalDate
 ) {
     val color = phaseColor(phaseName)
-    val fmt = DateTimeFormatter.ofPattern("dd MMM yyyy")
+    val fmt   = DateTimeFormatter.ofPattern("dd MMM yyyy")
 
     Row(
         modifier = Modifier
@@ -591,7 +504,7 @@ private fun PhaseCompactCard(
             .border(1.dp, GlassBorder, RoundedCornerShape(14.dp))
             .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment     = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(color))
@@ -617,10 +530,10 @@ private fun TodayWorkoutCard(
     cnsScore: Int,
     isConnected: Boolean
 ) {
-    val color = workoutColor(workoutType)
-    val bgColor = workoutBgColor(workoutType)
+    val color     = workoutColor(workoutType)
+    val bgColor   = workoutBgColor(workoutType)
     val hintColor = if (isConnected) cnsHintColor(cnsScore) else Color.White.copy(alpha = 0.2f)
-    val hintText = if (isConnected) cnsHint(cnsScore, workoutType) else "Connect sensor for CNS recommendation"
+    val hintText  = if (isConnected) cnsHint(cnsScore, workoutType) else "Connect sensor for CNS recommendation"
 
     Column(
         modifier = Modifier
@@ -631,9 +544,9 @@ private fun TodayWorkoutCard(
             .padding(16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier              = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment     = Alignment.CenterVertically
         ) {
             Text("TODAY · BOMPA PLAN", color = Color.White.copy(alpha = 0.25f), fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Box(
@@ -652,9 +565,15 @@ private fun TodayWorkoutCard(
         Spacer(modifier = Modifier.height(12.dp))
 
         if (workoutType != WorkoutType.REST) {
-            Icon(Icons.Default.Timer, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
-            Spacer(modifier = Modifier.height(6.dp))
-            Icon(Icons.Default.FitnessCenter, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.Timer, null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
+                Text(workoutDuration(workoutType), color = Color.White.copy(alpha = 0.4f), fontSize = 12.sp)
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.FitnessCenter, null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
+                Text(workoutIntensity(workoutType), color = Color.White.copy(alpha = 0.4f), fontSize = 12.sp)
+            }
             Spacer(modifier = Modifier.height(10.dp))
         }
 
@@ -667,31 +586,9 @@ private fun TodayWorkoutCard(
                 .padding(10.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(
-                    Icons.Default
-                        .Psychology,
-                    contentDescription = null,
-                    tint = hintColor,
-                    modifier = Modifier.size(16.dp)
-                )
+                Icon(Icons.Default.Psychology, null, tint = hintColor, modifier = Modifier.size(16.dp))
                 Text(hintText, color = hintColor, fontSize = 12.sp, lineHeight = 17.sp)
             }
         }
-    }
-}
-
-@Composable
-private fun TodayDetailRow(icon: String, label: String, value: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Box(
-            modifier = Modifier
-                .size(28.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color.White.copy(alpha = 0.05f))
-                .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(8.dp)),
-            contentAlignment = Alignment.Center
-        ) { Text(icon, fontSize = 13.sp) }
-        Text(label, color = Color.White.copy(alpha = 0.3f), fontSize = 12.sp)
-        Text(value, color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
 }
